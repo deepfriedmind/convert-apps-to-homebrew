@@ -1,0 +1,121 @@
+# Source files (only include compiled dist)
+src/
+tsconfig.json
+jest.config.js
+
+# Development files
+.eslintrc.js
+.eslintrc.json
+.eslintignore
+
+# Testing
+coverage/
+.nyc_output
+**/*.test.ts
+**/*.test.js
+**/__tests__/
+test/
+tests/
+
+# Development dependencies
+node_modules/
+
+# Build artifacts (keep dist for npm)
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache
+.npm
+.eslintcache
+.cache
+.parcel-cache
+
+# Optional REPL history
+.node_repl_history
+
+# Yarn
+.yarn-integrity
+yarn.lock
+
+# Git
+.git/
+.gitignore
+
+# Documentation that's not needed in package
+TEST_COVERAGE.md
+docs/
+examples/
+
+# Development scripts
+scripts/
+tools/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Lock files (npm handles dependencies)
+yarn.lock
+pnpm-lock.yaml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Other development files
+.editorconfig
+.prettierrc
+.prettierignore
+renovate.json
+.dependabot/
+
+# Local development
+.env.local
+debug.log
+*.debug
