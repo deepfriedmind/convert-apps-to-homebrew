@@ -5,18 +5,21 @@ This document provides instructions for publishing `convert-apps-to-homebrew` to
 ## Pre-Publishing Checklist
 
 ### 1. Code Quality
+
 - [ ] All tests passing (`npm test`)
 - [ ] TypeScript compilation successful (`npm run build`)
 - [ ] No linting errors (`npm run lint`)
 - [ ] Code coverage acceptable (>70%)
 
 ### 2. Documentation
+
 - [ ] README.md updated with latest features
 - [ ] CHANGELOG.md updated with version changes
 - [ ] Examples updated if needed
 - [ ] API documentation current
 
 ### 3. Package Configuration
+
 - [ ] package.json version updated
 - [ ] Dependencies up to date
 - [ ] Keywords relevant and complete
@@ -24,6 +27,7 @@ This document provides instructions for publishing `convert-apps-to-homebrew` to
 - [ ] bin entry points to correct file
 
 ### 4. Build Verification
+
 - [ ] `npm run prepublishOnly` succeeds
 - [ ] `npm pack --dry-run` shows correct files
 - [ ] dist/ directory contains compiled code
@@ -189,6 +193,7 @@ npm audit fix --force
 ### Common Publishing Issues
 
 **"Package already exists"**
+
 ```bash
 # Check current version
 npm view convert-apps-to-homebrew version
@@ -198,6 +203,7 @@ npm version patch
 ```
 
 **"Authentication failed"**
+
 ```bash
 # Re-login to npm
 npm logout
@@ -205,6 +211,7 @@ npm login
 ```
 
 **"Files missing from package"**
+
 ```bash
 # Check files array in package.json
 # Verify .npmignore doesn't exclude needed files
@@ -212,6 +219,7 @@ npm pack --dry-run
 ```
 
 **"Build fails during publish"**
+
 ```bash
 # Test prepublishOnly script
 npm run prepublishOnly
@@ -236,24 +244,28 @@ npm publish
 ## Best Practices
 
 ### Version Strategy
+
 - Use semantic versioning strictly
 - Document breaking changes clearly
 - Provide migration guides for major versions
 - Consider deprecation warnings before breaking changes
 
 ### Documentation
+
 - Keep README.md current with features
 - Update examples with new functionality
 - Maintain comprehensive CHANGELOG.md
 - Document any breaking changes
 
 ### Testing
+
 - Maintain high test coverage
 - Test on multiple Node.js versions
 - Verify package installation works
 - Test CLI functionality end-to-end
 
 ### Community
+
 - Respond to issues promptly
 - Welcome contributions
 - Maintain code of conduct

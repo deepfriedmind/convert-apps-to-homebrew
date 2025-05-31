@@ -5,35 +5,51 @@
  * Orchestrates the entire application flow
  */
 
+import { discoverApps } from './app-scanner.ts'
 import {
-  parseArguments,
-  displayWelcome,
   displayTroubleshooting,
+  displayWelcome,
+  parseArguments,
   setupSignalHandlers,
-  validateEnvironment
-} from './cli.ts';
-import { discoverApps } from './app-scanner.ts';
-import {
-  promptAppSelection,
-  promptSudoPassword,
-  displayInstallationPlan,
-  promptConfirmation,
-  displayFinalSummary
-} from './prompts.ts';
-import { installApps, validateInstallationPrerequisites, getInstallationSummary } from './installer.ts';
-import { ConvertAppsError, ErrorType } from './types.ts';
-import type {
-  CommandOptions,
-  ScannerConfig,
-  InstallerConfig,
-  OperationSummary
-} from './types.ts';
-import { EXIT_CODES, MESSAGES } from './constants.ts';
-import { createLogger } from './utils.ts';
+  validateEnvironment,
+} from './cli.ts'
+import { EXIT_CODES, MESSAGES } from './constants.ts'
 import {
   ProgressTracker,
-  setupGlobalErrorHandlers
-} from './error-handler.ts';
+  setupGlobalErrorHandlers,
+} from './error-handler.ts'
+import { getInstallationSummary, installApps, validateInstallationPrerequisites } from './installer.ts'
+import {
+  displayFinalSummary,
+  displayInstallationPlan,
+  promptAppSelection,
+  promptConfirmation,
+  promptSudoPassword,
+} from './prompts.ts'
+import type {
+  CommandOptions,
+  InstallerConfig,
+  OperationSummary,
+  ScannerConfig,
+} from './types.ts'
+import { ConvertAppsError, ErrorType } from './types.ts'
+import { createLogger } from './utils.ts'
+
+/**
+ * Create installer configuration from command options and sudo password
+ */
+function createInstallerConfig(options: CommandOptions, sudoPassword?: string): InstallerConfig {
+  const config: InstallerConfig = {
+    dryRun: options.dryRun || false,
+    verbose: options.verbose || false,
+  }
+
+  if (sudoPassword !== undefined) {
+    config.sudoPassword = sudoPassword
+  }
+
+  return config
+}
 
 /**
  * Create scanner configuration from command options
@@ -42,24 +58,8 @@ function createScannerConfig(options: CommandOptions): ScannerConfig {
   return {
     applicationsDir: options.applicationsDir || '/Applications',
     ignoredApps: options.ignore || [],
-    verbose: options.verbose || false
-  };
-}
-
-/**
- * Create installer configuration from command options and sudo password
- */
-function createInstallerConfig(options: CommandOptions, sudoPassword?: string): InstallerConfig {
-  const config: InstallerConfig = {
-    dryRun: options.dryRun || false,
-    verbose: options.verbose || false
-  };
-
-  if (sudoPassword !== undefined) {
-    config.sudoPassword = sudoPassword;
+    verbose: options.verbose || false,
   }
-
-  return config;
 }
 
 /**
@@ -69,24 +69,24 @@ function generateOperationSummary(
   allApps: any[],
   selectedApps: any[],
   installationResult: any,
-  dryRun: boolean
+  dryRun: boolean,
 ): OperationSummary {
-  const available = allApps.filter(app => app.status === 'available');
-  const alreadyInstalled = allApps.filter(app => app.status === 'already-installed');
-  const ignored = allApps.filter(app => app.status === 'ignored');
-  const unavailable = allApps.filter(app => app.status === 'unavailable');
+  const available = allApps.filter(app => app.status === 'available')
+  const alreadyInstalled = allApps.filter(app => app.status === 'already-installed')
+  const ignored = allApps.filter(app => app.status === 'ignored')
+  const unavailable = allApps.filter(app => app.status === 'unavailable')
 
   return {
-    totalApps: allApps.length,
-    availableApps: available.length,
     alreadyInstalled: alreadyInstalled.length,
-    ignored: ignored.length,
-    unavailable: unavailable.length,
-    selected: selectedApps.length,
-    installed: installationResult.installed.length,
+    availableApps: available.length,
+    dryRun,
     failed: installationResult.failed.length,
-    dryRun
-  };
+    ignored: ignored.length,
+    installed: installationResult.installed.length,
+    selected: selectedApps.length,
+    totalApps: allApps.length,
+    unavailable: unavailable.length,
+  }
 }
 
 /**
@@ -95,37 +95,47 @@ function generateOperationSummary(
 function handleError(error: Error, logger: any): never {
   if (error instanceof ConvertAppsError) {
     switch (error.type) {
-      case ErrorType.HOMEBREW_NOT_INSTALLED:
-        logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED);
-        logger.info('Install Homebrew: https://brew.sh/');
-        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED);
+      case ErrorType.HOMEBREW_NOT_INSTALLED: {
+        logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
+        logger.info('Install Homebrew: https://brew.sh/')
+        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
+      }
 
-      case ErrorType.PERMISSION_DENIED:
-        logger.error(MESSAGES.PERMISSION_DENIED);
-        logger.info('Try running with appropriate permissions or check file access.');
-        process.exit(EXIT_CODES.PERMISSION_DENIED);
+      case ErrorType.PERMISSION_DENIED: {
+        logger.error(MESSAGES.PERMISSION_DENIED)
+        logger.info('Try running with appropriate permissions or check file access.')
+        process.exit(EXIT_CODES.PERMISSION_DENIED)
+      }
 
-      case ErrorType.NETWORK_ERROR:
-        logger.error('Network error occurred. Please check your internet connection.');
-        process.exit(EXIT_CODES.NETWORK_ERROR);
+      case ErrorType.NETWORK_ERROR: {
+        logger.error('Network error occurred. Please check your internet connection.')
+        process.exit(EXIT_CODES.NETWORK_ERROR)
+      }
 
-      case ErrorType.INVALID_INPUT:
-        logger.error(`Invalid input: ${error.message}`);
-        process.exit(EXIT_CODES.INVALID_INPUT);
+      case ErrorType.INVALID_INPUT: {
+        logger.error(`Invalid input: ${error.message}`)
+        process.exit(EXIT_CODES.INVALID_INPUT)
+      }
 
-      default:
-        logger.error(`Application error: ${error.message}`);
+      default: {
+        logger.error(`Application error: ${error.message}`)
+
         if (error.originalError && logger.verbose) {
-          logger.debug(`Original error: ${error.originalError.message}`);
+          logger.debug(`Original error: ${error.originalError.message}`)
         }
-        process.exit(EXIT_CODES.GENERAL_ERROR);
+
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+      }
     }
-  } else {
-    logger.error(`Unexpected error: ${error.message}`);
+  }
+  else {
+    logger.error(`Unexpected error: ${error.message}`)
+
     if (logger.verbose) {
-      logger.debug(error.stack);
+      logger.debug(error.stack)
     }
-    process.exit(EXIT_CODES.GENERAL_ERROR);
+
+    process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 }
 
@@ -135,112 +145,115 @@ function handleError(error: Error, logger: any): never {
 async function main(): Promise<void> {
   try {
     // Set up signal handlers for graceful shutdown
-    setupSignalHandlers();
+    setupSignalHandlers()
 
     // Validate runtime environment
-    validateEnvironment();
+    validateEnvironment()
 
     // Parse command line arguments
-    const options = parseArguments();
-    const logger = createLogger(options.verbose || false);
+    const options = parseArguments()
+    const logger = createLogger(options.verbose || false)
 
     // Set up enhanced error handling
-    setupGlobalErrorHandlers(options.verbose || false);
-    const progressTracker = new ProgressTracker(options.verbose || false);
+    setupGlobalErrorHandlers(options.verbose || false)
+    const progressTracker = new ProgressTracker(options.verbose || false)
 
     // Display welcome message
-    displayWelcome(options);
+    displayWelcome(options)
 
     // Validate prerequisites
-    progressTracker.startOperation('Validating prerequisites');
-    await validateInstallationPrerequisites();
-    progressTracker.completeOperation('Prerequisites validation');
+    progressTracker.startOperation('Validating prerequisites')
+    await validateInstallationPrerequisites()
+    progressTracker.completeOperation('Prerequisites validation')
 
     // Discover applications
-    progressTracker.startOperation('Scanning applications');
-    logger.info(MESSAGES.SCANNING_APPS);
-    const scannerConfig = createScannerConfig(options);
-    const discoveredApps = await discoverApps(scannerConfig);
-    progressTracker.completeOperation('Application scanning');
+    progressTracker.startOperation('Scanning applications')
+    logger.info(MESSAGES.SCANNING_APPS)
+    const scannerConfig = createScannerConfig(options)
+    const discoveredApps = await discoverApps(scannerConfig)
+    progressTracker.completeOperation('Application scanning')
 
     if (discoveredApps.length === 0) {
-      logger.warn(MESSAGES.NO_APPS_FOUND);
-      process.exit(EXIT_CODES.SUCCESS);
+      logger.warn(MESSAGES.NO_APPS_FOUND)
+      process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Interactive app selection
-    const selectedApps = await promptAppSelection(discoveredApps, options);
+    const selectedApps = await promptAppSelection(discoveredApps, options)
 
     if (selectedApps.length === 0) {
-      logger.info(MESSAGES.NO_APPS_SELECTED);
-      logger.info('Run the command again to select different apps.');
-      process.exit(EXIT_CODES.SUCCESS);
+      logger.info(MESSAGES.NO_APPS_SELECTED)
+      logger.info('Run the command again to select different apps.')
+      process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Get sudo password if needed
-    const sudoPassword = await promptSudoPassword(selectedApps);
+    const sudoPassword = await promptSudoPassword(selectedApps)
 
     // Display installation plan
-    displayInstallationPlan(selectedApps, sudoPassword, options.dryRun);
+    displayInstallationPlan(selectedApps, sudoPassword, options.dryRun)
 
     // Confirm before proceeding
-    const confirmed = await promptConfirmation(options.dryRun);
+    const confirmed = await promptConfirmation(options.dryRun)
+
     if (!confirmed) {
-      logger.info(MESSAGES.OPERATION_CANCELLED);
-      process.exit(EXIT_CODES.SUCCESS);
+      logger.info(MESSAGES.OPERATION_CANCELLED)
+      process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Perform installation
-    const operationType = options.dryRun ? 'dry run' : 'installation';
-    progressTracker.startOperation(`Package ${operationType}`, selectedApps.length);
-    logger.info(options.dryRun ? 'Starting dry run...' : MESSAGES.INSTALLING_PACKAGES);
-    const installerConfig = createInstallerConfig(options, sudoPassword);
-    const installationResult = await installApps(selectedApps, installerConfig);
-    progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0);
+    const operationType = options.dryRun ? 'dry run' : 'installation'
+    progressTracker.startOperation(`Package ${operationType}`, selectedApps.length)
+    logger.info(options.dryRun ? 'Starting dry run...' : MESSAGES.INSTALLING_PACKAGES)
+    const installerConfig = createInstallerConfig(options, sudoPassword)
+    const installationResult = await installApps(selectedApps, installerConfig)
+    progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0)
 
     // Display results
-    console.log('\n' + getInstallationSummary(installationResult));
+    console.log(`\n${getInstallationSummary(installationResult)}`)
 
     // Display final summary
     const installedApps = selectedApps.filter(app =>
-      installationResult.installed.some(result => result.packageName === app.brewName)
-    );
-    const failedApps = selectedApps.filter(app =>
-      installationResult.failed.some(result => result.packageName === app.brewName)
-    );
+      installationResult.installed.some(result => result.packageName === app.brewName),
+    )
 
-    displayFinalSummary(selectedApps, installedApps, failedApps, options.dryRun);
+    const failedApps = selectedApps.filter(app =>
+      installationResult.failed.some(result => result.packageName === app.brewName),
+    )
+
+    displayFinalSummary(selectedApps, installedApps, failedApps, options.dryRun)
 
     // Generate operation summary
     const summary = generateOperationSummary(
       discoveredApps,
       selectedApps,
       installationResult,
-      options.dryRun || false
-    );
+      options.dryRun || false,
+    )
 
-    logger.verbose(`Operation summary: ${JSON.stringify(summary, null, 2)}`);
+    logger.verbose(`Operation summary: ${JSON.stringify(summary, null, 2)}`)
 
     // Exit with appropriate code
     if (installationResult.failed.length > 0) {
-      logger.warn(`${installationResult.failed.length} installations failed.`);
-      process.exit(EXIT_CODES.GENERAL_ERROR);
-    } else {
-      logger.info(MESSAGES.OPERATION_COMPLETE);
-      process.exit(EXIT_CODES.SUCCESS);
+      logger.warn(`${installationResult.failed.length} installations failed.`)
+      process.exit(EXIT_CODES.GENERAL_ERROR)
     }
-
-  } catch (error: any) {
-    const logger = createLogger(false);
+    else {
+      logger.info(MESSAGES.OPERATION_COMPLETE)
+      process.exit(EXIT_CODES.SUCCESS)
+    }
+  }
+  catch (error: any) {
+    const logger = createLogger(false)
 
     // Handle user cancellation gracefully
     if (error.name === 'ExitPromptError') {
-      logger.info('\nOperation cancelled by user.');
-      process.exit(EXIT_CODES.SUCCESS);
+      logger.info('\nOperation cancelled by user.')
+      process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Handle other errors
-    handleError(error, logger);
+    handleError(error, logger)
   }
 }
 
@@ -249,19 +262,19 @@ async function main(): Promise<void> {
  */
 if (require.main === module) {
   main().catch((error: Error) => {
-    const logger = createLogger(false);
-    logger.error(`Fatal error: ${error.message}`);
+    const logger = createLogger(false)
+    logger.error(`Fatal error: ${error.message}`)
 
     // Show troubleshooting info for common issues
-    if (error.message.includes('Homebrew') ||
-      error.message.includes('permission') ||
-      error.message.includes('ENOENT')) {
-      displayTroubleshooting();
+    if (error.message.includes('Homebrew')
+      || error.message.includes('permission')
+      || error.message.includes('ENOENT')) {
+      displayTroubleshooting()
     }
 
-    process.exit(EXIT_CODES.GENERAL_ERROR);
-  });
+    process.exit(EXIT_CODES.GENERAL_ERROR)
+  })
 }
 
 // Export main function for testing
-export { main };
+export { main }
