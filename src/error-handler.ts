@@ -2,9 +2,10 @@
  * Enhanced error handling and progress tracking
  */
 
-import { ConvertAppsError, ErrorType, Logger, ProgressCallback } from './types';
-import { EXIT_CODES, MESSAGES } from './constants';
-import { createLogger, colorize } from './utils';
+import { ConvertAppsError, ErrorType } from './types.ts';
+import type { Logger, ProgressCallback } from './types.ts';
+import { EXIT_CODES, MESSAGES } from './constants.ts';
+import { createLogger, colorize } from './utils.ts';
 
 /**
  * Enhanced error handler with context and recovery suggestions

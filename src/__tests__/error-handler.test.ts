@@ -9,8 +9,8 @@ import {
   getErrorHandler,
   setupGlobalErrorHandlers,
   createProgressCallback
-} from '../error-handler';
-import { ConvertAppsError, ErrorType } from '../types';
+} from '../error-handler.ts';
+import { ConvertAppsError, ErrorType } from '../types.ts';
 
 describe('Error Handler Module', () => {
   beforeEach(() => {

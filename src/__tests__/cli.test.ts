@@ -2,7 +2,7 @@
  * Tests for CLI argument parsing
  */
 
-import { createProgram, parseArguments, validateEnvironment } from '../cli';
+import { createProgram, parseArguments, validateEnvironment } from '../cli.ts';
 
 // Mock fs for package.json reading
 jest.mock('fs', () => ({

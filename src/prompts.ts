@@ -4,8 +4,8 @@
 
 import checkbox from '@inquirer/checkbox';
 import password from '@inquirer/password';
-import { AppInfo, AppChoice, CommandOptions } from './types';
-import { colorize, createLogger, formatList, pluralize } from './utils';
+import type { AppInfo, AppChoice, CommandOptions } from './types.ts';
+import { colorize, createLogger, formatList, pluralize } from './utils.ts';
 
 /**
  * Create choices for the checkbox prompt from available apps

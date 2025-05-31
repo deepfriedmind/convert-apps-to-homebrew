@@ -5,18 +5,17 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as fs } from 'fs';
-import { 
-  AppInfo, 
-  InstallationResult, 
-  PackageInstallResult, 
+import { ConvertAppsError, ErrorType } from './types.ts';
+import type {
+  AppInfo,
+  InstallationResult,
+  PackageInstallResult,
   InstallerConfig,
   BrewCommandResult,
-  ConvertAppsError,
-  ErrorType,
   Logger
-} from './types';
-import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants';
-import { createLogger, groupBy, escapeShellArg } from './utils';
+} from './types.ts';
+import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts';
+import { createLogger, groupBy, escapeShellArg } from './utils.ts';
 
 const execAsync = promisify(exec);
 
@@ -24,7 +23,7 @@ const execAsync = promisify(exec);
  * Execute a shell command with optional dry-run mode
  */
 async function executeCommand(
-  command: string, 
+  command: string,
   dryRun: boolean = false,
   timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT
 ): Promise<BrewCommandResult> {
@@ -97,7 +96,7 @@ async function executeSudoCommand(
  * Install Homebrew casks in batch
  */
 async function installCasks(
-  casks: AppInfo[], 
+  casks: AppInfo[],
   config: InstallerConfig,
   logger: Logger
 ): Promise<PackageInstallResult[]> {
@@ -107,12 +106,12 @@ async function installCasks(
 
   const caskNames = casks.map(app => app.brewName);
   const command = BREW_COMMANDS.INSTALL_CASK(caskNames);
-  
+
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} cask(s): ${caskNames.join(', ')}`);
   logger.verbose(`Command: ${command}`);
 
   const result = await executeCommand(command, config.dryRun);
-  
+
   if (result.success) {
     logger.info(`Successfully installed ${casks.length} cask(s)`);
     return casks.map(app => ({
@@ -139,7 +138,7 @@ async function installCasks(
  * Install Homebrew formulas in batch
  */
 async function installFormulas(
-  formulas: AppInfo[], 
+  formulas: AppInfo[],
   config: InstallerConfig,
   logger: Logger
 ): Promise<PackageInstallResult[]> {
@@ -149,12 +148,12 @@ async function installFormulas(
 
   const formulaNames = formulas.map(app => app.brewName);
   const command = BREW_COMMANDS.INSTALL_FORMULA(formulaNames);
-  
+
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${formulas.length} formula(s): ${formulaNames.join(', ')}`);
   logger.verbose(`Command: ${command}`);
 
   const result = await executeCommand(command, config.dryRun);
-  
+
   if (result.success) {
     logger.info(`Successfully installed ${formulas.length} formula(s)`);
     return formulas.map(app => ({
@@ -186,7 +185,7 @@ async function deleteOriginalApps(
   logger: Logger
 ): Promise<void> {
   const successfulCasks = installedCasks.filter(result => result.success);
-  
+
   if (successfulCasks.length === 0) {
     logger.verbose('No successful cask installations to clean up');
     return;
@@ -218,7 +217,7 @@ async function deleteOriginalApps(
       // Delete the .app directory
       const deleteCommand = `rm -rf ${escapeShellArg(app.appPath)}`;
       const deleteResult = await executeSudoCommand(deleteCommand, sudoPassword, config.dryRun);
-      
+
       if (deleteResult.success) {
         logger.verbose(`Deleted: ${app.appPath}`);
       } else {
@@ -238,7 +237,7 @@ export async function installApps(
   config: InstallerConfig
 ): Promise<InstallationResult> {
   const logger = createLogger(config.verbose);
-  
+
   if (selectedApps.length === 0) {
     logger.info('No apps selected for installation');
     return {
@@ -297,7 +296,7 @@ export async function installApps(
 
   } catch (error: any) {
     logger.error(`Installation failed: ${error.message}`);
-    
+
     throw new ConvertAppsError(
       `Installation process failed: ${error.message}`,
       ErrorType.COMMAND_FAILED,
@@ -312,7 +311,7 @@ export async function installApps(
 export async function validateInstallationPrerequisites(): Promise<void> {
   // Check if Homebrew is available
   const brewCheck = await executeCommand(BREW_COMMANDS.VERSION, false, 5000);
-  
+
   if (!brewCheck.success) {
     throw new ConvertAppsError(
       'Homebrew is not installed or not accessible',
@@ -326,7 +325,7 @@ export async function validateInstallationPrerequisites(): Promise<void> {
  */
 export function getInstallationSummary(result: InstallationResult): string {
   const lines: string[] = [];
-  
+
   if (result.dryRun) {
     lines.push('🔍 DRY RUN SUMMARY');
     lines.push('═'.repeat(50));

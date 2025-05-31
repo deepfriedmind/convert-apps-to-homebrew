@@ -5,9 +5,9 @@
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { CommandOptions } from './types';
-import { colorize, createLogger } from './utils';
-import { MESSAGES } from './constants';
+import type { CommandOptions } from './types.ts';
+import { colorize, createLogger } from './utils.ts';
+import { MESSAGES } from './constants.ts';
 
 /**
  * Get package version from package.json

@@ -6,8 +6,8 @@ import {
   installApps,
   validateInstallationPrerequisites,
   getInstallationSummary
-} from '../installer';
-import { AppInfo, InstallerConfig, InstallationResult } from '../types';
+} from '../installer.ts';
+import type { AppInfo, InstallerConfig, InstallationResult } from '../types.ts';
 
 // Mock the entire installer module's internal functions
 jest.mock('child_process', () => ({

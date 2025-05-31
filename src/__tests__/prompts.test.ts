@@ -8,8 +8,8 @@ import {
   displayInstallationPlan,
   promptConfirmation,
   displayFinalSummary
-} from '../prompts';
-import { AppInfo, CommandOptions } from '../types';
+} from '../prompts.ts';
+import type { AppInfo, CommandOptions } from '../types.ts';
 
 // Mock the inquirer modules
 jest.mock('@inquirer/checkbox', () => jest.fn());
@@ -63,7 +63,7 @@ describe('Prompts Module', () => {
       mockCheckbox.mockResolvedValue(selectedApps);
 
       const result = await promptAppSelection(apps, mockOptions);
-      
+
       expect(result).toEqual(selectedApps);
       expect(mockCheckbox).toHaveBeenCalledWith({
         message: 'Choose apps to install (use spacebar to toggle, Enter to confirm):',
@@ -98,7 +98,7 @@ describe('Prompts Module', () => {
       ];
 
       const result = await promptAppSelection(apps, mockOptions);
-      
+
       expect(result).toEqual([]);
       expect(mockCheckbox).not.toHaveBeenCalled();
     });
@@ -111,7 +111,7 @@ describe('Prompts Module', () => {
       mockCheckbox.mockResolvedValue([]);
 
       const result = await promptAppSelection(apps, mockOptions);
-      
+
       expect(result).toEqual([]);
     });
 
@@ -125,7 +125,7 @@ describe('Prompts Module', () => {
       mockCheckbox.mockRejectedValue(error);
 
       const result = await promptAppSelection(apps, mockOptions);
-      
+
       expect(result).toEqual([]);
     });
 
@@ -140,7 +140,7 @@ describe('Prompts Module', () => {
       mockCheckbox.mockResolvedValue([apps[0]!]);
 
       await promptAppSelection(apps, mockOptions);
-      
+
       expect(mockCheckbox).toHaveBeenCalledWith(
         expect.objectContaining({
           choices: [
@@ -165,7 +165,7 @@ describe('Prompts Module', () => {
       mockPassword.mockResolvedValue('test-password');
 
       const result = await promptSudoPassword(selectedApps);
-      
+
       expect(result).toBe('test-password');
       expect(mockPassword).toHaveBeenCalledWith({
         message: 'Enter your password:',
@@ -179,7 +179,7 @@ describe('Prompts Module', () => {
       ];
 
       const result = await promptSudoPassword(selectedApps);
-      
+
       expect(result).toBeUndefined();
       expect(mockPassword).not.toHaveBeenCalled();
     });
@@ -192,7 +192,7 @@ describe('Prompts Module', () => {
       mockPassword.mockResolvedValue('');
 
       const result = await promptSudoPassword(selectedApps);
-      
+
       expect(result).toBeUndefined();
     });
 
@@ -206,7 +206,7 @@ describe('Prompts Module', () => {
       mockPassword.mockRejectedValue(error);
 
       const result = await promptSudoPassword(selectedApps);
-      
+
       expect(result).toBeUndefined();
     });
   });
@@ -219,7 +219,7 @@ describe('Prompts Module', () => {
       ];
 
       displayInstallationPlan(selectedApps, 'test-password', false);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('📋 Installation Plan')
       );
@@ -231,7 +231,7 @@ describe('Prompts Module', () => {
       ];
 
       displayInstallationPlan(selectedApps, 'test-password', true);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('(DRY RUN)')
       );
@@ -239,7 +239,7 @@ describe('Prompts Module', () => {
 
     it('should handle empty app list', () => {
       displayInstallationPlan([], undefined, false);
-      
+
       // Should not display anything for empty list
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('📋 Installation Plan')
@@ -252,7 +252,7 @@ describe('Prompts Module', () => {
       ];
 
       displayInstallationPlan(selectedApps, undefined, false);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('no sudo access')
       );
@@ -281,7 +281,7 @@ describe('Prompts Module', () => {
       const failedApps: AppInfo[] = [];
 
       displayFinalSummary(selectedApps, installedApps, failedApps, false);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('🎉 Installation Complete')
       );
@@ -297,7 +297,7 @@ describe('Prompts Module', () => {
       ];
 
       displayFinalSummary(selectedApps, [], [], true);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('🎉 Dry Run Complete')
       );
@@ -314,7 +314,7 @@ describe('Prompts Module', () => {
       const failedApps = selectedApps;
 
       displayFinalSummary(selectedApps, installedApps, failedApps, false);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('❌ Failed to install')
       );
@@ -322,7 +322,7 @@ describe('Prompts Module', () => {
 
     it('should handle no processed apps', () => {
       displayFinalSummary([], [], [], false);
-      
+
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('⚠️  No apps were processed')
       );

@@ -2,12 +2,12 @@
  * Integration tests for the complete application flow
  */
 
-import { main } from '../index';
-import * as cli from '../cli';
-import * as appScanner from '../app-scanner';
-import * as prompts from '../prompts';
-import * as installer from '../installer';
-import { AppInfo, InstallationResult } from '../types';
+import { main } from '../index.ts';
+import * as cli from '../cli.ts';
+import * as appScanner from '../app-scanner.ts';
+import * as prompts from '../prompts.ts';
+import * as installer from '../installer.ts';
+import type { AppInfo, InstallationResult } from '../types.ts';
 
 // Mock all modules for integration testing
 jest.mock('../cli');

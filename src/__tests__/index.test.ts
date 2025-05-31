@@ -2,12 +2,12 @@
  * Tests for main entry point
  */
 
-import { main } from '../index';
-import * as cli from '../cli';
-import * as appScanner from '../app-scanner';
-import * as prompts from '../prompts';
-import * as installer from '../installer';
-import { AppInfo, CommandOptions, InstallationResult } from '../types';
+import { main } from '../index.ts';
+import * as cli from '../cli.ts';
+import * as appScanner from '../app-scanner.ts';
+import * as prompts from '../prompts.ts';
+import * as installer from '../installer.ts';
+import type { AppInfo, CommandOptions, InstallationResult } from '../types.ts';
 
 // Mock all modules
 jest.mock('../cli');
@@ -23,12 +23,12 @@ const mockInstaller = installer as jest.Mocked<typeof installer>;
 describe('Main Entry Point', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods to avoid noise in tests
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
-    
+
     // Mock process.exit to prevent actual exit
     jest.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit called');
@@ -52,7 +52,7 @@ describe('Main Entry Point', () => {
     mockPrompts.displayInstallationPlan.mockImplementation(() => {});
     mockPrompts.promptConfirmation.mockResolvedValue(true);
     mockPrompts.displayFinalSummary.mockImplementation(() => {});
-    
+
     mockInstaller.installApps.mockResolvedValue({
       installed: [],
       failed: [],
@@ -82,7 +82,7 @@ describe('Main Entry Point', () => {
       mockAppScanner.discoverApps.mockResolvedValue([]);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockCli.setupSignalHandlers).toHaveBeenCalled();
       expect(mockCli.validateEnvironment).toHaveBeenCalled();
       expect(mockCli.parseArguments).toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe('Main Entry Point', () => {
       mockPrompts.promptAppSelection.mockResolvedValue([]);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockPrompts.promptAppSelection).toHaveBeenCalledWith(discoveredApps, expect.any(Object));
       expect(process.exit).toHaveBeenCalledWith(0);
     });
@@ -127,7 +127,7 @@ describe('Main Entry Point', () => {
       mockInstaller.installApps.mockResolvedValue(installationResult);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockPrompts.promptAppSelection).toHaveBeenCalledWith(discoveredApps, expect.any(Object));
       expect(mockPrompts.promptSudoPassword).toHaveBeenCalledWith(selectedApps);
       expect(mockPrompts.displayInstallationPlan).toHaveBeenCalledWith(selectedApps, 'password', false);
@@ -148,7 +148,7 @@ describe('Main Entry Point', () => {
         verbose: false,
         applicationsDir: '/Applications'
       };
-      
+
       const discoveredApps = [createMockApp('Google Chrome')];
       const selectedApps = [discoveredApps[0]!];
       const installationResult: InstallationResult = {
@@ -172,7 +172,7 @@ describe('Main Entry Point', () => {
       mockInstaller.installApps.mockResolvedValue(installationResult);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockPrompts.displayInstallationPlan).toHaveBeenCalledWith(selectedApps, undefined, true);
       expect(mockPrompts.promptConfirmation).toHaveBeenCalledWith(true);
       expect(mockInstaller.installApps).toHaveBeenCalledWith(selectedApps, expect.objectContaining({
@@ -190,7 +190,7 @@ describe('Main Entry Point', () => {
       mockPrompts.promptConfirmation.mockResolvedValue(false);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockPrompts.promptConfirmation).toHaveBeenCalled();
       expect(mockInstaller.installApps).not.toHaveBeenCalled();
       expect(process.exit).toHaveBeenCalledWith(0);
@@ -220,19 +220,19 @@ describe('Main Entry Point', () => {
       mockInstaller.installApps.mockResolvedValue(installationResult);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(process.exit).toHaveBeenCalledWith(1); // General error exit code
     });
 
     it('should handle user cancellation with ExitPromptError', async () => {
       const error = new Error('User cancelled');
       error.name = 'ExitPromptError';
-      
+
       mockPrompts.promptAppSelection.mockRejectedValue(error);
       mockAppScanner.discoverApps.mockResolvedValue([createMockApp('Google Chrome')]);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(process.exit).toHaveBeenCalledWith(0);
     });
 
@@ -248,7 +248,7 @@ describe('Main Entry Point', () => {
       mockAppScanner.discoverApps.mockResolvedValue([]);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockCli.displayWelcome).toHaveBeenCalledWith(options);
       expect(mockAppScanner.discoverApps).toHaveBeenCalledWith(expect.objectContaining({
         verbose: true
@@ -267,7 +267,7 @@ describe('Main Entry Point', () => {
       mockAppScanner.discoverApps.mockResolvedValue([]);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(mockAppScanner.discoverApps).toHaveBeenCalledWith(expect.objectContaining({
         ignoredApps: ['Adobe Photoshop', 'Microsoft Word']
       }));
@@ -280,7 +280,7 @@ describe('Main Entry Point', () => {
       mockAppScanner.discoverApps.mockRejectedValue(error);
 
       await expect(main()).rejects.toThrow('process.exit called');
-      
+
       expect(process.exit).toHaveBeenCalledWith(1);
     });
   });

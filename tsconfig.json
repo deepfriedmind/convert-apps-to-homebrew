@@ -1,37 +1,22 @@
 {
+  "extends": ["@tsconfig/node22/tsconfig.json", "@tsconfig/node-ts/tsconfig.json"],
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "lib": ["ES2022"],
-    "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "resolveJsonModule": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
+    "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "removeComments": true,
+    "sourceMap": true
   },
   "include": [
     "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
   ]
 }

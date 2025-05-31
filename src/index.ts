@@ -11,30 +11,29 @@ import {
   displayTroubleshooting,
   setupSignalHandlers,
   validateEnvironment
-} from './cli';
-import { discoverApps } from './app-scanner';
+} from './cli.ts';
+import { discoverApps } from './app-scanner.ts';
 import {
   promptAppSelection,
   promptSudoPassword,
   displayInstallationPlan,
   promptConfirmation,
   displayFinalSummary
-} from './prompts';
-import { installApps, validateInstallationPrerequisites, getInstallationSummary } from './installer';
-import {
+} from './prompts.ts';
+import { installApps, validateInstallationPrerequisites, getInstallationSummary } from './installer.ts';
+import { ConvertAppsError, ErrorType } from './types.ts';
+import type {
   CommandOptions,
   ScannerConfig,
   InstallerConfig,
-  ConvertAppsError,
-  ErrorType,
   OperationSummary
-} from './types';
-import { EXIT_CODES, MESSAGES } from './constants';
-import { createLogger } from './utils';
+} from './types.ts';
+import { EXIT_CODES, MESSAGES } from './constants.ts';
+import { createLogger } from './utils.ts';
 import {
   ProgressTracker,
   setupGlobalErrorHandlers
-} from './error-handler';
+} from './error-handler.ts';
 
 /**
  * Create scanner configuration from command options

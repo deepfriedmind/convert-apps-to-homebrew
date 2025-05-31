@@ -3,8 +3,9 @@
  */
 
 import { promises as fs } from 'fs';
-import { scanApplicationsDirectory, checkAlreadyInstalled } from '../app-scanner';
-import { ConvertAppsError, ErrorType, AppInfo } from '../types';
+import { scanApplicationsDirectory, checkAlreadyInstalled } from '../app-scanner.ts';
+import { ConvertAppsError, ErrorType } from '../types.ts';
+import type { AppInfo } from '../types.ts';
 
 // Mock fs
 jest.mock('fs', () => ({

@@ -2,8 +2,8 @@
  * Utility functions for the convert-apps-to-homebrew application
  */
 
-import { COLORS, REGEX_PATTERNS } from './constants';
-import { Logger } from './types';
+import { COLORS, REGEX_PATTERNS } from './constants.ts';
+import type { Logger } from './types.ts';
 
 /**
  * Normalize an application name for Homebrew package lookup

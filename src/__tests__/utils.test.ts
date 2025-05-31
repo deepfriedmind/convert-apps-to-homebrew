@@ -18,8 +18,8 @@ import {
   truncate,
   groupBy,
   uniqueBy
-} from '../utils';
-import { COLORS } from '../constants';
+} from '../utils.ts';
+import { COLORS } from '../constants.ts';
 
 describe('Utility Functions', () => {
   describe('normalizeAppName', () => {

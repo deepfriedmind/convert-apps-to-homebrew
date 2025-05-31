@@ -7,25 +7,24 @@ import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-import {
+import { ConvertAppsError, ErrorType } from './types.ts';
+import type {
   AppInfo,
   BrewCommandResult,
-  ScannerConfig,
-  ConvertAppsError,
-  ErrorType
-} from './types';
+  ScannerConfig
+} from './types.ts';
 import {
   DEFAULT_APPLICATIONS_DIR,
   BREW_COMMANDS,
   FILE_PATTERNS,
   DEFAULT_CONFIG
-} from './constants';
+} from './constants.ts';
 import {
   normalizeAppName,
   extractAppName,
   parseCommandOutput,
   createLogger
-} from './utils';
+} from './utils.ts';
 
 const execAsync = promisify(exec);
 

@@ -133,27 +133,36 @@ export interface AppChoice {
 /**
  * Error types that can occur during execution
  */
-export enum ErrorType {
-  HOMEBREW_NOT_INSTALLED = 'HOMEBREW_NOT_INSTALLED',
-  PERMISSION_DENIED = 'PERMISSION_DENIED',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  COMMAND_FAILED = 'COMMAND_FAILED',
-  FILE_NOT_FOUND = 'FILE_NOT_FOUND',
-  INVALID_INPUT = 'INVALID_INPUT',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
-}
+export const ErrorType = {
+  HOMEBREW_NOT_INSTALLED: 'HOMEBREW_NOT_INSTALLED',
+  PERMISSION_DENIED: 'PERMISSION_DENIED',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  COMMAND_FAILED: 'COMMAND_FAILED',
+  FILE_NOT_FOUND: 'FILE_NOT_FOUND',
+  INVALID_INPUT: 'INVALID_INPUT',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR'
+} as const;
+
+export type ErrorType = typeof ErrorType[keyof typeof ErrorType];
 
 /**
  * Custom error class for application-specific errors
  */
 export class ConvertAppsError extends Error {
+  public readonly type: ErrorType;
+  public readonly originalError?: Error;
+
   constructor(
     message: string,
-    public readonly type: ErrorType,
-    public readonly originalError?: Error
+    type: ErrorType,
+    originalError?: Error
   ) {
     super(message);
     this.name = 'ConvertAppsError';
+    this.type = type;
+    if (originalError !== undefined) {
+      this.originalError = originalError;
+    }
   }
 }
 

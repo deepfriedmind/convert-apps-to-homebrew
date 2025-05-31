@@ -2,16 +2,15 @@
  * Tests for TypeScript types and interfaces
  */
 
-import {
+import { ConvertAppsError, ErrorType } from '../types.ts';
+import type {
   AppInfo,
   AppStatus,
   BrewPackageType,
   CommandOptions,
-  ConvertAppsError,
-  ErrorType,
   InstallationResult,
   OperationSummary
-} from '../types';
+} from '../types.ts';
 
 describe('Types and Interfaces', () => {
   describe('AppInfo interface', () => {
