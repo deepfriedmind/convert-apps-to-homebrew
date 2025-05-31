@@ -52,6 +52,9 @@
     "lint:fix": "eslint --fix",
     "prepublishOnly": "npm run build && npm test",
     "start": "tsc && node dist/index.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -60,9 +63,13 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^4.13.2",
     "@tsconfig/node-ts": "^23.6.1",
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.15.29",
+    "eslint": "^9.28.0",
+    "eslint-plugin-format": "^1.0.1",
+    "eslint-plugin-perfectionist": "^4.13.0",
     "typescript": "^5.8.3"
   },
   "packageManager": "npm@11.4.1",

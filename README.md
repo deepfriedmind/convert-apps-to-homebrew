@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![code style](https://antfu.me/badge-code-style.svg)](https://github.com/antfu/eslint-config)
 
 A modern TypeScript CLI tool that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations. This tool helps you maintain a clean, consistent, and reproducible macOS setup by replacing manually installed applications with their Homebrew equivalents.
 
