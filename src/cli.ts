@@ -131,14 +131,14 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     const options = program.opts()
 
     // Validate applications directory
-    if (options.applicationsDir !== undefined && typeof options.applicationsDir !== 'string') {
+    if (options['applicationsDir'] !== undefined && typeof options['applicationsDir'] !== 'string') {
       throw new Error('Applications directory must be a valid path')
     }
 
     // Ensure ignore is always an array
-    const ignore: string[] = Array.isArray(options.ignore) ?
-        (options.ignore as unknown[]).filter((item): item is string => typeof item === 'string')
-      : (typeof options.ignore === 'string' ? [options.ignore] : [])
+    const ignore: string[] = Array.isArray(options['ignore']) ?
+        (options['ignore'] as unknown[]).filter((item): item is string => typeof item === 'string')
+      : (typeof options['ignore'] === 'string' ? [options['ignore']] : [])
 
     // Validate ignore list
     for (const app of ignore) {
@@ -148,10 +148,10 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     }
 
     const parsedOptions: CommandOptions = {
-      applicationsDir: typeof options.applicationsDir === 'string' ? options.applicationsDir : '/Applications',
-      dryRun: Boolean(options.dryRun),
+      applicationsDir: typeof options['applicationsDir'] === 'string' ? options['applicationsDir'] : '/Applications',
+      dryRun: Boolean(options['dryRun']),
       ignore: ignore.map((app: string) => app.trim()),
-      verbose: Boolean(options.verbose),
+      verbose: Boolean(options['verbose']),
     }
 
     return parsedOptions
