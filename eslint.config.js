@@ -3,6 +3,7 @@ import perfectionist from 'eslint-plugin-perfectionist'
 
 export default antfu({
   formatters: true,
+  ignores: ['**/*.md/*.ts'], // ignore TypeScript in Markdown files
   stylistic: true,
   typescript: {
     overrides: {
