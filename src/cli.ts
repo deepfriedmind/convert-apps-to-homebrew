@@ -4,6 +4,8 @@
 
 import { Command } from 'commander'
 
+import packageJson from '../package.json' with { type: 'json' }
+
 import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
 import { colorize, createLogger } from './utils.ts'
@@ -240,9 +242,7 @@ export function validateEnvironment(): void {
  */
 function getPackageVersion(): string {
   try {
-    // For simplicity, just return a default version since this is causing type issues
-    // In a real implementation, you might want to read from a different source
-    return '1.0.0'
+    return packageJson.version
   }
   catch {
     return '1.0.0'
