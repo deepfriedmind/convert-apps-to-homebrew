@@ -143,7 +143,7 @@ export const ErrorType = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const
 
-export type ErrorType = typeof ErrorType[keyof typeof ErrorType]
+export type ErrorTypeValue = typeof ErrorType[keyof typeof ErrorType]
 
 /**
  * Logger interface for consistent logging
@@ -190,11 +190,11 @@ export type ProgressCallback = (message: string, current: number, total: number)
  */
 export class ConvertAppsError extends Error {
   public readonly originalError?: Error
-  public readonly type: ErrorType
+  public readonly type: ErrorTypeValue
 
   constructor(
     message: string,
-    type: ErrorType,
+    type: ErrorTypeValue,
     originalError?: Error,
   ) {
     super(message)

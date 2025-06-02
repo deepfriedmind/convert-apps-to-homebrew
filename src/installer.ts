@@ -16,7 +16,7 @@ import type {
   PackageInstallResult,
 } from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger, escapeShellArg as escapeShellArgument, groupBy } from './utils.ts'
+import { createLogger, escapeShellArgument, groupBy } from './utils.ts'
 
 const execAsync = promisify(exec)
 
@@ -27,12 +27,10 @@ export function getInstallationSummary(result: InstallationResult): string {
   const lines: string[] = []
 
   if (result.dryRun) {
-    lines.push('🔍 DRY RUN SUMMARY')
-    lines.push('═'.repeat(50))
+    lines.push('🔍 DRY RUN SUMMARY', '═'.repeat(50))
   }
   else {
-    lines.push('📊 INSTALLATION SUMMARY')
-    lines.push('═'.repeat(50))
+    lines.push('📊 INSTALLATION SUMMARY', '═'.repeat(50))
   }
 
   if (result.installed.length > 0) {
@@ -47,7 +45,7 @@ export function getInstallationSummary(result: InstallationResult): string {
     lines.push(`❌ Failed to install: ${result.failed.length}`)
 
     for (const app of result.failed) {
-      lines.push(`   • ${app.appName} (${app.packageName}): ${app.error || 'Unknown error'}`)
+      lines.push(`   • ${app.appName} (${app.packageName}): ${app.error ?? 'Unknown error'}`)
     }
   }
 
@@ -82,8 +80,8 @@ export async function installApps(
 
   // Group apps by type
   const appsByType = groupBy(selectedApps, app => app.brewType)
-  const casks = appsByType.cask || []
-  const formulas = appsByType.formula || []
+  const casks = appsByType.cask ?? []
+  const formulas = appsByType.formula ?? []
 
   logger.info(`Starting installation: ${casks.length} cask(s), ${formulas.length} formula(s)`)
 
@@ -96,10 +94,10 @@ export async function installApps(
       allResults.push(...caskResults)
 
       // Delete original .app files for successful cask installations
-      if (config.sudoPassword && !config.dryRun) {
+      if (config.sudoPassword !== undefined && !config.dryRun) {
         await deleteOriginalApps(caskResults, casks, config.sudoPassword, config, logger)
       }
-      else if (casks.length > 0 && !config.sudoPassword && !config.dryRun) {
+      else if (casks.length > 0 && config.sudoPassword === undefined && !config.dryRun) {
         logger.warn('No sudo password provided - original .app files will not be deleted')
       }
     }
@@ -125,13 +123,14 @@ export async function installApps(
       unavailable: [],
     }
   }
-  catch (error: any) {
-    logger.error(`Installation failed: ${error.message}`)
+  catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error(`Installation failed: ${errorMessage}`)
 
     throw new ConvertAppsError(
-      `Installation process failed: ${error.message}`,
+      `Installation process failed: ${errorMessage}`,
       ErrorType.COMMAND_FAILED,
-      error,
+      error instanceof Error ? error : undefined,
     )
   }
 }
@@ -205,8 +204,9 @@ async function deleteOriginalApps(
         logger.warn(`Failed to delete ${app.appPath}: ${deleteResult.stderr}`)
       }
     }
-    catch (error: any) {
-      logger.warn(`Error deleting ${app.appPath}: ${error.message}`)
+    catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      logger.warn(`Error deleting ${app.appPath}: ${errorMessage}`)
     }
   }
 }
@@ -238,11 +238,13 @@ async function executeCommand(
       success: true,
     }
   }
-  catch (error: any) {
+  catch (error: unknown) {
+    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
+
     return {
-      exitCode: error.code || 1,
-      stderr: error.stderr?.trim() || error.message || '',
-      stdout: error.stdout?.trim() || '',
+      exitCode: typedError.code ?? 1,
+      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
+      stdout: typedError.stdout?.trim() ?? '',
       success: false,
     }
   }
@@ -278,11 +280,13 @@ async function executeSudoCommand(
       success: true,
     }
   }
-  catch (error: any) {
+  catch (error: unknown) {
+    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
+
     return {
-      exitCode: error.code || 1,
-      stderr: error.stderr?.trim() || error.message || '',
-      stdout: error.stdout?.trim() || '',
+      exitCode: typedError.code ?? 1,
+      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
+      stdout: typedError.stdout?.trim() ?? '',
       success: false,
     }
   }

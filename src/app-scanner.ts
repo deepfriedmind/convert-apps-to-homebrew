@@ -4,7 +4,7 @@
 
 import { exec } from 'node:child_process'
 import { promises as fs } from 'node:fs'
-import { join } from 'node:path'
+import path from 'node:path'
 import { promisify } from 'node:util'
 
 import {
@@ -156,7 +156,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
       })
     }
     catch (error) {
-      logger.warn(`Failed to check Homebrew availability for ${originalName}: ${error}`)
+      logger.warn(`Failed to check Homebrew availability for ${originalName}: ${String(error)}`)
       apps.push({
         alreadyInstalled: false,
         appPath,
@@ -224,34 +224,36 @@ export async function isFormulaAvailable(packageName: string): Promise<boolean> 
 /**
  * Scan the Applications directory for .app bundles
  */
-export async function scanApplicationsDirectory(applicationsDir: string = DEFAULT_APPLICATIONS_DIR): Promise<string[]> {
+export async function scanApplicationsDirectory(applicationsDirectory: string = DEFAULT_APPLICATIONS_DIR): Promise<string[]> {
   try {
-    const entries = await fs.readdir(applicationsDir, { withFileTypes: true })
+    const entries = await fs.readdir(applicationsDirectory, { withFileTypes: true })
 
     return entries
       .filter(entry => entry.isDirectory() && FILE_PATTERNS.APP_PATTERN.test(entry.name))
-      .map(entry => join(applicationsDir, entry.name))
+      .map(entry => path.join(applicationsDirectory, entry.name))
   }
-  catch (error: any) {
-    if (error.code === 'ENOENT') {
+  catch (error: unknown) {
+    const typedError = error as { code?: string, message?: string }
+
+    if (typedError.code === 'ENOENT') {
       throw new ConvertAppsError(
-        `Applications directory not found: ${applicationsDir}`,
+        `Applications directory not found: ${applicationsDirectory}`,
         ErrorType.FILE_NOT_FOUND,
-        error,
+        error instanceof Error ? error : undefined,
       )
     }
 
-    if (error.code === 'EACCES') {
+    if (typedError.code === 'EACCES') {
       throw new ConvertAppsError(
-        `Permission denied accessing: ${applicationsDir}`,
+        `Permission denied accessing: ${applicationsDirectory}`,
         ErrorType.PERMISSION_DENIED,
-        error,
+        error instanceof Error ? error : undefined,
       )
     }
     throw new ConvertAppsError(
-      `Failed to scan applications directory: ${error.message}`,
+      `Failed to scan applications directory: ${typedError.message ?? 'Unknown error'}`,
       ErrorType.UNKNOWN_ERROR,
-      error,
+      error instanceof Error ? error : undefined,
     )
   }
 }
@@ -270,11 +272,13 @@ async function executeCommand(command: string, timeout: number = DEFAULT_CONFIG.
       success: true,
     }
   }
-  catch (error: any) {
+  catch (error: unknown) {
+    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
+
     return {
-      exitCode: error.code || 1,
-      stderr: error.stderr?.trim() || error.message || '',
-      stdout: error.stdout?.trim() || '',
+      exitCode: typedError.code ?? 1,
+      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
+      stdout: typedError.stdout?.trim() ?? '',
       success: false,
     }
   }

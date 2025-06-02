@@ -27,8 +27,11 @@ import {
   promptSudoPassword,
 } from './prompts.ts'
 import type {
+  AppInfo,
   CommandOptions,
+  InstallationResult,
   InstallerConfig,
+  Logger,
   OperationSummary,
   ScannerConfig,
 } from './types.ts'
@@ -56,9 +59,9 @@ function createInstallerConfig(options: CommandOptions, sudoPassword?: string): 
  */
 function createScannerConfig(options: CommandOptions): ScannerConfig {
   return {
-    applicationsDir: options.applicationsDir || '/Applications',
-    ignoredApps: options.ignore || [],
-    verbose: options.verbose || false,
+    applicationsDir: options.applicationsDir ?? '/Applications',
+    ignoredApps: options.ignore ?? [],
+    verbose: options.verbose ?? false,
   }
 }
 
@@ -66,9 +69,9 @@ function createScannerConfig(options: CommandOptions): ScannerConfig {
  * Generate operation summary statistics
  */
 function generateOperationSummary(
-  allApps: any[],
-  selectedApps: any[],
-  installationResult: any,
+  allApps: AppInfo[],
+  selectedApps: AppInfo[],
+  installationResult: InstallationResult,
   dryRun: boolean,
 ): OperationSummary {
   const available = allApps.filter(app => app.status === 'available')
@@ -92,51 +95,78 @@ function generateOperationSummary(
 /**
  * Handle application errors with appropriate exit codes
  */
-function handleError(error: Error, logger: any): never {
+function handleError(error: Error, logger: Logger): never {
   if (error instanceof ConvertAppsError) {
     switch (error.type) {
+      case ErrorType.COMMAND_FAILED: {
+        logger.error(`Command execution failed: ${error.message}`)
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
+      }
+
+      case ErrorType.FILE_NOT_FOUND: {
+        logger.error(`File not found: ${error.message}`)
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
+      }
+
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
         logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
         logger.info('Install Homebrew: https://brew.sh/')
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
+        break
+      }
+
+      case ErrorType.INVALID_INPUT: {
+        logger.error(`Invalid input: ${error.message}`)
+        process.exit(EXIT_CODES.INVALID_INPUT)
+        break
+      }
+
+      case ErrorType.NETWORK_ERROR: {
+        logger.error('Network error occurred. Please check your internet connection.')
+        process.exit(EXIT_CODES.NETWORK_ERROR)
+        break
       }
 
       case ErrorType.PERMISSION_DENIED: {
         logger.error(MESSAGES.PERMISSION_DENIED)
         logger.info('Try running with appropriate permissions or check file access.')
         process.exit(EXIT_CODES.PERMISSION_DENIED)
+        break
       }
 
-      case ErrorType.NETWORK_ERROR: {
-        logger.error('Network error occurred. Please check your internet connection.')
-        process.exit(EXIT_CODES.NETWORK_ERROR)
-      }
+      case ErrorType.UNKNOWN_ERROR: {
+        logger.error(`Unknown error: ${error.message}`)
 
-      case ErrorType.INVALID_INPUT: {
-        logger.error(`Invalid input: ${error.message}`)
-        process.exit(EXIT_CODES.INVALID_INPUT)
+        if (error.originalError !== undefined) {
+          logger.debug(`Original error: ${error.originalError.message}`)
+        }
+
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
       }
 
       default: {
         logger.error(`Application error: ${error.message}`)
 
-        if (error.originalError && logger.verbose) {
+        if (error.originalError !== undefined) {
           logger.debug(`Original error: ${error.originalError.message}`)
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
       }
     }
   }
-  else {
-    logger.error(`Unexpected error: ${error.message}`)
 
-    if (logger.verbose) {
-      logger.debug(error.stack)
-    }
+  logger.error(`Unexpected error: ${error.message}`)
 
-    process.exit(EXIT_CODES.GENERAL_ERROR)
+  if (error.stack !== undefined) {
+    logger.debug(error.stack)
   }
+
+  process.exit(EXIT_CODES.GENERAL_ERROR)
 }
 
 /**
@@ -152,11 +182,11 @@ async function main(): Promise<void> {
 
     // Parse command line arguments
     const options = parseArguments()
-    const logger = createLogger(options.verbose || false)
+    const logger = createLogger(options.verbose ?? false)
 
     // Set up enhanced error handling
-    setupGlobalErrorHandlers(options.verbose || false)
-    const progressTracker = new ProgressTracker(options.verbose || false)
+    setupGlobalErrorHandlers(options.verbose ?? false)
+    const progressTracker = new ProgressTracker(options.verbose ?? false)
 
     // Display welcome message
     displayWelcome(options)
@@ -228,7 +258,7 @@ async function main(): Promise<void> {
       discoveredApps,
       selectedApps,
       installationResult,
-      options.dryRun || false,
+      options.dryRun ?? false,
     )
 
     logger.verbose(`Operation summary: ${JSON.stringify(summary, null, 2)}`)
@@ -243,32 +273,36 @@ async function main(): Promise<void> {
       process.exit(EXIT_CODES.SUCCESS)
     }
   }
-  catch (error: any) {
+  catch (error: unknown) {
     const logger = createLogger(false)
 
     // Handle user cancellation gracefully
-    if (error.name === 'ExitPromptError') {
+    if (error instanceof Error && error.name === 'ExitPromptError') {
       logger.info('\nOperation cancelled by user.')
       process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Handle other errors
-    handleError(error, logger)
+    const errorToHandle = error instanceof Error ? error : new Error(String(error))
+    handleError(errorToHandle, logger)
   }
 }
 
 /**
  * Entry point with error handling
  */
-if (require.main === module) {
-  main().catch((error: Error) => {
+// Check if this module is being run directly (ES module equivalent of require.main === module)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // eslint-disable-next-line unicorn/prefer-top-level-await
+  void main().catch((error: unknown) => {
     const logger = createLogger(false)
-    logger.error(`Fatal error: ${error.message}`)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error(`Fatal error: ${errorMessage}`)
 
     // Show troubleshooting info for common issues
-    if (error.message.includes('Homebrew')
-      || error.message.includes('permission')
-      || error.message.includes('ENOENT')) {
+    if (errorMessage.includes('Homebrew')
+      || errorMessage.includes('permission')
+      || errorMessage.includes('ENOENT')) {
       displayTroubleshooting()
     }
 

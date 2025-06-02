@@ -74,11 +74,11 @@ export function displayInstallationPlan(
     console.log(colorize(`\n📦 Casks to install (${casks.length}):`, 'CYAN'))
     console.log(formatList(casks.map(app => `${app.originalName} → ${app.brewName}`)))
 
-    if (sudoPassword) {
-      console.log(colorize('   ✓ Will delete original .app files (sudo access provided)', 'GREEN'))
+    if (sudoPassword === undefined) {
+      console.log(colorize('   ⚠️  Will skip deletion of original .app files (no sudo access)', 'YELLOW'))
     }
     else {
-      console.log(colorize('   ⚠️  Will skip deletion of original .app files (no sudo access)', 'YELLOW'))
+      console.log(colorize('   ✓ Will delete original .app files (sudo access provided)', 'GREEN'))
     }
   }
 
@@ -140,8 +140,8 @@ export async function promptAppSelection(
 
     return selectedApps
   }
-  catch (error: any) {
-    if (error.name === 'ExitPromptError') {
+  catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ExitPromptError') {
       logger.warn('Selection cancelled by user.')
 
       return []
@@ -171,8 +171,8 @@ export async function promptConfirmation(dryRun = false): Promise<boolean> {
 
     return true
   }
-  catch (error: any) {
-    if (error.name === 'ExitPromptError') {
+  catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ExitPromptError') {
       logger.warn('Confirmation cancelled by user.')
 
       return false
@@ -217,8 +217,8 @@ export async function promptSudoPassword(selectedApps: AppInfo[]): Promise<strin
 
     return sudoPassword
   }
-  catch (error: any) {
-    if (error.name === 'ExitPromptError') {
+  catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ExitPromptError') {
       logger.warn('Password prompt cancelled by user.')
 
       return undefined

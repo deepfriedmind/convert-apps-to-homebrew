@@ -23,7 +23,7 @@ export class ErrorHandler {
    * Handle different types of errors with specific recovery suggestions
    */
   handleError(error: Error, context?: string): never {
-    const contextMessage = context ? ` (${context})` : ''
+    const contextMessage = context === undefined ? '' : ` (${context})`
 
     if (error instanceof ConvertAppsError) {
       this.handleConvertAppsError(error, contextMessage)
@@ -35,50 +35,68 @@ export class ErrorHandler {
 
   private handleConvertAppsError(error: ConvertAppsError, context: string): never {
     switch (error.type) {
-      case ErrorType.HOMEBREW_NOT_INSTALLED: {
-        this.logger.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
-        this.showHomebrewInstallationHelp()
-        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
-      }
-
-      case ErrorType.PERMISSION_DENIED: {
-        this.logger.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
-        this.showPermissionHelp()
-        process.exit(EXIT_CODES.PERMISSION_DENIED)
-      }
-
-      case ErrorType.NETWORK_ERROR: {
-        this.logger.error(`Network error occurred${context}. Please check your internet connection.`)
-        this.showNetworkHelp()
-        process.exit(EXIT_CODES.NETWORK_ERROR)
-      }
-
       case ErrorType.COMMAND_FAILED: {
         this.logger.error(`Command execution failed${context}: ${error.message}`)
         this.showCommandFailureHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
       }
 
       case ErrorType.FILE_NOT_FOUND: {
         this.logger.error(`File not found${context}: ${error.message}`)
         this.showFileNotFoundHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
+      }
+
+      case ErrorType.HOMEBREW_NOT_INSTALLED: {
+        this.logger.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
+        this.showHomebrewInstallationHelp()
+        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
+        break
       }
 
       case ErrorType.INVALID_INPUT: {
         this.logger.error(`Invalid input${context}: ${error.message}`)
         this.showInputValidationHelp()
         process.exit(EXIT_CODES.INVALID_INPUT)
+        break
+      }
+
+      case ErrorType.NETWORK_ERROR: {
+        this.logger.error(`Network error occurred${context}. Please check your internet connection.`)
+        this.showNetworkHelp()
+        process.exit(EXIT_CODES.NETWORK_ERROR)
+        break
+      }
+
+      case ErrorType.PERMISSION_DENIED: {
+        this.logger.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
+        this.showPermissionHelp()
+        process.exit(EXIT_CODES.PERMISSION_DENIED)
+        break
+      }
+
+      case ErrorType.UNKNOWN_ERROR: {
+        this.logger.error(`Unknown error${context}: ${error.message}`)
+
+        if (error.originalError !== undefined && this.verbose) {
+          this.logger.debug(`Original error: ${error.originalError.message}`)
+        }
+
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
       }
 
       default: {
         this.logger.error(`Application error${context}: ${error.message}`)
 
-        if (error.originalError && this.verbose) {
+        if (error.originalError !== undefined && this.verbose) {
           this.logger.debug(`Original error: ${error.originalError.message}`)
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
+        break
       }
     }
   }
@@ -289,7 +307,7 @@ export function setupGlobalErrorHandlers(verbose = false): void {
     errorHandler.handleError(error, 'uncaught exception')
   })
 
-  process.on('unhandledRejection', (reason: any) => {
+  process.on('unhandledRejection', (reason: unknown) => {
     console.error(colorize('\n💥 Unhandled Promise Rejection:', 'RED'))
     const error = reason instanceof Error ? reason : new Error(String(reason))
     errorHandler.handleError(error, 'unhandled rejection')

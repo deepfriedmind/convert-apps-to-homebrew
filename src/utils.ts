@@ -63,7 +63,7 @@ export function createProgressBar(current: number, total: number, width = 20): s
 /**
  * Escape shell arguments to prevent injection
  */
-export function escapeShellArg(argument: string): string {
+export function escapeShellArgument(argument: string): string {
   return `"${argument.replaceAll('"', String.raw`\"`)}"`
 }
 
@@ -71,7 +71,11 @@ export function escapeShellArg(argument: string): string {
  * Extract the application name from a .app bundle path
  */
 export function extractAppName(appPath: string): string {
-  const basename = appPath.split('/').pop() || ''
+  const basename = appPath.split('/').pop()
+
+  if (basename === undefined) {
+    return ''
+  }
 
   return basename.replace(/\.app$/i, '')
 }
@@ -110,24 +114,26 @@ export function groupBy<T, K extends number | string | symbol>(
   items: T[],
   keyFunction: (item: T) => K,
 ): Record<K, T[]> {
-  return items.reduce((groups, item) => {
+  const groups = {} as Record<K, T[]>
+
+  for (const item of items) {
     const key = keyFunction(item)
 
-    if (!groups[key]) {
+    if (!(key in groups)) {
       groups[key] = []
     }
 
     groups[key].push(item)
+  }
 
-    return groups
-  }, {} as Record<K, T[]>)
+  return groups
 }
 
 /**
  * Check if a string is empty or only whitespace
  */
 export function isEmpty(string_: null | string | undefined): boolean {
-  return !string_ || string_.trim().length === 0
+  return string_ == null || string_.trim().length === 0
 }
 
 /**
