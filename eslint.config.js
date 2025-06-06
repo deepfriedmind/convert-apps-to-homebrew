@@ -81,6 +81,7 @@ export default antfu({
     'no-useless-concat': 'error',
     'node/prefer-global/process': ['error', 'always'],
     'perfectionist/sort-imports': 'off',
+    'test/no-import-node-test': 'off',
     'unicorn/filename-case': [
       'error',
       {
@@ -91,6 +92,13 @@ export default antfu({
     'unicorn/no-null': 'off',
     'unicorn/no-process-exit': 'off',
     'unicorn/prevent-abbreviations': ['error', { checkFilenames: false }],
+  },
+}, {
+  files: ['test/**/*.test.ts'],
+  name: 'project/tests',
+  rules: {
+    'ts/no-floating-promises': 'off', // describe() and test() calls are not promises
+    'unicorn/no-useless-undefined': 'off',
   },
 }, {
   files: ['**/*.md'],

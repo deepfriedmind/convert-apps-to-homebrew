@@ -1,7 +1,6 @@
 {
   "extends": ["@tsconfig/node22/tsconfig.json", "@tsconfig/node-ts/tsconfig.json"],
   "compilerOptions": {
-    "rootDir": "./src",
     "resolveJsonModule": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
@@ -12,11 +11,12 @@
     "noUnusedParameters": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist",
+    "outDir": "dist",
     "removeComments": true,
     "sourceMap": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "test/**/*"
   ]
 }
