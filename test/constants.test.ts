@@ -7,7 +7,6 @@ import { describe, test } from 'node:test'
 
 import {
   BREW_COMMANDS,
-  COLORS,
   DEFAULT_APPLICATIONS_DIR,
   DEFAULT_CONFIG,
   EXIT_CODES,
@@ -182,46 +181,6 @@ void describe('constants', () => {
     })
   })
 
-  void describe('COLORS', () => {
-    void test('should have all required color codes', () => {
-      assert.strictEqual(typeof COLORS.RESET, 'string')
-      assert.strictEqual(typeof COLORS.BRIGHT, 'string')
-      assert.strictEqual(typeof COLORS.DIM, 'string')
-      assert.strictEqual(typeof COLORS.RED, 'string')
-      assert.strictEqual(typeof COLORS.GREEN, 'string')
-      assert.strictEqual(typeof COLORS.YELLOW, 'string')
-      assert.strictEqual(typeof COLORS.BLUE, 'string')
-      assert.strictEqual(typeof COLORS.MAGENTA, 'string')
-      assert.strictEqual(typeof COLORS.CYAN, 'string')
-      assert.strictEqual(typeof COLORS.WHITE, 'string')
-    })
-
-    void test('should have correct ANSI color codes', () => {
-      assert.strictEqual(COLORS.RESET, '\u001B[0m')
-      assert.strictEqual(COLORS.BRIGHT, '\u001B[1m')
-      assert.strictEqual(COLORS.DIM, '\u001B[2m')
-      assert.strictEqual(COLORS.RED, '\u001B[31m')
-      assert.strictEqual(COLORS.GREEN, '\u001B[32m')
-      assert.strictEqual(COLORS.YELLOW, '\u001B[33m')
-      assert.strictEqual(COLORS.BLUE, '\u001B[34m')
-      assert.strictEqual(COLORS.MAGENTA, '\u001B[35m')
-      assert.strictEqual(COLORS.CYAN, '\u001B[36m')
-      assert.strictEqual(COLORS.WHITE, '\u001B[37m')
-    })
-
-    void test('color codes should start with escape sequence', () => {
-      for (const color of Object.values(COLORS)) {
-        assert.ok(color.startsWith('\u001B['), `Color code "${color}" should start with escape sequence`)
-      }
-    })
-
-    void test('color codes should end with m', () => {
-      for (const color of Object.values(COLORS)) {
-        assert.ok(color.endsWith('m'), `Color code "${color}" should end with 'm'`)
-      }
-    })
-  })
-
   void describe('MESSAGES', () => {
     void test('should have all required message strings', () => {
       assert.strictEqual(typeof MESSAGES.CHECKING_HOMEBREW, 'string')
@@ -355,7 +314,6 @@ void describe('constants', () => {
       assert.strictEqual(typeof FILE_PATTERNS, 'object')
       assert.strictEqual(typeof EXIT_CODES, 'object')
       assert.strictEqual(typeof DEFAULT_CONFIG, 'object')
-      assert.strictEqual(typeof COLORS, 'object')
       assert.strictEqual(typeof MESSAGES, 'object')
       assert.strictEqual(typeof REGEX_PATTERNS, 'object')
     })

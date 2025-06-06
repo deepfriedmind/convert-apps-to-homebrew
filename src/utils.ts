@@ -2,7 +2,9 @@
  * Utility functions for the convert-apps-to-homebrew application
  */
 
-import { COLORS, REGEX_PATTERNS } from './constants.ts'
+import chalk from 'chalk'
+
+import { REGEX_PATTERNS } from './constants.ts'
 import type { Logger } from './types.ts'
 
 /**
@@ -13,35 +15,28 @@ export function capitalize(string_: string): string {
 }
 
 /**
- * Add color to console output
- */
-export function colorize(text: string, color: keyof typeof COLORS): string {
-  return `${COLORS[color]}${text}${COLORS.RESET}`
-}
-
-/**
  * Create a simple console logger
  */
 export function createLogger(verbose = false): Logger {
   return {
     debug: (message: string): void => {
       if (verbose) {
-        console.log(colorize(`🐛 ${message}`, 'MAGENTA'))
+        console.log(chalk.magenta(`🐛 ${message}`))
       }
     },
     error: (message: string): void => {
-      console.error(colorize(`✗ ${message}`, 'RED'))
+      console.error(chalk.red(`✗ ${message}`))
     },
     info: (message: string): void => {
-      console.log(colorize(`ℹ ${message}`, 'BLUE'))
+      console.log(chalk.blue(`ℹ ${message}`))
     },
     verbose: (message: string): void => {
       if (verbose) {
-        console.log(colorize(`📝 ${message}`, 'DIM'))
+        console.log(chalk.dim(`📝 ${message}`))
       }
     },
     warn: (message: string): void => {
-      console.warn(colorize(`⚠ ${message}`, 'YELLOW'))
+      console.warn(chalk.yellow(`⚠ ${message}`))
     },
   }
 }

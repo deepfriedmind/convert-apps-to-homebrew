@@ -2,13 +2,14 @@
  * CLI argument parsing using Commander.js
  */
 
+import chalk from 'chalk'
 import { Command } from 'commander'
 
 import packageJson from '../package.json' with { type: 'json' }
 
 import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
-import { colorize, createLogger } from './utils.ts'
+import { createLogger } from './utils.ts'
 
 /**
  * Create and configure the Commander.js program
@@ -70,27 +71,27 @@ Notes:
  * Display help information for common issues
  */
 export function displayTroubleshooting(): void {
-  console.log(colorize('\n🔧 Troubleshooting', 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold('\n🔧 Troubleshooting'))
+  console.log(chalk.dim('═'.repeat(50)))
   console.log(`
-${colorize('Common Issues:', 'YELLOW')}
+${chalk.yellow('Common Issues:')}
 
-${colorize('1. Homebrew not installed:', 'CYAN')}
+${chalk.cyan('1. Homebrew not installed:')}
    Install Homebrew first: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-${colorize('2. Permission denied:', 'CYAN')}
+${chalk.cyan('2. Permission denied:')}
    Make sure you have read access to the Applications directory
    Some apps may require administrator privileges to delete
 
-${colorize('3. App not found in Homebrew:', 'CYAN')}
+${chalk.cyan('3. App not found in Homebrew:')}
    Not all applications are available as Homebrew casks or formulas
    You can search manually: brew search <app-name>
 
-${colorize('4. Network issues:', 'CYAN')}
+${chalk.cyan('4. Network issues:')}
    Homebrew requires internet access to check package availability
    Check your network connection and try again
 
-${colorize('For more help:', 'GREEN')}
+${chalk.green('For more help:')}
    • Visit: https://brew.sh/
    • Report issues: https://github.com/deepfriedmind/convert-apps-to-homebrew/issues
 `)
@@ -102,11 +103,11 @@ ${colorize('For more help:', 'GREEN')}
 export function displayWelcome(options: CommandOptions): void {
   const logger = createLogger(options.verbose)
 
-  console.log(colorize('\n🍺 Convert Apps to Homebrew', 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold('\n🍺 Convert Apps to Homebrew'))
+  console.log(chalk.dim('═'.repeat(50)))
 
   if (options.dryRun) {
-    console.log(colorize(`\n${MESSAGES.DRY_RUN_MODE}`, 'YELLOW'))
+    console.log(chalk.yellow(`\n${MESSAGES.DRY_RUN_MODE}`))
   }
 
   logger.info(`Scanning directory: ${options.applicationsDir}`)

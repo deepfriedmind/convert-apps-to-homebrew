@@ -4,9 +4,10 @@
 
 import checkbox from '@inquirer/checkbox'
 import password from '@inquirer/password'
+import chalk from 'chalk'
 
 import type { AppChoice, AppInfo, CommandOptions } from './types.ts'
-import { colorize, createLogger, formatList, pluralize } from './utils.ts'
+import { createLogger, formatList, pluralize } from './utils.ts'
 
 /**
  * Display final summary after installation
@@ -17,39 +18,39 @@ export function displayFinalSummary(
   failedApps: AppInfo[],
   dryRun = false,
 ): void {
-  console.log(colorize(`\n🎉 ${dryRun ? 'Dry Run' : 'Installation'} Complete`, 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold(`\n🎉 ${dryRun ? 'Dry Run' : 'Installation'} Complete`))
+  console.log(chalk.dim('═'.repeat(50)))
 
   if (dryRun) {
-    console.log(colorize(`\n📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`, 'BLUE'))
+    console.log(chalk.blue(`\n📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`))
     const casks = selectedApps.filter(app => app.brewType === 'cask')
     const formulas = selectedApps.filter(app => app.brewType === 'formula')
 
     if (casks.length > 0) {
-      console.log(colorize(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`, 'CYAN'))
+      console.log(chalk.cyan(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`))
     }
 
     if (formulas.length > 0) {
-      console.log(colorize(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`, 'CYAN'))
+      console.log(chalk.cyan(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`))
     }
   }
   else {
     if (installedApps.length > 0) {
-      console.log(colorize(`\n✅ Successfully installed (${installedApps.length}):`, 'GREEN'))
+      console.log(chalk.green(`\n✅ Successfully installed (${installedApps.length}):`))
       console.log(formatList(installedApps.map(app => app.originalName)))
     }
 
     if (failedApps.length > 0) {
-      console.log(colorize(`\n❌ Failed to install (${failedApps.length}):`, 'RED'))
+      console.log(chalk.red(`\n❌ Failed to install (${failedApps.length}):`))
       console.log(formatList(failedApps.map(app => app.originalName)))
     }
 
     if (installedApps.length === 0 && failedApps.length === 0) {
-      console.log(colorize('\n⚠️  No apps were processed.', 'YELLOW'))
+      console.log(chalk.yellow('\n⚠️  No apps were processed.'))
     }
   }
 
-  console.log(colorize('\n🍺 Thank you for using convert-apps-to-homebrew!', 'GREEN'))
+  console.log(chalk.green('\n🍺 Thank you for using convert-apps-to-homebrew!'))
 }
 
 /**
@@ -67,32 +68,32 @@ export function displayInstallationPlan(
   const casks = selectedApps.filter(app => app.brewType === 'cask')
   const formulas = selectedApps.filter(app => app.brewType === 'formula')
 
-  console.log(colorize(`\n📋 Installation Plan ${dryRun ? '(DRY RUN)' : ''}`, 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold(`\n📋 Installation Plan ${dryRun ? '(DRY RUN)' : ''}`))
+  console.log(chalk.dim('═'.repeat(50)))
 
   if (casks.length > 0) {
-    console.log(colorize(`\n📦 Casks to install (${casks.length}):`, 'CYAN'))
+    console.log(chalk.cyan(`\n📦 Casks to install (${casks.length}):`))
     console.log(formatList(casks.map(app => `${app.originalName} → ${app.brewName}`)))
 
     if (sudoPassword === undefined) {
-      console.log(colorize('   ⚠️  Will skip deletion of original .app files (no sudo access)', 'YELLOW'))
+      console.log(chalk.yellow('   ⚠️  Will skip deletion of original .app files (no sudo access)'))
     }
     else {
-      console.log(colorize('   ✓ Will delete original .app files (sudo access provided)', 'GREEN'))
+      console.log(chalk.green('   ✓ Will delete original .app files (sudo access provided)'))
     }
   }
 
   if (formulas.length > 0) {
-    console.log(colorize(`\n⚙️  Formulas to install (${formulas.length}):`, 'CYAN'))
+    console.log(chalk.cyan(`\n⚙️  Formulas to install (${formulas.length}):`))
     console.log(formatList(formulas.map(app => `${app.originalName} → ${app.brewName}`)))
-    console.log(colorize('   ℹ️  Original .app files will be kept', 'BLUE'))
+    console.log(chalk.blue('   ℹ️  Original .app files will be kept'))
   }
 
   if (dryRun) {
-    console.log(colorize('\n🔍 This is a dry run - no actual changes will be made.', 'YELLOW'))
+    console.log(chalk.yellow('\n🔍 This is a dry run - no actual changes will be made.'))
   }
   else {
-    console.log(colorize('\n🚀 Ready to proceed with installation.', 'GREEN'))
+    console.log(chalk.green('\n🚀 Ready to proceed with installation.'))
   }
 }
 
@@ -120,7 +121,7 @@ export async function promptAppSelection(
   const choices = createAppChoices(availableApps)
 
   try {
-    console.log(colorize('\n🎯 Select applications to install via Homebrew:', 'BRIGHT'))
+    console.log(chalk.bold('\n🎯 Select applications to install via Homebrew:'))
 
     const selectedApps = await checkbox({
       choices,
@@ -163,7 +164,7 @@ export async function promptConfirmation(dryRun = false): Promise<boolean> {
 
     // For now, we'll use a simple approach since @inquirer/confirm might not be available
     // In a real implementation, you would use @inquirer/confirm
-    console.log(colorize(`\n❓ ${message} (y/N):`, 'YELLOW'))
+    console.log(chalk.yellow(`\n❓ ${message} (y/N):`))
 
     // For the TypeScript implementation, we'll assume confirmation
     // This would be replaced with actual @inquirer/confirm in production
@@ -195,8 +196,8 @@ export async function promptSudoPassword(selectedApps: AppInfo[]): Promise<strin
 
   const caskApps = selectedApps.filter(app => app.brewType === 'cask')
 
-  console.log(colorize('\n🔐 Administrator Access Required', 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold('\n🔐 Administrator Access Required'))
+  console.log(chalk.dim('═'.repeat(50)))
   console.log(`\nThe following ${pluralize('app', caskApps.length)} ${caskApps.length === 1 ? 'requires' : 'require'} deleting original .app files:`)
   console.log(formatList(caskApps.map(app => app.originalName)))
   console.log('\nThis requires administrator privileges to delete files from /Applications.')
@@ -255,26 +256,26 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   const ignored = apps.filter(app => app.status === 'ignored')
   const unavailable = apps.filter(app => app.status === 'unavailable')
 
-  console.log(colorize('\n📊 Discovery Summary', 'BRIGHT'))
-  console.log(colorize('═'.repeat(50), 'DIM'))
+  console.log(chalk.bold('\n📊 Discovery Summary'))
+  console.log(chalk.dim('═'.repeat(50)))
 
   if (available.length > 0) {
     const casks = available.filter(app => app.brewType === 'cask')
     const formulas = available.filter(app => app.brewType === 'formula')
 
-    console.log(colorize(`\n✅ Available for installation (${available.length}):`, 'GREEN'))
+    console.log(chalk.green(`\n✅ Available for installation (${available.length}):`))
 
     if (casks.length > 0) {
-      console.log(colorize(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`, 'CYAN'))
+      console.log(chalk.cyan(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`))
     }
 
     if (formulas.length > 0) {
-      console.log(colorize(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`, 'CYAN'))
+      console.log(chalk.cyan(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`))
     }
   }
 
   if (alreadyInstalled.length > 0) {
-    console.log(colorize(`\n🍺 Already installed via Homebrew (${alreadyInstalled.length}):`, 'BLUE'))
+    console.log(chalk.blue(`\n🍺 Already installed via Homebrew (${alreadyInstalled.length}):`))
 
     if (options.verbose) {
       console.log(formatList(alreadyInstalled.map(app => app.originalName)))
@@ -282,7 +283,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (ignored.length > 0) {
-    console.log(colorize(`\n🚫 Ignored (${ignored.length}):`, 'YELLOW'))
+    console.log(chalk.yellow(`\n🚫 Ignored (${ignored.length}):`))
 
     if (options.verbose) {
       console.log(formatList(ignored.map(app => app.originalName)))
@@ -290,7 +291,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (unavailable.length > 0) {
-    console.log(colorize(`\n❌ Not available in Homebrew (${unavailable.length}):`, 'RED'))
+    console.log(chalk.red(`\n❌ Not available in Homebrew (${unavailable.length}):`))
 
     if (options.verbose) {
       console.log(formatList(unavailable.map(app => app.originalName)))
@@ -298,7 +299,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (available.length === 0) {
-    console.log(colorize('\n⚠️  No applications available for installation.', 'YELLOW'))
+    console.log(chalk.yellow('\n⚠️  No applications available for installation.'))
 
     if (alreadyInstalled.length > 0) {
       console.log('All discoverable apps are already installed via Homebrew.')
@@ -310,7 +311,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
     return
   }
 
-  console.log(colorize('\n💡 Note:', 'CYAN'))
+  console.log(chalk.cyan('\n💡 Note:'))
   console.log('• All available apps are pre-selected for installation')
   console.log('• Cask installations will delete the original .app files (requires sudo)')
   console.log('• Formula installations keep the original .app files')

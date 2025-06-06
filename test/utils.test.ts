@@ -7,7 +7,6 @@ import { describe, test } from 'node:test'
 
 import {
   capitalize,
-  colorize,
   createLogger,
   createProgressBar,
   escapeShellArgument,
@@ -49,25 +48,6 @@ void describe('utils', () => {
 
     void test('should handle uppercase string', () => {
       assert.strictEqual(capitalize('HELLO'), 'HELLO')
-    })
-  })
-
-  void describe('colorize', () => {
-    void test('should add color codes to text', () => {
-      const result = colorize('test', 'RED')
-      assertHasAnsiColors(result)
-    })
-
-    void test('should wrap text with color and reset codes', () => {
-      const result = colorize('test', 'BLUE')
-      assert.ok(result.startsWith('\u001B[34m'))
-      assert.ok(result.endsWith('\u001B[0m'))
-      assert.ok(result.includes('test'))
-    })
-
-    void test('should handle empty text', () => {
-      const result = colorize('', 'GREEN')
-      assertHasAnsiColors(result)
     })
   })
 

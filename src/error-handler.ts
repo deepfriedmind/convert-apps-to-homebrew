@@ -2,10 +2,12 @@
  * Enhanced error handling and progress tracking
  */
 
+import chalk from 'chalk'
+
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import type { Logger, ProgressCallback } from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { colorize, createLogger } from './utils.ts'
+import { createLogger } from './utils.ts'
 
 /**
  * Enhanced error handler with context and recovery suggestions
@@ -126,7 +128,7 @@ export class ErrorHandler {
   }
 
   private showCommandFailureHelp(): void {
-    console.log(colorize('\n⚙️  Command Failure Help:', 'CYAN'))
+    console.log(chalk.cyan('\n⚙️  Command Failure Help:'))
     console.log('1. Check if Homebrew is working: brew doctor')
     console.log('2. Update Homebrew: brew update')
     console.log('3. Check available disk space')
@@ -134,7 +136,7 @@ export class ErrorHandler {
   }
 
   private showFileNotFoundHelp(): void {
-    console.log(colorize('\n📁 File Not Found Help:', 'CYAN'))
+    console.log(chalk.cyan('\n📁 File Not Found Help:'))
     console.log('1. Check if /Applications directory exists')
     console.log('2. Verify the specified applications directory path')
     console.log('3. Make sure you have read permissions')
@@ -142,7 +144,7 @@ export class ErrorHandler {
   }
 
   private showHomebrewInstallationHelp(): void {
-    console.log(colorize('\n🍺 Homebrew Installation Help:', 'CYAN'))
+    console.log(chalk.cyan('\n🍺 Homebrew Installation Help:'))
     console.log('1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
     console.log('2. Add Homebrew to your PATH (follow the installation instructions)')
     console.log('3. Verify installation: brew --version')
@@ -151,7 +153,7 @@ export class ErrorHandler {
   }
 
   private showInputValidationHelp(): void {
-    console.log(colorize('\n📝 Input Validation Help:', 'CYAN'))
+    console.log(chalk.cyan('\n📝 Input Validation Help:'))
     console.log('1. Check your command line arguments')
     console.log('2. App names in --ignore should not be empty or whitespace')
     console.log('3. Use quotes for app names with spaces: --ignore "Adobe Photoshop"')
@@ -159,7 +161,7 @@ export class ErrorHandler {
   }
 
   private showNetworkHelp(): void {
-    console.log(colorize('\n🌐 Network Help:', 'CYAN'))
+    console.log(chalk.cyan('\n🌐 Network Help:'))
     console.log('1. Check your internet connection')
     console.log('2. Verify DNS resolution: nslookup github.com')
     console.log('3. Check if you\'re behind a corporate firewall')
@@ -167,7 +169,7 @@ export class ErrorHandler {
   }
 
   private showPermissionHelp(): void {
-    console.log(colorize('\n🔐 Permission Help:', 'CYAN'))
+    console.log(chalk.cyan('\n🔐 Permission Help:'))
     console.log('1. Make sure you have read access to /Applications directory')
     console.log('2. For cask installations, you need admin privileges to delete original apps')
     console.log('3. Try running: sudo chown -R $(whoami) /usr/local/Homebrew')
@@ -303,12 +305,12 @@ export function setupGlobalErrorHandlers(verbose = false): void {
   const errorHandler = initializeErrorHandler(verbose)
 
   process.on('uncaughtException', (error: Error) => {
-    console.error(colorize('\n💥 Uncaught Exception:', 'RED'))
+    console.error(chalk.red('\n💥 Uncaught Exception:'))
     errorHandler.handleError(error, 'uncaught exception')
   })
 
   process.on('unhandledRejection', (reason: unknown) => {
-    console.error(colorize('\n💥 Unhandled Promise Rejection:', 'RED'))
+    console.error(chalk.red('\n💥 Unhandled Promise Rejection:'))
     const error = reason instanceof Error ? reason : new Error(String(reason))
     errorHandler.handleError(error, 'unhandled rejection')
   })

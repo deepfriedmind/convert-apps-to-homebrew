@@ -64,22 +64,6 @@ export const DEFAULT_CONFIG = {
 } as const
 
 /**
- * Color codes for console output
- */
-export const COLORS = {
-  BLUE: '\u001B[34m',
-  BRIGHT: '\u001B[1m',
-  CYAN: '\u001B[36m',
-  DIM: '\u001B[2m',
-  GREEN: '\u001B[32m',
-  MAGENTA: '\u001B[35m',
-  RED: '\u001B[31m',
-  RESET: '\u001B[0m',
-  WHITE: '\u001B[37m',
-  YELLOW: '\u001B[33m',
-} as const
-
-/**
  * Messages and text constants
  */
 export const MESSAGES = {
