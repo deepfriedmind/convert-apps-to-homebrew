@@ -36,47 +36,42 @@ export class ErrorHandler {
   }
 
   private handleConvertAppsError(error: ConvertAppsError, context: string): never {
+    /* eslint-disable no-fallthrough */
     switch (error.type) {
       case ErrorType.COMMAND_FAILED: {
         this.logger.error(`Command execution failed${context}: ${error.message}`)
         this.showCommandFailureHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       case ErrorType.FILE_NOT_FOUND: {
         this.logger.error(`File not found${context}: ${error.message}`)
         this.showFileNotFoundHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
         this.logger.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
         this.showHomebrewInstallationHelp()
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
-        break
       }
 
       case ErrorType.INVALID_INPUT: {
         this.logger.error(`Invalid input${context}: ${error.message}`)
         this.showInputValidationHelp()
         process.exit(EXIT_CODES.INVALID_INPUT)
-        break
       }
 
       case ErrorType.NETWORK_ERROR: {
         this.logger.error(`Network error occurred${context}. Please check your internet connection.`)
         this.showNetworkHelp()
         process.exit(EXIT_CODES.NETWORK_ERROR)
-        break
       }
 
       case ErrorType.PERMISSION_DENIED: {
         this.logger.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
         this.showPermissionHelp()
         process.exit(EXIT_CODES.PERMISSION_DENIED)
-        break
       }
 
       case ErrorType.UNKNOWN_ERROR: {
@@ -87,7 +82,6 @@ export class ErrorHandler {
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       default: {
@@ -98,9 +92,9 @@ export class ErrorHandler {
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
     }
+    /* eslint-enable no-fallthrough */
   }
 
   private handleGenericError(error: Error, context: string): never {

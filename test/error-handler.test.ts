@@ -31,11 +31,11 @@ describe('ErrorHandler', () => {
     const originalExit = process.exit.bind(process)
     let exitCode: number | undefined
 
-    // Mock process.exit to prevent test termination
+    // Mock process.exit to prevent test termination and stop execution
     process.exit = mock.fn((code?: number) => {
       exitCode = code
-
-      return undefined as never
+      // Throw an error to prevent fallthrough in switch statement
+      throw new Error(`process.exit called with code ${code}`)
     }) as typeof process.exit
 
     try {
@@ -43,8 +43,14 @@ describe('ErrorHandler', () => {
       try {
         void handler.handleError(error)
       }
-      catch {
-        // Expected to not actually exit in test
+      catch (error) {
+        // Expected to throw when process.exit is called
+        if (error instanceof Error && error.message.includes('process.exit called')) {
+          // This is expected behavior
+        }
+        else {
+          throw error
+        }
       }
 
       assert.strictEqual(exitCode, EXIT_CODES.INVALID_INPUT)
