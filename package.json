@@ -29,16 +29,9 @@
   "license": "MIT",
   "author": "deepfriedmind",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
+  "exports": "./dist/index.js",
   "main": "dist/index.js",
-  "bin": {
-    "convert-apps-to-homebrew": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "files": [
     "CHANGELOG.md",
     "LICENSE",
@@ -46,18 +39,16 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.src.json",
-    "check": "npm run lint:fix && npm run typecheck && npm run test && npm run build",
-    "dev": "tsc --project tsconfig.src.json --watch",
+    "build": "pkgroll",
+    "check": "npm run lint:fix && npm run type-check && npm run test",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepublishOnly": "npm run build && npm test",
-    "start": "npm run build && node dist/index.js",
-    "test": "node --import tsx --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
-    "test:coverage": "node --import tsx --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
-    "test:integration": "node --import tsx --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
-    "test:watch": "node --import tsx --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "start": "tsx src/index.ts",
+    "test": "tsx --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
+    "test:coverage": "tsx --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
+    "test:integration": "tsx --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
+    "test:watch": "tsx --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@inquirer/checkbox": "^4.1.8",
@@ -73,6 +64,7 @@
     "eslint": "^9.28.0",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-perfectionist": "^4.13.0",
+    "pkgroll": "^2.12.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },

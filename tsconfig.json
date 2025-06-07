@@ -2,18 +2,14 @@
   "extends": ["@tsconfig/node22/tsconfig.json", "@tsconfig/node-ts/tsconfig.json"],
   "compilerOptions": {
     "resolveJsonModule": true,
+    "allowJs": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "removeComments": true,
-    "sourceMap": true
+    "noUnusedParameters": true
   },
   "include": [
     "src/**/*",
