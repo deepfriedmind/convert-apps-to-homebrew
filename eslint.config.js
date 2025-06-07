@@ -91,6 +91,7 @@ export default antfu({
     ],
     'unicorn/no-null': 'off',
     'unicorn/no-process-exit': 'off',
+    'unicorn/prefer-top-level-await': 'off',
     'unicorn/prevent-abbreviations': ['error', { checkFilenames: false }],
   },
 }, {
@@ -99,6 +100,12 @@ export default antfu({
   rules: {
     'ts/no-floating-promises': 'off', // describe() and test() calls are not promises
     'unicorn/no-useless-undefined': 'off',
+  },
+}, {
+  files: ['test/**/*'],
+  name: 'project/tests',
+  rules: {
+    'no-control-regex': 'off',
   },
 }, {
   files: ['**/*.md'],

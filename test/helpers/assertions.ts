@@ -72,7 +72,6 @@ export function assertBrewCommandResult(actual: BrewCommandResult, expected: Par
  * Assert that a string contains ANSI color codes
  */
 export function assertHasAnsiColors(text: string): void {
-  // eslint-disable-next-line no-control-regex
   assert.ok(/\u001B\[[0-9;]*m/.test(text), 'Text should contain ANSI color codes')
 }
 
@@ -98,7 +97,6 @@ export function assertLogger(logger: Logger): void {
  * Assert that a string does not contain ANSI color codes
  */
 export function assertNoAnsiColors(text: string): void {
-  // eslint-disable-next-line no-control-regex
   assert.ok(!/\u001B\[[0-9;]*m/.test(text), 'Text should not contain ANSI color codes')
 }
 

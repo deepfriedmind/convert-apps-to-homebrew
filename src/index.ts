@@ -97,43 +97,38 @@ function generateOperationSummary(
  */
 function handleError(error: Error, logger: Logger): never {
   if (error instanceof ConvertAppsError) {
+    /* eslint-disable no-fallthrough */
     switch (error.type) {
       case ErrorType.COMMAND_FAILED: {
         logger.error(`Command execution failed: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       case ErrorType.FILE_NOT_FOUND: {
         logger.error(`File not found: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
         logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
         logger.info('Install Homebrew: https://brew.sh/')
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
-        break
       }
 
       case ErrorType.INVALID_INPUT: {
         logger.error(`Invalid input: ${error.message}`)
         process.exit(EXIT_CODES.INVALID_INPUT)
-        break
       }
 
       case ErrorType.NETWORK_ERROR: {
         logger.error('Network error occurred. Please check your internet connection.')
         process.exit(EXIT_CODES.NETWORK_ERROR)
-        break
       }
 
       case ErrorType.PERMISSION_DENIED: {
         logger.error(MESSAGES.PERMISSION_DENIED)
         logger.info('Try running with appropriate permissions or check file access.')
         process.exit(EXIT_CODES.PERMISSION_DENIED)
-        break
       }
 
       case ErrorType.UNKNOWN_ERROR: {
@@ -144,7 +139,6 @@ function handleError(error: Error, logger: Logger): never {
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
 
       default: {
@@ -155,9 +149,9 @@ function handleError(error: Error, logger: Logger): never {
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
-        break
       }
     }
+    /* eslint-enable no-fallthrough */
   }
 
   logger.error(`Unexpected error: ${error.message}`)
@@ -293,7 +287,6 @@ async function main(): Promise<void> {
  */
 // Check if this module is being run directly (ES module equivalent of require.main === module)
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // eslint-disable-next-line unicorn/prefer-top-level-await
   void main().catch((error: unknown) => {
     const logger = createLogger(false)
     const errorMessage = error instanceof Error ? error.message : String(error)

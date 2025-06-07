@@ -72,6 +72,5 @@ export async function sleep(ms: number): Promise<void> {
  * Strip ANSI color codes from text
  */
 export function stripAnsiColors(text: string): string {
-  // eslint-disable-next-line no-control-regex
   return text.replaceAll(/\u001B\[[0-9;]*m/g, '')
 }
