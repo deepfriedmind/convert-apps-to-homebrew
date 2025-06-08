@@ -40,7 +40,7 @@
   ],
   "scripts": {
     "build": "pkgroll",
-    "check": "npm run lint:fix && npm run type-check && npm run test",
+    "check": "npm run lint:fix && npm run type-check && npm run test && npm run build",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "start": "tsx src/index.ts",
@@ -57,13 +57,13 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.13.2",
+    "@antfu/eslint-config": "^4.14.1",
     "@tsconfig/node-ts": "^23.6.1",
     "@tsconfig/node22": "^22.0.2",
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.30",
     "eslint": "^9.28.0",
     "eslint-plugin-format": "^1.0.1",
-    "eslint-plugin-perfectionist": "^4.13.0",
+    "eslint-plugin-perfectionist": "^4.14.0",
     "pkgroll": "^2.12.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"

@@ -7,6 +7,7 @@ import password from '@inquirer/password'
 import chalk from 'chalk'
 
 import type { AppChoice, AppInfo, CommandOptions } from './types.ts'
+
 import { createLogger, formatList, pluralize } from './utils.ts'
 
 /**

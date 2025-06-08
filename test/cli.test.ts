@@ -6,9 +6,9 @@
 import { strict as assert } from 'node:assert'
 import { afterEach, beforeEach, describe, test } from 'node:test'
 
-import { createProgram, displayTroubleshooting, displayWelcome, parseArguments, validateEnvironment } from '../src/cli.js'
 import type { CommandOptions } from '../src/types.js'
 
+import { createProgram, displayTroubleshooting, displayWelcome, parseArguments, validateEnvironment } from '../src/cli.js'
 import { mockConsole } from './helpers/test-utils.js'
 
 void describe('cli', () => {

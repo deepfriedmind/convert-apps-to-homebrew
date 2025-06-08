@@ -6,6 +6,7 @@ import assert from 'node:assert'
 import { describe, test } from 'node:test'
 
 import type { AppChoice, AppInfo, AppStatus, BrewCommandResult, BrewPackageType, CommandOptions, ErrorTypeValue, InstallationResult, InstallerConfig, Logger, OperationSummary, PackageInstallResult, ProgressCallback, ScannerConfig } from '../src/types.js'
+
 import {
 
   ConvertAppsError,

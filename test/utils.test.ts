@@ -24,7 +24,6 @@ import {
   truncate,
   uniqueBy,
 } from '../src/utils.ts'
-
 import { assertHasAnsiColors, assertLogger, assertNoDuplicates } from './helpers/assertions.js'
 import { mockConsole } from './helpers/test-utils.js'
 

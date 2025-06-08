@@ -5,6 +5,16 @@
  * Orchestrates the entire application flow
  */
 
+import type {
+  AppInfo,
+  CommandOptions,
+  InstallationResult,
+  InstallerConfig,
+  Logger,
+  OperationSummary,
+  ScannerConfig,
+} from './types.ts'
+
 import { discoverApps } from './app-scanner.ts'
 import {
   displayTroubleshooting,
@@ -26,15 +36,6 @@ import {
   promptConfirmation,
   promptSudoPassword,
 } from './prompts.ts'
-import type {
-  AppInfo,
-  CommandOptions,
-  InstallationResult,
-  InstallerConfig,
-  Logger,
-  OperationSummary,
-  ScannerConfig,
-} from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { createLogger } from './utils.ts'
 

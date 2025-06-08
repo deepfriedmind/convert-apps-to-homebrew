@@ -5,8 +5,9 @@
 import assert from 'node:assert'
 import { describe, test } from 'node:test'
 
-import { main } from '../src/index.ts'
 import type { AppInfo, InstallationResult } from '../src/types.ts'
+
+import { main } from '../src/index.ts'
 
 void describe('main entry point', () => {
   void test('should export main function', () => {

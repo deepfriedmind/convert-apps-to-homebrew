@@ -4,8 +4,9 @@
 
 import chalk from 'chalk'
 
-import { EXIT_CODES, MESSAGES } from './constants.ts'
 import type { Logger, ProgressCallback } from './types.ts'
+
+import { EXIT_CODES, MESSAGES } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { createLogger } from './utils.ts'
 

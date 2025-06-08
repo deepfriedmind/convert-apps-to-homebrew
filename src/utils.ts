@@ -4,8 +4,9 @@
 
 import chalk from 'chalk'
 
-import { REGEX_PATTERNS } from './constants.ts'
 import type { Logger } from './types.ts'
+
+import { REGEX_PATTERNS } from './constants.ts'
 
 /**
  * Capitalize the first letter of a string

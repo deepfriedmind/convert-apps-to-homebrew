@@ -5,8 +5,9 @@
 import assert from 'node:assert'
 import { describe, test } from 'node:test'
 
-import { getInstallationSummary } from '../src/installer.ts'
 import type { AppInfo, InstallationResult, PackageInstallResult } from '../src/types.ts'
+
+import { getInstallationSummary } from '../src/installer.ts'
 
 void describe('getInstallationSummary', () => {
   void test('should create dry run summary with no apps', () => {

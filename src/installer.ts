@@ -6,7 +6,6 @@ import { exec } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import { promisify } from 'node:util'
 
-import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import type {
   AppInfo,
   BrewCommandResult,
@@ -15,6 +14,8 @@ import type {
   Logger,
   PackageInstallResult,
 } from './types.ts'
+
+import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { createLogger, escapeShellArgument, groupBy } from './utils.ts'
 

@@ -5,10 +5,10 @@
 import chalk from 'chalk'
 import { Command } from 'commander'
 
-import packageJson from '../package.json' with { type: 'json' }
-
-import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
+
+import packageJson from '../package.json' with { type: 'json' }
+import { MESSAGES } from './constants.ts'
 import { createLogger } from './utils.ts'
 
 /**

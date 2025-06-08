@@ -65,22 +65,10 @@ export default antfu({
     '@stylistic/quote-props': ['error', 'as-needed'],
     '@stylistic/quotes': ['error', 'single', { allowTemplateLiterals: false, avoidEscape: true }],
     'arrow-body-style': 'error',
-    'import/order': [
-      'warn',
-      {
-        alphabetize: {
-          caseInsensitive: true,
-          order: 'asc',
-          orderImportKind: 'asc',
-        },
-        'newlines-between': 'always',
-      },
-    ],
     'no-console': 'off',
     'no-lonely-if': 'error',
     'no-useless-concat': 'error',
     'node/prefer-global/process': ['error', 'always'],
-    'perfectionist/sort-imports': 'off',
     'test/no-import-node-test': 'off',
     'unicorn/filename-case': [
       'error',

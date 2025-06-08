@@ -7,17 +7,18 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
 
+import type {
+  AppInfo,
+  BrewCommandResult,
+  ScannerConfig,
+} from './types.ts'
+
 import {
   BREW_COMMANDS,
   DEFAULT_APPLICATIONS_DIR,
   DEFAULT_CONFIG,
   FILE_PATTERNS,
 } from './constants.ts'
-import type {
-  AppInfo,
-  BrewCommandResult,
-  ScannerConfig,
-} from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
   createLogger,

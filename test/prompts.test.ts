@@ -5,11 +5,12 @@
 import assert from 'node:assert'
 import { describe, test } from 'node:test'
 
+import type { AppInfo } from '../src/types.ts'
+
 import {
   displayFinalSummary,
   displayInstallationPlan,
 } from '../src/prompts.ts'
-import type { AppInfo } from '../src/types.ts'
 
 void describe('displayFinalSummary', () => {
   void test('should display dry run summary with no apps', () => {
