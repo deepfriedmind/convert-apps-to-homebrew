@@ -9,12 +9,9 @@ import { test } from 'node:test'
 import type { AppInfo, ScannerConfig } from '../src/types.ts'
 
 // Test basic functionality without calling external commands
-void test('checkAlreadyInstalled should handle empty app list without external calls', async () => {
-  // We'll test this without importing the actual module to avoid exec calls
-  // This test verifies the function exists and handles empty input correctly
-
+void test('app scanner module should work without external dependencies', async () => {
+  // Test that empty arrays don't crash and basic types work
   const apps: AppInfo[] = []
-  // For now, we just test that empty array doesn't crash
   assert.strictEqual(apps.length, 0)
   assert.deepStrictEqual(apps, [])
 })
@@ -24,7 +21,6 @@ void test('app scanner module should have expected exports', async () => {
   const module = await import('../src/app-scanner.ts')
 
   // Test that all expected functions are exported
-  assert.strictEqual(typeof module.checkAlreadyInstalled, 'function')
   assert.strictEqual(typeof module.checkHomebrewInstalled, 'function')
   assert.strictEqual(typeof module.determinePackageInfo, 'function')
   assert.strictEqual(typeof module.discoverApps, 'function')
@@ -37,7 +33,6 @@ void test('app scanner module should have expected exports', async () => {
 
 void test('app scanner module function signatures should be correct', async () => {
   const {
-    checkAlreadyInstalled,
     checkHomebrewInstalled,
     determinePackageInfo,
     discoverApps,
@@ -49,9 +44,6 @@ void test('app scanner module function signatures should be correct', async () =
   } = await import('../src/app-scanner.ts')
 
   // Test function types and parameter counts
-  assert.strictEqual(typeof checkAlreadyInstalled, 'function')
-  assert.strictEqual(checkAlreadyInstalled.length, 1) // expects 1 parameter
-
   assert.strictEqual(typeof checkHomebrewInstalled, 'function')
   assert.strictEqual(checkHomebrewInstalled.length, 0) // expects 0 parameters
 
@@ -135,7 +127,6 @@ void test('app scanner functions should be available for import', async () => {
   const module = await import('../src/app-scanner.ts')
 
   // Test that all expected functions are exported
-  assert.strictEqual(typeof module.checkAlreadyInstalled, 'function')
   assert.strictEqual(typeof module.checkHomebrewInstalled, 'function')
   assert.strictEqual(typeof module.determinePackageInfo, 'function')
   assert.strictEqual(typeof module.discoverApps, 'function')
@@ -148,7 +139,6 @@ void test('app scanner functions should be available for import', async () => {
 
 void test('app scanner module should export expected function signatures', async () => {
   const {
-    checkAlreadyInstalled,
     checkHomebrewInstalled,
     determinePackageInfo,
     discoverApps,
@@ -160,9 +150,6 @@ void test('app scanner module should export expected function signatures', async
   } = await import('../src/app-scanner.ts')
 
   // Test function types
-  assert.strictEqual(typeof checkAlreadyInstalled, 'function')
-  assert.strictEqual(checkAlreadyInstalled.length, 1) // expects 1 parameter
-
   assert.strictEqual(typeof checkHomebrewInstalled, 'function')
   assert.strictEqual(checkHomebrewInstalled.length, 0) // expects 0 parameters
 

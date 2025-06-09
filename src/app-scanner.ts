@@ -30,33 +30,6 @@ import {
 const execAsync = promisify(exec)
 
 /**
- * Check if apps are already installed via Homebrew
- */
-export async function checkAlreadyInstalled(apps: AppInfo[]): Promise<AppInfo[]> {
-  const [installedCasks, installedFormulas] = await Promise.all([
-    getInstalledCasks(),
-    getInstalledFormulas(),
-  ])
-
-  const installedCaskSet = new Set(installedCasks)
-  const installedFormulaSet = new Set(installedFormulas)
-
-  return apps.map(app => ({
-    ...app,
-    alreadyInstalled: (
-      (app.brewType === 'cask' && installedCaskSet.has(app.brewName))
-      || (app.brewType === 'formula' && installedFormulaSet.has(app.brewName))
-    ),
-    status: (
-      (app.brewType === 'cask' && installedCaskSet.has(app.brewName))
-      || (app.brewType === 'formula' && installedFormulaSet.has(app.brewName))
-    ) ?
-      'already-installed'
-      : app.status,
-  }))
-}
-
-/**
  * Check if Homebrew is installed and accessible
  */
 export async function checkHomebrewInstalled(): Promise<boolean> {
@@ -120,6 +93,14 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   }
 
   logger.verbose(`Found ${appPaths.length} applications`)
+  logger.verbose('Getting list of already installed Homebrew packages...')
+
+  const [installedCasks, installedFormulas] = await Promise.all([
+    getInstalledCasks(),
+    getInstalledFormulas(),
+  ])
+  const installedCaskSet = new Set(installedCasks)
+  const installedFormulaSet = new Set(installedFormulas)
 
   // Process each application
   const apps: AppInfo[] = []
@@ -138,6 +119,34 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         brewType: 'unavailable',
         originalName,
         status: 'ignored',
+      })
+      continue
+    }
+
+    // Check if already installed first to avoid unnecessary API calls
+    const isAlreadyInstalledCask = installedCaskSet.has(brewName)
+    const isAlreadyInstalledFormula = installedFormulaSet.has(brewName)
+
+    if (isAlreadyInstalledCask) {
+      apps.push({
+        alreadyInstalled: true,
+        appPath,
+        brewName,
+        brewType: 'cask',
+        originalName,
+        status: 'already-installed',
+      })
+      continue
+    }
+
+    if (isAlreadyInstalledFormula) {
+      apps.push({
+        alreadyInstalled: true,
+        appPath,
+        brewName,
+        brewType: 'formula',
+        originalName,
+        status: 'already-installed',
       })
       continue
     }
@@ -169,13 +178,9 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     }
   }
 
-  // Check which apps are already installed via Homebrew
-  logger.verbose('Checking for already installed packages...')
-  const appsWithInstallStatus = await checkAlreadyInstalled(apps)
+  logger.info(`Discovery complete: ${apps.length} apps processed`)
 
-  logger.info(`Discovery complete: ${appsWithInstallStatus.length} apps processed`)
-
-  return appsWithInstallStatus
+  return apps
 }
 
 /**
