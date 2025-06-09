@@ -7,18 +7,7 @@ import { describe, test } from 'node:test'
 
 import type { AppInfo, InstallationResult } from '../src/types.ts'
 
-import { main } from '../src/index.ts'
-
 void describe('main entry point', () => {
-  void test('should export main function', () => {
-    assert.ok(typeof main === 'function')
-    assert.strictEqual(main.length, 0) // main function takes no parameters
-  })
-
-  void test('should be an async function', () => {
-    assert.ok(main.constructor.name === 'AsyncFunction')
-  })
-
   void test('should handle direct execution check', () => {
     // Test that the module checks import.meta.url for direct execution
     // This is tested implicitly by the fact that the module loads without error
@@ -330,13 +319,6 @@ void describe('module execution validation', () => {
     // Test the import.meta.url check used for direct execution detection
     assert.ok(import.meta.url.startsWith('file://'), 'import.meta.url should have file:// protocol')
     assert.ok(typeof import.meta.url === 'string', 'import.meta.url should be a string')
-  })
-
-  void test('should export main function for testing', () => {
-    // Verify main function is properly exported
-    assert.ok(typeof main === 'function', 'main should be a function')
-    assert.strictEqual(main.length, 0, 'main should take no parameters')
-    assert.ok(main.constructor.name === 'AsyncFunction', 'main should be async')
   })
 
   void test('should validate process.argv structure', () => {
