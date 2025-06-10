@@ -25,39 +25,6 @@ import {
 } from './utils.ts'
 
 /**
- * Check if Homebrew is installed and accessible
- */
-export async function checkHomebrewInstalled(): Promise<boolean> {
-  const result = await executeCommand(BREW_COMMANDS.VERSION)
-
-  return result.success
-}
-
-/**
- * Determine the Homebrew package type and availability for an app
- */
-export async function determinePackageInfo(_appName: string, brewName: string): Promise<{
-  alreadyInstalled: boolean
-  brewType: 'cask' | 'formula' | 'unavailable'
-}> {
-  // Check if it's available as a cask first (most common for GUI apps)
-  const isCask = await isCaskAvailable(brewName)
-
-  if (isCask) {
-    return { alreadyInstalled: false, brewType: 'cask' }
-  }
-
-  // Check if it's available as a formula
-  const isFormula = await isFormulaAvailable(brewName)
-
-  if (isFormula) {
-    return { alreadyInstalled: false, brewType: 'formula' }
-  }
-
-  return { alreadyInstalled: false, brewType: 'unavailable' }
-}
-
-/**
  * Main function to discover and analyze applications
  */
 export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
@@ -179,9 +146,42 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 }
 
 /**
+ * Check if Homebrew is installed and accessible
+ */
+async function checkHomebrewInstalled(): Promise<boolean> {
+  const result = await executeCommand(BREW_COMMANDS.VERSION)
+
+  return result.success
+}
+
+/**
+ * Determine the Homebrew package type and availability for an app
+ */
+async function determinePackageInfo(_appName: string, brewName: string): Promise<{
+  alreadyInstalled: boolean
+  brewType: 'cask' | 'formula' | 'unavailable'
+}> {
+  // Check if it's available as a cask first (most common for GUI apps)
+  const isCask = await isCaskAvailable(brewName)
+
+  if (isCask) {
+    return { alreadyInstalled: false, brewType: 'cask' }
+  }
+
+  // Check if it's available as a formula
+  const isFormula = await isFormulaAvailable(brewName)
+
+  if (isFormula) {
+    return { alreadyInstalled: false, brewType: 'formula' }
+  }
+
+  return { alreadyInstalled: false, brewType: 'unavailable' }
+}
+
+/**
  * Get list of installed Homebrew casks
  */
-export async function getInstalledCasks(): Promise<string[]> {
+async function getInstalledCasks(): Promise<string[]> {
   const result = await executeCommand(BREW_COMMANDS.LIST_CASKS)
 
   if (!result.success) {
@@ -194,7 +194,7 @@ export async function getInstalledCasks(): Promise<string[]> {
 /**
  * Get list of installed Homebrew formulas (leaves only)
  */
-export async function getInstalledFormulas(): Promise<string[]> {
+async function getInstalledFormulas(): Promise<string[]> {
   const result = await executeCommand(BREW_COMMANDS.LIST_FORMULAS)
 
   if (!result.success) {
@@ -207,7 +207,7 @@ export async function getInstalledFormulas(): Promise<string[]> {
 /**
  * Check if a package is available as a Homebrew cask
  */
-export async function isCaskAvailable(packageName: string): Promise<boolean> {
+async function isCaskAvailable(packageName: string): Promise<boolean> {
   const result = await executeCommand(BREW_COMMANDS.INFO_CASK(packageName))
 
   return result.success
@@ -216,7 +216,7 @@ export async function isCaskAvailable(packageName: string): Promise<boolean> {
 /**
  * Check if a package is available as a Homebrew formula
  */
-export async function isFormulaAvailable(packageName: string): Promise<boolean> {
+async function isFormulaAvailable(packageName: string): Promise<boolean> {
   const result = await executeCommand(BREW_COMMANDS.INFO_FORMULA(packageName))
 
   return result.success
@@ -225,7 +225,7 @@ export async function isFormulaAvailable(packageName: string): Promise<boolean> 
 /**
  * Scan the Applications directory for .app bundles
  */
-export async function scanApplicationsDirectory(applicationsDirectory: string = DEFAULT_APPLICATIONS_DIR): Promise<string[]> {
+async function scanApplicationsDirectory(applicationsDirectory: string = DEFAULT_APPLICATIONS_DIR): Promise<string[]> {
   try {
     const entries = await fs.readdir(applicationsDirectory, { withFileTypes: true })
 
