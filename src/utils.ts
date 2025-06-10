@@ -3,10 +3,14 @@
  */
 
 import chalk from 'chalk'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 
-import type { Logger } from './types.ts'
+import type { BrewCommandResult, Logger } from './types.ts'
 
-import { REGEX_PATTERNS } from './constants.ts'
+import { DEFAULT_CONFIG, REGEX_PATTERNS } from './constants.ts'
+
+const execAsync = promisify(exec)
 
 /**
  * Capitalize the first letter of a string
@@ -61,6 +65,95 @@ export function createProgressBar(current: number, total: number, width = 20): s
  */
 export function escapeShellArgument(argument: string): string {
   return `"${argument.replaceAll('"', String.raw`\"`)}"`
+}
+
+/**
+ * Execute a shell command asynchronously and return a structured result
+ *
+ * This function wraps Node.js child_process.exec with error handling and timeout support.
+ * It always returns a BrewCommandResult object regardless of success or failure.
+ *
+ * @param command - The shell command to execute
+ * @param timeout - Maximum execution time in milliseconds (defaults to BREW_COMMAND_TIMEOUT)
+ * @param dryRun - If true, don't actually execute the command, just return a dry-run message
+ * @param sudoPassword - Optional password for sudo operations
+ * @returns Promise that resolves to a BrewCommandResult with execution details
+ * @throws {Error} When command is empty or contains only whitespace
+ *
+ * @example
+ * ```typescript
+ * const result = await executeCommand('brew list --cask');
+ * if (result.success) {
+ *   console.log('Output:', result.stdout);
+ * } else {
+ *   console.error('Error:', result.stderr);
+ * }
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // With custom timeout
+ * const result = await executeCommand('brew install package', 30000);
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // Dry run mode
+ * const result = await executeCommand('brew install package', DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, true);
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // With sudo
+ * const result = await executeCommand('rm -rf /path', DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, false, 'password');
+ * ```
+ */
+export async function executeCommand(
+  command: string,
+  timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
+  dryRun = false,
+  sudoPassword?: string,
+): Promise<BrewCommandResult> {
+  if (command.trim() === '') {
+    throw new Error('Command cannot be empty')
+  }
+
+  // Build the final command (with sudo if needed)
+  const finalCommand = sudoPassword === undefined ?
+    command
+    : `echo ${escapeShellArgument(sudoPassword)} | sudo -S ${command}`
+
+  if (dryRun) {
+    const dryRunPrefix = sudoPassword === undefined ? '[DRY RUN] Would execute:' : '[DRY RUN] Would execute with sudo:'
+
+    return {
+      exitCode: 0,
+      stderr: '',
+      stdout: `${dryRunPrefix} ${command}`,
+      success: true,
+    }
+  }
+
+  try {
+    const { stderr, stdout } = await execAsync(finalCommand, { timeout })
+
+    return {
+      exitCode: 0,
+      stderr: stderr.trim(),
+      stdout: stdout.trim(),
+      success: true,
+    }
+  }
+  catch (error: unknown) {
+    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
+
+    return {
+      exitCode: typedError.code ?? 1,
+      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
+      stdout: typedError.stdout?.trim() ?? '',
+      success: false,
+    }
+  }
 }
 
 /**

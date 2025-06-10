@@ -2,32 +2,27 @@
  * App scanner module for discovering macOS applications and checking Homebrew availability
  */
 
-import { exec } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { promisify } from 'node:util'
 
 import type {
   AppInfo,
-  BrewCommandResult,
   ScannerConfig,
 } from './types.ts'
 
 import {
   BREW_COMMANDS,
   DEFAULT_APPLICATIONS_DIR,
-  DEFAULT_CONFIG,
   FILE_PATTERNS,
 } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
   createLogger,
+  executeCommand,
   extractAppName,
   normalizeAppName,
   parseCommandOutput,
 } from './utils.ts'
-
-const execAsync = promisify(exec)
 
 /**
  * Check if Homebrew is installed and accessible
@@ -261,31 +256,5 @@ export async function scanApplicationsDirectory(applicationsDirectory: string = 
       ErrorType.UNKNOWN_ERROR,
       error instanceof Error ? error : undefined,
     )
-  }
-}
-
-/**
- * Execute a shell command and return structured result
- */
-async function executeCommand(command: string, timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT): Promise<BrewCommandResult> {
-  try {
-    const { stderr, stdout } = await execAsync(command, { timeout })
-
-    return {
-      exitCode: 0,
-      stderr: stderr.trim(),
-      stdout: stdout.trim(),
-      success: true,
-    }
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
-
-    return {
-      exitCode: typedError.code ?? 1,
-      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
-      stdout: typedError.stdout?.trim() ?? '',
-      success: false,
-    }
   }
 }

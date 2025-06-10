@@ -2,13 +2,10 @@
  * Installation logic for Homebrew packages with dry-run support
  */
 
-import { exec } from 'node:child_process'
 import { promises as fs } from 'node:fs'
-import { promisify } from 'node:util'
 
 import type {
   AppInfo,
-  BrewCommandResult,
   InstallationResult,
   InstallerConfig,
   Logger,
@@ -17,9 +14,7 @@ import type {
 
 import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger, escapeShellArgument, groupBy } from './utils.ts'
-
-const execAsync = promisify(exec)
+import { createLogger, escapeShellArgument, executeCommand, groupBy } from './utils.ts'
 
 /**
  * Get installation summary for display
@@ -141,7 +136,7 @@ export async function installApps(
  */
 export async function validateInstallationPrerequisites(): Promise<void> {
   // Check if Homebrew is available
-  const brewCheck = await executeCommand(BREW_COMMANDS.VERSION, false, 5000)
+  const brewCheck = await executeCommand(BREW_COMMANDS.VERSION, 5000)
 
   if (!brewCheck.success) {
     throw new ConvertAppsError(
@@ -196,7 +191,7 @@ async function deleteOriginalApps(
 
       // Delete the .app directory
       const deleteCommand = `rm -rf ${escapeShellArgument(app.appPath)}`
-      const deleteResult = await executeSudoCommand(deleteCommand, sudoPassword, config.dryRun)
+      const deleteResult = await executeCommand(deleteCommand, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun, sudoPassword)
 
       if (deleteResult.success) {
         logger.verbose(`Deleted: ${app.appPath}`)
@@ -208,87 +203,6 @@ async function deleteOriginalApps(
     catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       logger.warn(`Error deleting ${app.appPath}: ${errorMessage}`)
-    }
-  }
-}
-
-/**
- * Execute a shell command with optional dry-run mode
- */
-async function executeCommand(
-  command: string,
-  dryRun = false,
-  timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
-): Promise<BrewCommandResult> {
-  if (dryRun) {
-    return {
-      exitCode: 0,
-      stderr: '',
-      stdout: `[DRY RUN] Would execute: ${command}`,
-      success: true,
-    }
-  }
-
-  try {
-    const { stderr, stdout } = await execAsync(command, { timeout })
-
-    return {
-      exitCode: 0,
-      stderr: stderr.trim(),
-      stdout: stdout.trim(),
-      success: true,
-    }
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
-
-    return {
-      exitCode: typedError.code ?? 1,
-      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
-      stdout: typedError.stdout?.trim() ?? '',
-      success: false,
-    }
-  }
-}
-
-/**
- * Execute sudo command with password
- */
-async function executeSudoCommand(
-  command: string,
-  password: string,
-  dryRun = false,
-  timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
-): Promise<BrewCommandResult> {
-  if (dryRun) {
-    return {
-      exitCode: 0,
-      stderr: '',
-      stdout: `[DRY RUN] Would execute with sudo: ${command}`,
-      success: true,
-    }
-  }
-
-  try {
-    // Use echo to pipe password to sudo
-    const sudoCommand = `echo ${escapeShellArgument(password)} | sudo -S ${command}`
-    const { stderr, stdout } = await execAsync(sudoCommand, { timeout })
-
-    return {
-      exitCode: 0,
-      stderr: stderr.trim(),
-      stdout: stdout.trim(),
-      success: true,
-    }
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
-
-    return {
-      exitCode: typedError.code ?? 1,
-      stderr: typedError.stderr?.trim() ?? typedError.message ?? '',
-      stdout: typedError.stdout?.trim() ?? '',
-      success: false,
     }
   }
 }
@@ -311,7 +225,7 @@ async function installCasks(
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} cask(s): ${caskNames.join(', ')}`)
   logger.verbose(`Command: ${command}`)
 
-  const result = await executeCommand(command, config.dryRun)
+  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun)
 
   if (result.success) {
     logger.info(`Successfully installed ${casks.length} cask(s)`)
@@ -356,7 +270,7 @@ async function installFormulas(
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${formulas.length} formula(s): ${formulaNames.join(', ')}`)
   logger.verbose(`Command: ${command}`)
 
-  const result = await executeCommand(command, config.dryRun)
+  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun)
 
   if (result.success) {
     logger.info(`Successfully installed ${formulas.length} formula(s)`)

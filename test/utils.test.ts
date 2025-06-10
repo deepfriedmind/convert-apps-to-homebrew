@@ -10,6 +10,7 @@ import {
   createLogger,
   createProgressBar,
   escapeShellArgument,
+  executeCommand,
   extractAppName,
   formatDuration,
   formatList,
@@ -464,6 +465,169 @@ void describe('utils', () => {
       const items = ['first', 'second', 'first', 'third']
       const result = uniqueBy(items, item => item)
       assert.deepStrictEqual(result, ['first', 'second', 'third'])
+    })
+  })
+
+  void describe('executeCommand', () => {
+    void test('should execute simple command successfully', async () => {
+      const result = await executeCommand('echo "Hello World"')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.exitCode, 0)
+      assert.strictEqual(result.stdout, 'Hello World')
+      assert.strictEqual(result.stderr, '')
+    })
+
+    void test('should handle command with output to stderr', async () => {
+      const result = await executeCommand('echo "Error message" >&2')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.exitCode, 0)
+      assert.strictEqual(result.stdout, '')
+      assert.strictEqual(result.stderr, 'Error message')
+    })
+
+    void test('should handle failing command', async () => {
+      const result = await executeCommand('exit 1')
+
+      assert.strictEqual(result.success, false)
+      assert.strictEqual(result.exitCode, 1)
+      assert.strictEqual(result.stdout, '')
+    })
+
+    void test('should handle command not found', async () => {
+      const result = await executeCommand('nonexistentcommand123456')
+
+      assert.strictEqual(result.success, false)
+      assert.strictEqual(result.exitCode, 127)
+    })
+
+    void test('should handle timeout', async () => {
+      const result = await executeCommand('sleep 2', 500) // 500ms timeout for 2s sleep
+
+      assert.strictEqual(result.success, false)
+      // Timeout should result in failure - exact error message may vary
+      assert.ok(result.exitCode !== 0 || result.stderr.length > 0)
+    })
+
+    void test('should return dry run message when dryRun is true', async () => {
+      const result = await executeCommand('echo "Should not execute"', 5000, true)
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.exitCode, 0)
+      assert.strictEqual(result.stdout, '[DRY RUN] Would execute: echo "Should not execute"')
+      assert.strictEqual(result.stderr, '')
+    })
+
+    void test('should return dry run message with sudo when sudoPassword is provided', async () => {
+      const result = await executeCommand('rm -rf /some/path', 5000, true, 'password123')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.exitCode, 0)
+      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: rm -rf /some/path')
+      assert.strictEqual(result.stderr, '')
+    })
+
+    void test('should build sudo command correctly', async () => {
+      // We can't actually test sudo execution without proper setup,
+      // but we can test the command construction in dry run mode
+      const result = await executeCommand('whoami', 5000, true, 'testpass')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: whoami')
+    })
+
+    void test('should escape sudo password properly', async () => {
+      // Test with a password that contains special characters that need escaping
+      const result = await executeCommand('echo test', 5000, true, 'pass"with"quotes')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: echo test')
+
+      // The actual escaping happens internally, but we can verify it doesn't break
+      assert.strictEqual(result.exitCode, 0)
+    })
+
+    void test('should use default timeout when not specified', async () => {
+      const result = await executeCommand('echo "default timeout test"')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.stdout, 'default timeout test')
+    })
+
+    void test('should trim stdout and stderr output', async () => {
+      const result = await executeCommand('echo "  spaces  "')
+
+      assert.strictEqual(result.success, true)
+      // The trim() function removes leading/trailing whitespace including newlines
+      assert.strictEqual(result.stdout, 'spaces')
+    })
+
+    void test('should handle complex command with pipes', async () => {
+      const result = await executeCommand('echo "hello world" | tr a-z A-Z')
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.stdout, 'HELLO WORLD')
+    })
+
+    void test('should handle command with multiple arguments', async () => {
+      const result = await executeCommand(String.raw`printf "%s %s\n" "Hello" "World"`)
+
+      assert.strictEqual(result.success, true)
+      assert.strictEqual(result.stdout, 'Hello World')
+    })
+
+    void test('should return consistent result structure on success', async () => {
+      const result = await executeCommand('echo test')
+
+      assert.ok(typeof result.success === 'boolean')
+      assert.ok(typeof result.exitCode === 'number')
+      assert.ok(typeof result.stdout === 'string')
+      assert.ok(typeof result.stderr === 'string')
+      assert.ok('success' in result)
+      assert.ok('exitCode' in result)
+      assert.ok('stdout' in result)
+      assert.ok('stderr' in result)
+    })
+
+    void test('should return consistent result structure on failure', async () => {
+      const result = await executeCommand('exit 42')
+
+      assert.ok(typeof result.success === 'boolean')
+      assert.ok(typeof result.exitCode === 'number')
+      assert.ok(typeof result.stdout === 'string')
+      assert.ok(typeof result.stderr === 'string')
+      assert.strictEqual(result.success, false)
+      assert.strictEqual(result.exitCode, 42)
+    })
+
+    void test('should handle empty command', async () => {
+      await assert.rejects(
+        async () => executeCommand(''),
+        {
+          message: 'Command cannot be empty',
+          name: 'Error',
+        },
+      )
+    })
+
+    void test('should handle whitespace-only command', async () => {
+      await assert.rejects(
+        async () => executeCommand('   \t  \n  '),
+        {
+          message: 'Command cannot be empty',
+          name: 'Error',
+        },
+      )
+    })
+
+    void test('should handle very short timeout', async () => {
+      const result = await executeCommand('echo "quick"', 1) // 1ms timeout
+
+      // This might succeed or fail depending on system speed,
+      // but should not crash and should return proper structure
+      assert.ok(typeof result.success === 'boolean')
+      assert.ok(typeof result.exitCode === 'number')
     })
   })
 })
