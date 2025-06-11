@@ -14,7 +14,7 @@ import type {
 
 import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger, escapeShellArgument, executeCommand, groupBy } from './utils.ts'
+import { createLogger, escapeShellArgument, executeCommand, pluralize } from './utils.ts'
 
 /**
  * Get installation summary for display
@@ -74,34 +74,21 @@ export async function installApps(
     }
   }
 
-  // Group apps by type
-  const appsByType = groupBy(selectedApps, app => app.brewType)
-  const casks = appsByType.cask ?? []
-  const formulas = appsByType.formula ?? []
-
-  logger.info(`Starting installation: ${casks.length} cask(s), ${formulas.length} formula(s)`)
+  logger.info(`Starting installation: ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`)
 
   const allResults: PackageInstallResult[] = []
 
   try {
-    // Install casks first
-    if (casks.length > 0) {
-      const caskResults = await installCasks(casks, config, logger)
-      allResults.push(...caskResults)
+    // Install casks
+    const caskResults = await installCasks(selectedApps, config, logger)
+    allResults.push(...caskResults)
 
-      // Delete original .app files for successful cask installations
-      if (config.sudoPassword !== undefined && !config.dryRun) {
-        await deleteOriginalApps(caskResults, casks, config.sudoPassword, config, logger)
-      }
-      else if (casks.length > 0 && config.sudoPassword === undefined && !config.dryRun) {
-        logger.warn('No sudo password provided - original .app files will not be deleted')
-      }
+    // Delete original .app files for successful cask installations
+    if (config.sudoPassword !== undefined && !config.dryRun) {
+      await deleteOriginalApps(caskResults, selectedApps, config.sudoPassword, config, logger)
     }
-
-    // Install formulas
-    if (formulas.length > 0) {
-      const formulaResults = await installFormulas(formulas, config, logger)
-      allResults.push(...formulaResults)
+    else if (config.sudoPassword === undefined && !config.dryRun) {
+      logger.warn('No sudo password provided - original .app files will not be deleted')
     }
 
     // Categorize results
@@ -222,13 +209,13 @@ async function installCasks(
   const caskNames = casks.map(app => app.brewName)
   const command = BREW_COMMANDS.INSTALL_CASK(caskNames)
 
-  logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} cask(s): ${caskNames.join(', ')}`)
+  logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`)
   logger.verbose(`Command: ${command}`)
 
   const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun)
 
   if (result.success) {
-    logger.info(`Successfully installed ${casks.length} cask(s)`)
+    logger.info(`Successfully installed ${casks.length} ${pluralize('cask', casks.length)}`)
 
     return casks.map(app => ({
       appName: app.originalName,
@@ -241,51 +228,7 @@ async function installCasks(
     logger.error(`Failed to install casks: ${result.stderr}`)
 
     // In case of batch failure, mark all as failed
-    // In a more sophisticated implementation, we could try individual installations
     return casks.map(app => ({
-      appName: app.originalName,
-      dryRun: config.dryRun,
-      error: result.stderr,
-      packageName: app.brewName,
-      success: false,
-    }))
-  }
-}
-
-/**
- * Install Homebrew formulas in batch
- */
-async function installFormulas(
-  formulas: AppInfo[],
-  config: InstallerConfig,
-  logger: Logger,
-): Promise<PackageInstallResult[]> {
-  if (formulas.length === 0) {
-    return []
-  }
-
-  const formulaNames = formulas.map(app => app.brewName)
-  const command = BREW_COMMANDS.INSTALL_FORMULA(formulaNames)
-
-  logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${formulas.length} formula(s): ${formulaNames.join(', ')}`)
-  logger.verbose(`Command: ${command}`)
-
-  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun)
-
-  if (result.success) {
-    logger.info(`Successfully installed ${formulas.length} formula(s)`)
-
-    return formulas.map(app => ({
-      appName: app.originalName,
-      dryRun: config.dryRun,
-      packageName: app.brewName,
-      success: true,
-    }))
-  }
-  else {
-    logger.error(`Failed to install formulas: ${result.stderr}`)
-
-    return formulas.map(app => ({
       appName: app.originalName,
       dryRun: config.dryRun,
       error: result.stderr,

@@ -76,7 +76,7 @@ void describe('displayFinalSummary', () => {
       alreadyInstalled: false,
       appPath: '/Applications/Failed App.app',
       brewName: 'failed-app',
-      brewType: 'formula',
+      brewType: 'cask',
       originalName: 'Failed App',
       status: 'available',
     }
@@ -134,23 +134,6 @@ void describe('displayInstallationPlan', () => {
     })
   })
 
-  void test('should display plan for formula apps', () => {
-    const formulaApp: AppInfo = {
-      alreadyInstalled: false,
-      appPath: '/Applications/Formula App.app',
-      brewName: 'formula-app',
-      brewType: 'formula',
-      originalName: 'Formula App',
-      status: 'available',
-    }
-
-    const selectedApps = [formulaApp]
-
-    assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, undefined, false)
-    })
-  })
-
   void test('should display dry run plan', () => {
     const app: AppInfo = {
       alreadyInstalled: false,
@@ -167,34 +150,4 @@ void describe('displayInstallationPlan', () => {
       displayInstallationPlan(selectedApps, undefined, true)
     })
   })
-
-  void test('should display mixed casks and formulas', () => {
-    const caskApp: AppInfo = {
-      alreadyInstalled: false,
-      appPath: '/Applications/Cask App.app',
-      brewName: 'cask-app',
-      brewType: 'cask',
-      originalName: 'Cask App',
-      status: 'available',
-    }
-
-    const formulaApp: AppInfo = {
-      alreadyInstalled: false,
-      appPath: '/Applications/Formula App.app',
-      brewName: 'formula-app',
-      brewType: 'formula',
-      originalName: 'Formula App',
-      status: 'available',
-    }
-
-    const selectedApps = [caskApp, formulaApp]
-
-    assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, 'sudo-password', false)
-    })
-  })
 })
-
-// NOTE: promptConfirmation and promptSudoPassword tests are skipped because they require
-// interactive user input which causes test timeouts. These functions are tested manually
-// during integration testing.

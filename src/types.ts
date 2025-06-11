@@ -56,7 +56,7 @@ export interface BrewCommandResult {
 /**
  * Type of Homebrew package
  */
-export type BrewPackageType = 'cask' | 'formula' | 'unavailable'
+export type BrewPackageType = 'cask' | 'unavailable'
 
 /**
  * Command line options parsed by Commander.js

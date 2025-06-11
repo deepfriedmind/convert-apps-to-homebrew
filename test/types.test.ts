@@ -103,11 +103,10 @@ void describe('types', () => {
       void test('should accept valid package types', () => {
         const validTypes: BrewPackageType[] = [
           'cask',
-          'formula',
           'unavailable',
         ]
 
-        assert.strictEqual(validTypes.length, 3)
+        assert.strictEqual(validTypes.length, 2)
       })
     })
 
@@ -451,7 +450,7 @@ void describe('types', () => {
     })
 
     void test('BrewPackageType values should be consistent', () => {
-      const types: BrewPackageType[] = ['cask', 'formula', 'unavailable']
+      const types: BrewPackageType[] = ['cask', 'unavailable']
 
       for (const type of types) {
         assert.strictEqual(typeof type, 'string')

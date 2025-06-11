@@ -24,15 +24,9 @@ export function displayFinalSummary(
 
   if (dryRun) {
     console.log(chalk.blue(`\n📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`))
-    const casks = selectedApps.filter(app => app.brewType === 'cask')
-    const formulas = selectedApps.filter(app => app.brewType === 'formula')
 
-    if (casks.length > 0) {
-      console.log(chalk.cyan(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`))
-    }
-
-    if (formulas.length > 0) {
-      console.log(chalk.cyan(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`))
+    if (selectedApps.length > 0) {
+      console.log(chalk.cyan(`   📦 ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`))
     }
   }
   else {
@@ -66,15 +60,12 @@ export function displayInstallationPlan(
     return
   }
 
-  const casks = selectedApps.filter(app => app.brewType === 'cask')
-  const formulas = selectedApps.filter(app => app.brewType === 'formula')
-
   console.log(chalk.bold(`\n📋 Installation Plan ${dryRun ? '(DRY RUN)' : ''}`))
   console.log(chalk.dim('═'.repeat(50)))
 
-  if (casks.length > 0) {
-    console.log(chalk.cyan(`\n📦 Casks to install (${casks.length}):`))
-    console.log(formatList(casks.map(app => `${app.originalName} → ${app.brewName}`)))
+  if (selectedApps.length > 0) {
+    console.log(chalk.cyan(`\n📦 Casks to install (${selectedApps.length}):`))
+    console.log(formatList(selectedApps.map(app => `${app.originalName} → ${app.brewName}`)))
 
     if (sudoPassword === undefined) {
       console.log(chalk.yellow('   ⚠️  Will skip deletion of original .app files (no sudo access)'))
@@ -82,12 +73,6 @@ export function displayInstallationPlan(
     else {
       console.log(chalk.green('   ✓ Will delete original .app files (sudo access provided)'))
     }
-  }
-
-  if (formulas.length > 0) {
-    console.log(chalk.cyan(`\n⚙️  Formulas to install (${formulas.length}):`))
-    console.log(formatList(formulas.map(app => `${app.originalName} → ${app.brewName}`)))
-    console.log(chalk.blue('   ℹ️  Original .app files will be kept'))
   }
 
   if (dryRun) {
@@ -188,19 +173,10 @@ export async function promptConfirmation(dryRun = false): Promise<boolean> {
  */
 export async function promptSudoPassword(selectedApps: AppInfo[]): Promise<string | undefined> {
   const logger = createLogger(false)
-
-  if (!needsSudoPassword(selectedApps)) {
-    logger.verbose('No sudo password needed (no cask installations).')
-
-    return undefined
-  }
-
-  const caskApps = selectedApps.filter(app => app.brewType === 'cask')
-
   console.log(chalk.bold('\n🔐 Administrator Access Required'))
   console.log(chalk.dim('═'.repeat(50)))
-  console.log(`\nThe following ${pluralize('app', caskApps.length)} ${caskApps.length === 1 ? 'requires' : 'require'} deleting original .app files:`)
-  console.log(formatList(caskApps.map(app => app.originalName)))
+  console.log(`\nThe following ${pluralize('app', selectedApps.length)} ${selectedApps.length === 1 ? 'requires' : 'require'} deleting original .app files:`)
+  console.log(formatList(selectedApps.map(app => app.originalName)))
   console.log('\nThis requires administrator privileges to delete files from /Applications.')
 
   try {
@@ -235,17 +211,12 @@ export async function promptSudoPassword(selectedApps: AppInfo[]): Promise<strin
 function createAppChoices(apps: AppInfo[]): AppChoice[] {
   return apps
     .filter(app => app.status === 'available')
-    .map((app) => {
-      const brewTypeLabel = app.brewType === 'cask' ? '📦 cask' : '⚙️  formula'
-      const displayName = `${app.originalName} (${brewTypeLabel})`
-
-      return {
-        checked: true, // All apps checked by default as requested
-        disabled: false,
-        name: displayName,
-        value: app,
-      }
-    })
+    .map(app => ({
+      checked: true,
+      disabled: false,
+      name: app.originalName,
+      value: app,
+    }))
 }
 
 /**
@@ -261,18 +232,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   console.log(chalk.dim('═'.repeat(50)))
 
   if (available.length > 0) {
-    const casks = available.filter(app => app.brewType === 'cask')
-    const formulas = available.filter(app => app.brewType === 'formula')
-
     console.log(chalk.green(`\n✅ Available for installation (${available.length}):`))
-
-    if (casks.length > 0) {
-      console.log(chalk.cyan(`   📦 ${casks.length} ${pluralize('cask', casks.length)}`))
-    }
-
-    if (formulas.length > 0) {
-      console.log(chalk.cyan(`   ⚙️  ${formulas.length} ${pluralize('formula', formulas.length)}`))
-    }
   }
 
   if (alreadyInstalled.length > 0) {
@@ -313,15 +273,5 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   console.log(chalk.cyan('\n💡 Note:'))
-  console.log('• All available apps are pre-selected for installation')
   console.log('• Cask installations will delete the original .app files (requires sudo)')
-  console.log('• Formula installations keep the original .app files')
-  console.log('• Use spacebar to toggle selection, Enter to confirm')
-}
-
-/**
- * Check if sudo password is needed for the selected apps
- */
-function needsSudoPassword(selectedApps: AppInfo[]): boolean {
-  return selectedApps.some(app => app.brewType === 'cask')
 }

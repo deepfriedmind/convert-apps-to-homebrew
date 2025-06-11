@@ -14,7 +14,7 @@ export function assertAppInfo(actual: AppInfo, expected: Partial<AppInfo>): void
   assert.strictEqual(typeof actual.appPath, 'string', 'appPath should be string')
   assert.strictEqual(typeof actual.brewName, 'string', 'brewName should be string')
   assert.strictEqual(typeof actual.originalName, 'string', 'originalName should be string')
-  assert.ok(['cask', 'formula', 'unavailable'].includes(actual.brewType), 'brewType should be valid')
+  assert.ok(['cask', 'unavailable'].includes(actual.brewType), 'brewType should be valid')
   assert.ok(['already-installed', 'available', 'ignored', 'unavailable'].includes(actual.status), 'status should be valid')
 
   if (expected.alreadyInstalled !== undefined) {

@@ -29,11 +29,8 @@ void describe('constants', () => {
   void describe('BREW_COMMANDS', () => {
     void test('should have all required command functions', () => {
       assert.strictEqual(typeof BREW_COMMANDS.INFO_CASK, 'function')
-      assert.strictEqual(typeof BREW_COMMANDS.INFO_FORMULA, 'function')
       assert.strictEqual(typeof BREW_COMMANDS.INSTALL_CASK, 'function')
-      assert.strictEqual(typeof BREW_COMMANDS.INSTALL_FORMULA, 'function')
       assert.strictEqual(typeof BREW_COMMANDS.LIST_CASKS, 'string')
-      assert.strictEqual(typeof BREW_COMMANDS.LIST_FORMULAS, 'string')
       assert.strictEqual(typeof BREW_COMMANDS.VERSION, 'string')
     })
 
@@ -45,16 +42,6 @@ void describe('constants', () => {
     void test('INFO_CASK should handle names with spaces', () => {
       const result = BREW_COMMANDS.INFO_CASK('Test App')
       assert.strictEqual(result, 'brew info --cask "Test App"')
-    })
-
-    void test('INFO_FORMULA should generate correct command', () => {
-      const result = BREW_COMMANDS.INFO_FORMULA('test-formula')
-      assert.strictEqual(result, 'brew info "test-formula"')
-    })
-
-    void test('INFO_FORMULA should handle names with spaces', () => {
-      const result = BREW_COMMANDS.INFO_FORMULA('test formula')
-      assert.strictEqual(result, 'brew info "test formula"')
     })
 
     void test('INSTALL_CASK should generate correct command for single cask', () => {
@@ -77,27 +64,8 @@ void describe('constants', () => {
       assert.strictEqual(result, 'brew install --cask "Test App" "another-app"')
     })
 
-    void test('INSTALL_FORMULA should generate correct command for single formula', () => {
-      const result = BREW_COMMANDS.INSTALL_FORMULA(['test-formula'])
-      assert.strictEqual(result, 'brew install "test-formula"')
-    })
-
-    void test('INSTALL_FORMULA should generate correct command for multiple formulas', () => {
-      const result = BREW_COMMANDS.INSTALL_FORMULA(['formula1', 'formula2'])
-      assert.strictEqual(result, 'brew install "formula1" "formula2"')
-    })
-
-    void test('INSTALL_FORMULA should handle empty array', () => {
-      const result = BREW_COMMANDS.INSTALL_FORMULA([])
-      assert.strictEqual(result, 'brew install ')
-    })
-
     void test('LIST_CASKS should be correct command', () => {
       assert.strictEqual(BREW_COMMANDS.LIST_CASKS, 'brew ls -1 --cask')
-    })
-
-    void test('LIST_FORMULAS should be correct command', () => {
-      assert.strictEqual(BREW_COMMANDS.LIST_FORMULAS, 'brew leaves')
     })
 
     void test('VERSION should be correct command', () => {

@@ -55,14 +55,10 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   }
 
   logger.verbose(`Found ${appPaths.length} applications`)
-  logger.verbose('Getting list of already installed Homebrew packages...')
+  logger.verbose('Getting list of already installed Homebrew casks...')
 
-  const [installedCasks, installedFormulas] = await Promise.all([
-    getInstalledCasks(),
-    getInstalledFormulas(),
-  ])
+  const installedCasks = await getInstalledCasks()
   const installedCaskSet = new Set(installedCasks)
-  const installedFormulaSet = new Set(installedFormulas)
 
   // Process each application
   const apps: AppInfo[] = []
@@ -87,7 +83,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
     // Check if already installed first to avoid unnecessary API calls
     const isAlreadyInstalledCask = installedCaskSet.has(brewName)
-    const isAlreadyInstalledFormula = installedFormulaSet.has(brewName)
 
     if (isAlreadyInstalledCask) {
       apps.push({
@@ -95,18 +90,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         appPath,
         brewName,
         brewType: 'cask',
-        originalName,
-        status: 'already-installed',
-      })
-      continue
-    }
-
-    if (isAlreadyInstalledFormula) {
-      apps.push({
-        alreadyInstalled: true,
-        appPath,
-        brewName,
-        brewType: 'formula',
         originalName,
         status: 'already-installed',
       })
@@ -159,20 +142,13 @@ async function checkHomebrewInstalled(): Promise<boolean> {
  */
 async function determinePackageInfo(_appName: string, brewName: string): Promise<{
   alreadyInstalled: boolean
-  brewType: 'cask' | 'formula' | 'unavailable'
+  brewType: 'cask' | 'unavailable'
 }> {
-  // Check if it's available as a cask first (most common for GUI apps)
+  // Check if it's available as a cask (most GUI apps are casks)
   const isCask = await isCaskAvailable(brewName)
 
   if (isCask) {
     return { alreadyInstalled: false, brewType: 'cask' }
-  }
-
-  // Check if it's available as a formula
-  const isFormula = await isFormulaAvailable(brewName)
-
-  if (isFormula) {
-    return { alreadyInstalled: false, brewType: 'formula' }
   }
 
   return { alreadyInstalled: false, brewType: 'unavailable' }
@@ -192,32 +168,10 @@ async function getInstalledCasks(): Promise<string[]> {
 }
 
 /**
- * Get list of installed Homebrew formulas (leaves only)
- */
-async function getInstalledFormulas(): Promise<string[]> {
-  const result = await executeCommand(BREW_COMMANDS.LIST_FORMULAS)
-
-  if (!result.success) {
-    return []
-  }
-
-  return parseCommandOutput(result.stdout)
-}
-
-/**
  * Check if a package is available as a Homebrew cask
  */
 async function isCaskAvailable(packageName: string): Promise<boolean> {
   const result = await executeCommand(BREW_COMMANDS.INFO_CASK(packageName))
-
-  return result.success
-}
-
-/**
- * Check if a package is available as a Homebrew formula
- */
-async function isFormulaAvailable(packageName: string): Promise<boolean> {
-  const result = await executeCommand(BREW_COMMANDS.INFO_FORMULA(packageName))
 
   return result.success
 }
