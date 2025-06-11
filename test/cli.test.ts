@@ -6,10 +6,10 @@
 import { strict as assert } from 'node:assert'
 import { afterEach, beforeEach, describe, test } from 'node:test'
 
-import type { CommandOptions } from '../src/types.js'
+import type { CommandOptions } from '../src/types.ts'
 
-import { createProgram, displayTroubleshooting, displayWelcome, parseArguments, validateEnvironment } from '../src/cli.js'
-import { mockConsole } from './helpers/test-utils.js'
+import { createProgram, displayTroubleshooting, displayWelcome, parseArguments, validateEnvironment } from '../src/cli.ts'
+import { mockConsole } from './helpers/test-utils.ts'
 
 void describe('cli', () => {
   let consoleMock: { errors: string[], logs: string[], restore: () => void, warnings: string[] }

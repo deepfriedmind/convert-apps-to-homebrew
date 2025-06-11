@@ -72,24 +72,17 @@
       "extensions": [
         "mjs",
         "cjs",
-        "js"
-      ],
-      "parameters": []
-    },
-    {
-      "extensions": [
-        "mts",
-        "cts",
+        "js",
         "ts"
       ],
-      "parameters": [
-        "--import",
-        "tsx"
-      ]
+      "parameters": []
     }
   ],
   "peacock.color": "#f9d094",
   "prettier.enable": false,
+  "search.exclude": {
+    "package-lock.json": true
+  },
   "typescript.tsdk": "node_modules/typescript/lib",
   "workbench.colorCustomizations": {
     "commandCenter.border": "#15202b99",

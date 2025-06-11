@@ -39,16 +39,17 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "pkgroll",
+    "build": "npm run clean && tsc --project tsconfig.build.json",
     "check": "npm run lint:fix && npm run type-check && npm run knip && npm run test && npm run build",
+    "clean": "del-cli dist/**/*",
     "knip": "knip",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "start": "tsx src/index.ts",
-    "test": "tsx --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
-    "test:coverage": "tsx --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
-    "test:integration": "tsx --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
-    "test:watch": "tsx --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
+    "start": "node src/index.ts",
+    "test": "node --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
+    "test:coverage": "node --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
+    "test:integration": "node --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
+    "test:watch": "node --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -60,19 +61,18 @@
   "devDependencies": {
     "@antfu/eslint-config": "^4.14.1",
     "@tsconfig/node-ts": "^23.6.1",
-    "@tsconfig/node22": "^22.0.2",
-    "@types/node": "^22.15.31",
+    "@tsconfig/node24": "^24.0.1",
+    "@types/node": "^24.0.0",
+    "del-cli": "^6.0.0",
     "eslint": "^9.28.0",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-perfectionist": "^4.14.0",
     "knip": "^5.60.2",
-    "pkgroll": "^2.12.2",
-    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
   "packageManager": "npm@11.4.1",
   "engines": {
-    "node": ">= 22",
+    "node": ">= 24",
     "npm": ">= 11"
   },
   "os": [

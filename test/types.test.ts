@@ -5,14 +5,14 @@
 import assert from 'node:assert'
 import { describe, test } from 'node:test'
 
-import type { AppChoice, AppInfo, AppStatus, BrewCommandResult, BrewPackageType, CommandOptions, ErrorTypeValue, InstallationResult, InstallerConfig, Logger, OperationSummary, PackageInstallResult, ProgressCallback, ScannerConfig } from '../src/types.js'
+import type { AppChoice, AppInfo, AppStatus, BrewCommandResult, BrewPackageType, CommandOptions, ErrorTypeValue, InstallationResult, InstallerConfig, Logger, OperationSummary, PackageInstallResult, ProgressCallback, ScannerConfig } from '../src/types.ts'
 
 import {
 
   ConvertAppsError,
   ErrorType,
 
-} from '../src/types.js'
+} from '../src/types.ts'
 
 // Helper function for testing ProgressCallback
 const testCallback: ProgressCallback = (message: string, current: number, total: number) => {

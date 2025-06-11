@@ -2,11 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "tsx",
+      "name": "index",
       "type": "node",
       "request": "launch",
       "program": "src/index.ts",
-      "runtimeExecutable": "tsx",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "args": ["--verbose", "--dry-run"],

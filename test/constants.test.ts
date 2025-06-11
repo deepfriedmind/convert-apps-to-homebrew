@@ -13,7 +13,7 @@ import {
   FILE_PATTERNS,
   MESSAGES,
   REGEX_PATTERNS,
-} from '../src/constants.js'
+} from '../src/constants.ts'
 
 void describe('constants', () => {
   void describe('DEFAULT_APPLICATIONS_DIR', () => {
