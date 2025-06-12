@@ -45,6 +45,30 @@ export function createProgram(): Command {
       'specify custom Applications directory path',
       '/Applications',
     )
+    .option(
+      '--force-refresh-cache',
+      'force refresh of Homebrew cask database cache',
+      false,
+    )
+    .option(
+      '--fallback-to-cli',
+      'use individual brew commands instead of batch API (slower)',
+      false,
+    )
+    .option(
+      '--matching-threshold <threshold>',
+      'confidence threshold for fuzzy matching (0.0-1.0)',
+      (value) => {
+        const threshold = Number.parseFloat(value)
+
+        if (Number.isNaN(threshold) || threshold < 0 || threshold > 1) {
+          throw new Error('Matching threshold must be between 0.0 and 1.0')
+        }
+
+        return threshold
+      },
+      0.6,
+    )
 
   // Add examples to help
   program.addHelpText('after', `
@@ -54,14 +78,20 @@ Examples:
   $ npx convert-apps-to-homebrew --ignore "Adobe Photoshop" "Microsoft Word"
   $ npx convert-apps-to-homebrew --verbose --dry-run
   $ npx convert-apps-to-homebrew --applications-dir "/Applications"
+  $ npx convert-apps-to-homebrew --force-refresh-cache
+  $ npx convert-apps-to-homebrew --matching-threshold 0.8
+  $ npx convert-apps-to-homebrew --fallback-to-cli
 
 Notes:
   • The tool will scan your Applications directory for .app bundles
-  • It checks Homebrew for available casks
+  • It fetches the Homebrew cask database for fast batch matching
   • You can interactively select which apps to install via Homebrew
   • Original .app files are deleted for cask installations (requires sudo)
   • Use --dry-run to preview changes without making them
   • Use --ignore to skip specific applications by name
+  • Use --force-refresh-cache to update the cask database
+  • Use --fallback-to-cli to use individual brew commands (slower)
+  • Use --matching-threshold to adjust fuzzy matching sensitivity
 `)
 
   return program

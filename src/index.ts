@@ -61,7 +61,10 @@ function createInstallerConfig(options: CommandOptions, sudoPassword?: string): 
 function createScannerConfig(options: CommandOptions): ScannerConfig {
   return {
     applicationsDir: options.applicationsDir ?? '/Applications',
+    ...(options.fallbackToCli !== undefined && { fallbackToCli: options.fallbackToCli }),
+    ...(options.forceRefreshCache !== undefined && { forceRefreshCache: options.forceRefreshCache }),
     ignoredApps: options.ignore ?? [],
+    ...(options.matchingThreshold !== undefined && { matchingThreshold: options.matchingThreshold }),
     verbose: options.verbose ?? false,
   }
 }

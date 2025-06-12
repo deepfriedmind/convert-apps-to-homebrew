@@ -1,0 +1,398 @@
+/**
+ * App matching logic for finding Homebrew casks that correspond to local applications
+ */
+
+import bundleName from 'bundle-name'
+
+import type {
+  AppInfo,
+  AppMatchResult,
+  CaskIndex,
+  CaskMatch,
+  HomebrewCask,
+  Logger,
+  MatchingConfig,
+  MatchingStrategy,
+} from './types.ts'
+
+import { createLogger, normalizeAppName } from './utils.ts'
+
+/**
+ * Default matching configuration
+ */
+const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
+  enableBundleIdLookup: true,
+  maxMatches: 5,
+  minConfidence: 0.6,
+}
+
+/**
+ * App matcher class for finding cask matches
+ */
+export class AppMatcher {
+  private caskIndex?: CaskIndex
+  private readonly config: MatchingConfig
+  private readonly isVerbose: boolean
+  private readonly logger: Logger
+
+  constructor(config: Partial<MatchingConfig> = {}, verbose = false) {
+    this.isVerbose = verbose
+    this.logger = createLogger(verbose)
+    this.config = { ...DEFAULT_MATCHING_CONFIG, ...config }
+  }
+
+  /**
+   * Build search indexes from cask data
+   */
+  buildIndex(casks: HomebrewCask[]): CaskIndex {
+    this.logger.verbose(`Building search index for ${casks.length} casks...`)
+
+    const index: CaskIndex = {
+      byAppBundle: new Map(),
+      byBundleId: new Map(),
+      byNormalizedName: new Map(),
+      byToken: new Map(),
+    }
+
+    for (const cask of casks) {
+      // Index by token
+      index.byToken.set(cask.token, cask)
+
+      // Index by normalized names
+      for (const name of cask.name) {
+        const normalized = normalizeAppName(name)
+        this.addToMap(index.byNormalizedName, normalized, cask)
+      }
+
+      // Index by app bundles and bundle IDs from artifacts
+      for (const artifact of cask.artifacts) {
+        // Index app bundles
+        if (artifact.app) {
+          for (const appName of artifact.app) {
+            // Defensive programming: ensure appName is a string
+            if (typeof appName === 'string') {
+              const normalized = normalizeAppName(appName.replace(/\.app$/, ''))
+              this.addToMap(index.byAppBundle, normalized, cask)
+            }
+            else {
+              // Log warning for debugging but continue processing
+              this.logger.verbose(`Skipping non-string app name in cask ${cask.token}: ${typeof appName}`)
+            }
+          }
+        }
+
+        // Index bundle IDs from uninstall instructions
+        if (artifact.uninstall) {
+          for (const uninstallStep of artifact.uninstall) {
+            if (uninstallStep.quit !== undefined && uninstallStep.quit !== '') {
+              this.addToMap(index.byBundleId, uninstallStep.quit, cask)
+            }
+
+            if (uninstallStep.launchctl !== undefined && uninstallStep.launchctl !== '') {
+              this.addToMap(index.byBundleId, uninstallStep.launchctl, cask)
+            }
+          }
+        }
+      }
+    }
+
+    this.caskIndex = index
+    this.logger.verbose('Search index built successfully')
+
+    return index
+  }
+
+  /**
+   * Match a single app against the cask database
+   */
+  matchApp(appInfo: AppInfo, caskIndex?: CaskIndex): AppMatchResult {
+    const index = caskIndex ?? this.caskIndex
+
+    if (!index) {
+      throw new Error('No cask index available. Call buildIndex() first.')
+    }
+
+    const allMatches: CaskMatch[] = []
+
+    // Strategy 1: Direct app bundle matching
+    const bundleMatches = this.findAppBundleMatches(appInfo, index)
+    allMatches.push(...bundleMatches)
+
+    // Strategy 2: Bundle ID matching (if enabled and available)
+    if (this.config.enableBundleIdLookup) {
+      const bundleIdMatches = this.findBundleIdMatches(appInfo, index)
+      allMatches.push(...bundleIdMatches)
+    }
+
+    // Remove duplicates and sort by confidence
+    const uniqueMatches = this.deduplicateMatches(allMatches)
+    const filteredMatches = uniqueMatches
+      .filter(match => match.confidence >= this.config.minConfidence)
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, this.config.maxMatches)
+
+    // Determine primary strategy used
+    const strategy = this.determineStrategy(filteredMatches)
+
+    // Log the matching strategy in verbose mode
+    if (this.isVerbose) {
+      if (filteredMatches.length > 0) {
+        this.logger.verbose(`App "${appInfo.originalName}" matched using strategy: ${strategy}`)
+      }
+      else {
+        this.logger.verbose(`No matches found for "${appInfo.originalName}"`)
+      }
+    }
+
+    return {
+      appInfo,
+      matches: filteredMatches,
+      ...(filteredMatches[0] && { bestMatch: filteredMatches[0] }),
+      strategy,
+    }
+  }
+
+  /**
+   * Match multiple apps in batch
+   */
+  matchApps(apps: AppInfo[], caskIndex?: CaskIndex): AppMatchResult[] {
+    const index = caskIndex ?? this.caskIndex
+
+    if (!index) {
+      throw new Error('No cask index available. Call buildIndex() first.')
+    }
+
+    this.logger.verbose(`Matching ${apps.length} apps against cask database...`)
+
+    const results = apps.map(app => this.matchApp(app, index))
+
+    // Only compute and log statistics in verbose mode
+    if (this.isVerbose) {
+      // Log matching strategy statistics
+      const strategyCounts: Record<string, number> = {}
+      for (const result of results) {
+        const currentCount = strategyCounts[result.strategy] ?? 0
+        strategyCounts[result.strategy] = currentCount + 1
+      }
+
+      this.logger.verbose(`Strategy distribution: ${Object.entries(strategyCounts)
+        .map(([strategy, count]) => `${strategy}: ${count}`)
+        .join(', ')}`)
+
+      const matchesFound = results.filter(r => r.bestMatch).length
+      const noMatches = results.filter(r => r.matches.length === 0).length
+      this.logger.verbose(`Matching complete: ${matchesFound} matches found, ${noMatches} apps without matches`)
+    }
+    else {
+      // Simple completion message for non-verbose mode
+      const matchesFound = results.filter(r => r.bestMatch).length
+      this.logger.debug(`Matching complete: ${matchesFound}/${apps.length} matches found`)
+    }
+
+    return results
+  }
+
+  /**
+   * Helper method to add items to a map with arrays as values
+   */
+  private addToMap<K, V>(map: Map<K, V[]>, key: K, value: V): void {
+    const existing = map.get(key)
+
+    if (existing) {
+      existing.push(value)
+    }
+    else {
+      map.set(key, [value])
+    }
+  }
+
+  /**
+   * Remove duplicate matches (same cask token)
+   */
+  private deduplicateMatches(matches: CaskMatch[]): CaskMatch[] {
+    const seen = new Set<string>()
+    const unique: CaskMatch[] = []
+
+    for (const match of matches) {
+      if (!seen.has(match.cask.token)) {
+        seen.add(match.cask.token)
+        unique.push(match)
+      }
+    }
+
+    return unique
+  }
+
+  /**
+   * Determine the primary matching strategy used
+   */
+  private determineStrategy(matches: CaskMatch[]): MatchingStrategy {
+    if (matches.length === 0)
+      return 'hybrid'
+
+    const [topMatch] = matches
+
+    if (!topMatch)
+      return 'hybrid'
+
+    // Log detailed match information in verbose mode
+    if (this.isVerbose) {
+      this.logger.verbose(`Best match: ${topMatch.cask.token} (confidence: ${topMatch.confidence.toFixed(2)}, type: ${topMatch.matchType})`)
+    }
+
+    switch (topMatch.matchType) {
+      case 'bundle-id-derived':
+      case 'bundle-id-exact':
+      case 'bundle-id-resolved': {
+        return 'bundle-id'
+      }
+      case 'exact-app-bundle':
+      case 'name-exact':
+      case 'normalized-app-bundle':
+      case 'token-match': {
+        return 'app-bundle'
+      }
+      default: {
+        return 'hybrid'
+      }
+    }
+  }
+
+  /**
+   * Find matches by app bundle name
+   */
+  private findAppBundleMatches(appInfo: AppInfo, index: CaskIndex): CaskMatch[] {
+    const matches: CaskMatch[] = []
+    const originalAppNameNormalized = normalizeAppName(appInfo.originalName)
+    // Also create a version of the normalized app name with hyphens removed, for cases like "QuitAll" vs "Quit All"
+    const originalAppNameNormalizedNoHyphens = originalAppNameNormalized.replaceAll('-', '')
+
+    // Strategy 1: Exact match on cask name array
+    for (const cask of index.byToken.values()) {
+      for (const nameInCask of cask.name) {
+        const caskNameNormalized = normalizeAppName(nameInCask)
+
+        if (caskNameNormalized === originalAppNameNormalized) {
+          matches.push({
+            cask,
+            confidence: 1, // Highest confidence for exact normalized name match
+            matchDetails: {
+              matchedValue: appInfo.originalName, // Keep original name for reference
+              source: 'cask-name-normalized-exact',
+            },
+            matchType: 'name-exact',
+          })
+          break // Found a match for this cask via its name array, move to next cask
+        }
+
+        // Try matching without hyphens
+        const caskNameNormalizedNoHyphens = caskNameNormalized.replaceAll('-', '')
+
+        if (caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens) {
+          matches.push({
+            cask,
+            confidence: 0.98, // Slightly lower confidence than direct normalized match
+            matchDetails: {
+              matchedValue: appInfo.originalName,
+              source: 'cask-name-normalized-no-hyphens',
+            },
+            matchType: 'name-exact',
+          })
+          break
+        }
+      }
+    }
+
+    // Strategy 2: Exact normalized match on app bundle (existing logic)
+    const exactBundleMatches = index.byAppBundle.get(originalAppNameNormalized) ?? []
+    for (const cask of exactBundleMatches) {
+      matches.push({
+        cask,
+        confidence: 0.95,
+        matchDetails: {
+          matchedValue: originalAppNameNormalized,
+          source: 'app-bundle',
+        },
+        matchType: 'exact-app-bundle',
+      })
+    }
+
+    // Try with the brew name as well
+    if (appInfo.brewName !== originalAppNameNormalized) {
+      const brewNameNormalized = normalizeAppName(appInfo.brewName) // Ensure brewName is also normalized
+      const brewMatches = index.byAppBundle.get(brewNameNormalized) ?? []
+      for (const cask of brewMatches) {
+        matches.push({
+          cask,
+          confidence: 0.9,
+          matchDetails: {
+            matchedValue: appInfo.brewName,
+            source: 'brew-name',
+          },
+          matchType: 'normalized-app-bundle',
+        })
+      }
+
+      // Also try brew name without hyphens
+      const brewNameNormalizedNoHyphens = brewNameNormalized.replaceAll('-', '')
+      const brewMatchesNoHyphens = index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? []
+      for (const cask of brewMatchesNoHyphens) {
+        matches.push({
+          cask,
+          confidence: 0.88, // Lower confidence
+          matchDetails: {
+            matchedValue: appInfo.brewName,
+            source: 'brew-name-no-hyphens',
+          },
+          matchType: 'normalized-app-bundle',
+        })
+      }
+    }
+
+    return matches
+  }
+
+  /**
+   * Find matches by converting bundle IDs to app names and matching against local app
+   * This uses the bundle-name package to resolve bundle IDs to their actual app names
+   */
+  private findBundleIdMatches(appInfo: AppInfo, index: CaskIndex): CaskMatch[] {
+    const matches: CaskMatch[] = []
+    const targetAppName = normalizeAppName(appInfo.originalName)
+
+    // Iterate through all bundle IDs in the index
+    for (const [bundleId, casks] of index.byBundleId.entries()) {
+      try {
+        // Convert bundle ID to app name (this is synchronous in bundle-name v4+)
+        const resolvedAppName = bundleName.sync(bundleId)
+
+        if (resolvedAppName !== null && resolvedAppName.length > 0) {
+          const normalizedResolvedName = normalizeAppName(resolvedAppName)
+
+          // Check if the resolved app name matches our target app
+          if (normalizedResolvedName === targetAppName) {
+            // Add matches for all casks with this bundle ID
+            for (const cask of casks) {
+              matches.push({
+                cask,
+                confidence: 0.95, // High confidence for bundle ID matches
+                matchDetails: {
+                  matchedValue: bundleId,
+                  source: 'bundle-name-lookup',
+                },
+                matchType: 'bundle-id-resolved',
+              })
+            }
+          }
+        }
+      }
+      catch {
+        // Skip if bundle-name fails to resolve the bundle ID
+        // This is expected for some bundle IDs that don't correspond to apps
+        continue
+      }
+    }
+
+    return matches
+  }
+}

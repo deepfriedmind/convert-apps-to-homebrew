@@ -35,6 +35,20 @@ export interface AppInfo {
 }
 
 /**
+ * Result of matching a local app to Homebrew casks
+ */
+export interface AppMatchResult {
+  /** The local app being matched */
+  appInfo: AppInfo
+  /** Best match (highest confidence) */
+  bestMatch?: CaskMatch
+  /** Matched casks (sorted by confidence) */
+  matches: CaskMatch[]
+  /** Overall matching strategy used */
+  strategy: MatchingStrategy
+}
+
+/**
  * Status of an application in relation to Homebrew
  */
 export type AppStatus = 'already-installed' | 'available' | 'ignored' | 'unavailable'
@@ -59,6 +73,53 @@ export interface BrewCommandResult {
 export type BrewPackageType = 'cask' | 'unavailable'
 
 /**
+ * Cache entry for Homebrew cask data
+ */
+export interface CaskCacheEntry {
+  /** Cached cask data */
+  data: HomebrewCask[]
+  /** HTTP ETag for conditional requests */
+  etag?: string
+  /** When the cache was created */
+  timestamp: number
+  /** Cache format version */
+  version: string
+}
+
+/**
+ * Indexed lookup structures for efficient matching
+ */
+export interface CaskIndex {
+  /** Map from app bundle name to casks */
+  byAppBundle: Map<string, HomebrewCask[]>
+  /** Map from bundle ID to casks */
+  byBundleId: Map<string, HomebrewCask[]>
+  /** Map from normalized name to casks */
+  byNormalizedName: Map<string, HomebrewCask[]>
+  /** Map from token to cask */
+  byToken: Map<string, HomebrewCask>
+}
+
+/**
+ * Individual cask match with confidence score
+ */
+export interface CaskMatch {
+  /** The matched cask */
+  cask: HomebrewCask
+  /** Confidence score (0-1) */
+  confidence: number
+  /** Specific matching details */
+  matchDetails: {
+    /** What was matched against */
+    matchedValue: string
+    /** Original source of the match */
+    source: string
+  }
+  /** How this match was found */
+  matchType: MatchType
+}
+
+/**
  * Command line options parsed by Commander.js
  */
 export interface CommandOptions {
@@ -66,10 +127,73 @@ export interface CommandOptions {
   applicationsDir?: string
   /** Whether to run in dry-run mode (show what would happen without executing) */
   dryRun?: boolean
+  /** Whether to use individual brew commands instead of batch API */
+  fallbackToCli?: boolean
+  /** Whether to force refresh of cask database cache */
+  forceRefreshCache?: boolean
   /** List of app names to ignore */
   ignore?: string[]
+  /** Confidence threshold for matching (0.0-1.0) */
+  matchingThreshold?: number
   /** Verbose output */
   verbose?: boolean
+}
+
+/**
+ * Result of Homebrew API operations
+ */
+export interface HomebrewApiResult<T> {
+  /** Result data if successful */
+  data?: T
+  /** Error information if failed */
+  error?: {
+    code?: string
+    message: string
+    originalError?: Error
+  }
+  /** Whether data came from cache */
+  fromCache?: boolean
+  /** Whether the operation was successful */
+  success: boolean
+}
+
+/**
+ * Complete Homebrew cask data structure from API
+ */
+export interface HomebrewCask {
+  /** Installation artifacts and configuration */
+  artifacts: HomebrewCaskArtifact[]
+  /** Auto-update configuration */
+  auto_updates?: boolean
+  /** Additional cask metadata */
+  caveats?: string
+  /** Conflicts with other software */
+  conflicts_with?: {
+    cask?: string[]
+    formula?: string[]
+  }
+  /** Dependencies */
+  depends_on?: {
+    cask?: string[]
+    formula?: string[]
+    macos?: Record<string, string[]>
+  }
+  /** Brief description */
+  desc: string
+  /** Full token with tap prefix */
+  full_token: string
+  /** Homepage URL */
+  homepage: string
+  /** Display names for the application */
+  name: string[]
+  /** Previous token names */
+  old_tokens: string[]
+  /** Homebrew tap that provides this cask */
+  tap: string
+  /** Unique cask identifier */
+  token: string
+  /** Version information */
+  version?: string
 }
 
 /**
@@ -103,6 +227,23 @@ export interface InstallerConfig {
 }
 
 /**
+ * Configuration for app matching
+ */
+export interface MatchingConfig {
+  /** Whether to use bundle ID lookup */
+  enableBundleIdLookup: boolean
+  /** Maximum number of matches to return per app */
+  maxMatches: number
+  /** Minimum confidence threshold for matches */
+  minConfidence: number
+}
+
+/**
+ * Types of matching strategies
+ */
+export type MatchingStrategy = 'app-bundle' | 'bundle-id' | 'hybrid'
+
+/**
  * Result of installing a single package
  */
 export interface PackageInstallResult {
@@ -124,11 +265,61 @@ export interface PackageInstallResult {
 export interface ScannerConfig {
   /** Directory to scan for applications */
   applicationsDir: string
+  /** Whether to use individual brew commands instead of batch API */
+  fallbackToCli?: boolean
+  /** Whether to force refresh of cask database cache */
+  forceRefreshCache?: boolean
   /** Apps to ignore during scanning */
   ignoredApps: string[]
+  /** Confidence threshold for matching (0.0-1.0) */
+  matchingThreshold?: number
   /** Whether to include verbose output */
   verbose: boolean
 }
+
+/**
+ * Homebrew cask artifact types from the API
+ */
+interface HomebrewCaskArtifact {
+  /** App bundles installed by this cask */
+  app?: string[]
+  /** Binary executables */
+  binary?: (string | { target: string })[]
+  /** Installer package */
+  pkg?: string[]
+  /** Post-install actions */
+  postflight?: unknown
+  /** Pre-install actions */
+  preflight?: unknown
+  /** Suite of applications */
+  suite?: string[]
+  /** Uninstall configuration */
+  uninstall?: Array<{
+    /** Additional delete items */
+    delete?: string[]
+    /** Launch control service to stop */
+    launchctl?: string
+    /** Bundle ID to quit during uninstall */
+    quit?: string
+  }>
+  /** Files and directories to remove completely */
+  zap?: Array<{
+    delete?: string[]
+    trash?: string[]
+  }>
+}
+
+/**
+ * Specific match types within strategies
+ */
+type MatchType
+  = | 'bundle-id-derived' // Bundle ID found through app name lookup
+    | 'bundle-id-exact' // Exact bundle ID match
+    | 'bundle-id-resolved' // Bundle ID resolved to app name using bundle-name
+    | 'exact-app-bundle' // Exact match of app bundle name
+    | 'name-exact' // Exact name match from cask names
+    | 'normalized-app-bundle' // Normalized app bundle name match
+    | 'token-match' // Matched against cask token
 
 /**
  * Error types that can occur during execution
