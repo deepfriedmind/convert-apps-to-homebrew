@@ -154,7 +154,7 @@ async function deleteOriginalApps(
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Deleting ${successfulCasks.length} original .app file(s)`)
 
   for (const result of successfulCasks) {
-    const app = caskApps.find(a => a.brewName === result.packageName)
+    const app = caskApps.find(appInfo => appInfo.brewName === result.packageName)
 
     if (!app) {
       logger.warn(`Could not find app info for ${result.packageName}`)

@@ -82,13 +82,13 @@ const mockApp: AppInfo = {
   status: 'unavailable',
 }
 
-void test('AppMatcher', async (t) => {
-  await t.test('should initialize correctly', () => {
+void test('AppMatcher', async (testContext) => {
+  await testContext.test('should initialize correctly', () => {
     const matcher = new AppMatcher({}, false)
     assert.ok(matcher instanceof AppMatcher)
   })
 
-  await t.test('should build index from casks', () => {
+  await testContext.test('should build index from casks', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -97,7 +97,7 @@ void test('AppMatcher', async (t) => {
     assert.strictEqual(index.byToken.size, 4) // Updated due to new mock casks
   })
 
-  await t.test('should match apps by exact bundle name', () => {
+  await testContext.test('should match apps by exact bundle name', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -108,7 +108,7 @@ void test('AppMatcher', async (t) => {
     assert.ok(matchResult.bestMatch.confidence > 0.8)
   })
 
-  await t.test('should match "YubiKey Manager" using normalized cask name match', () => {
+  await testContext.test('should match "YubiKey Manager" using normalized cask name match', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -129,7 +129,7 @@ void test('AppMatcher', async (t) => {
     assert.ok(matchResult.bestMatch.confidence >= 0.98, 'YubiKey Manager confidence should be high')
   })
 
-  await t.test('should match "Quit All" using hyphen-less normalized cask name match', () => {
+  await testContext.test('should match "Quit All" using hyphen-less normalized cask name match', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -151,7 +151,7 @@ void test('AppMatcher', async (t) => {
     assert.ok(matchResult.bestMatch.confidence >= 0.98, 'Quit All confidence should be high')
   })
 
-  await t.test('should handle apps with no matches', () => {
+  await testContext.test('should handle apps with no matches', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -170,7 +170,7 @@ void test('AppMatcher', async (t) => {
     assert.strictEqual(matchResult.matches.length, 0)
   })
 
-  await t.test('should match multiple apps in batch', () => {
+  await testContext.test('should match multiple apps in batch', () => {
     const matcher = new AppMatcher({}, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -193,7 +193,7 @@ void test('AppMatcher', async (t) => {
     assert.ok(results[1]?.bestMatch !== undefined)
   })
 
-  await t.test('should respect confidence threshold', () => {
+  await testContext.test('should respect confidence threshold', () => {
     const matcher = new AppMatcher({ minConfidence: 0.95 }, false)
     const index = matcher.buildIndex(mockCasks)
 
@@ -213,7 +213,7 @@ void test('AppMatcher', async (t) => {
     assert.ok(matchResult.matches.length <= 1)
   })
 
-  await t.test('should match apps using bundle ID resolution', () => {
+  await testContext.test('should match apps using bundle ID resolution', () => {
     const matcher = new AppMatcher({ enableBundleIdLookup: true }, false)
     const index = matcher.buildIndex(mockCasks)
 

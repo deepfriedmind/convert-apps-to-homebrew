@@ -45,6 +45,7 @@
     "knip": "knip",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "lint:inspect": "npx @eslint/config-inspector@latest",
     "start": "node src/index.ts",
     "test": "node --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
     "test:coverage": "node --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",

@@ -128,7 +128,7 @@ export class AppMatcher {
     const uniqueMatches = this.deduplicateMatches(allMatches)
     const filteredMatches = uniqueMatches
       .filter(match => match.confidence >= this.config.minConfidence)
-      .sort((a, b) => b.confidence - a.confidence)
+      .sort((matchA, matchB) => matchB.confidence - matchA.confidence)
       .slice(0, this.config.maxMatches)
 
     // Determine primary strategy used
@@ -175,8 +175,8 @@ export class AppMatcher {
       })
 
       // Create statistics summary
-      const matchesFound = results.filter(r => r.bestMatch).length
-      const noMatches = results.filter(r => r.matches.length === 0).length
+      const matchesFound = results.filter(result => result.bestMatch).length
+      const noMatches = results.filter(result => result.matches.length === 0).length
 
       // Log the table with match results
       console.log('\nMatch Results Summary:')
@@ -192,7 +192,7 @@ export class AppMatcher {
     }
     else {
       // Simple completion message for non-verbose mode
-      const matchesFound = results.filter(r => r.bestMatch).length
+      const matchesFound = results.filter(result => result.bestMatch).length
       this.logger.debug(`Matching complete: ${matchesFound}/${apps.length} matches found`)
     }
 
