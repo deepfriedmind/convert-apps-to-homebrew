@@ -183,8 +183,15 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     const parsedOptions: CommandOptions = {
       applicationsDir: typeof options['applicationsDir'] === 'string' ? options['applicationsDir'] : '/Applications',
       dryRun: Boolean(options['dryRun']),
+      fallbackToCli: Boolean(options['fallbackToCli']),
+      forceRefreshCache: Boolean(options['forceRefreshCache']),
       ignore: ignore.map((app: string) => app.trim()),
       verbose: Boolean(options['verbose']),
+    }
+
+    // Add optional properties only if they exist
+    if (typeof options['matchingThreshold'] === 'number') {
+      parsedOptions.matchingThreshold = options['matchingThreshold']
     }
 
     return parsedOptions
