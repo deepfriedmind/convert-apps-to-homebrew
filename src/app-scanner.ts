@@ -140,9 +140,12 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
           logger.verbose(`Built search index for ${caskResult.data.length} casks`)
 
-          // Match apps against cask database
-          for (const app of appsToCheck) {
-            const matchResult = matcher.matchApp(app, index)
+          // Match apps against cask database using batch method to get console.table output
+          const matchResults = matcher.matchApps(appsToCheck, index)
+
+          // Process match results
+          for (const matchResult of matchResults) {
+            const app = matchResult.appInfo
 
             if (matchResult.bestMatch) {
               const matchedCaskName = matchResult.bestMatch.cask.token
@@ -153,8 +156,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
                 app.brewType = 'cask'
                 app.status = 'already-installed'
                 app.brewName = matchedCaskName
-
-                logger.verbose(`Matched ${app.originalName} -> ${matchedCaskName} (already installed)`)
               }
               else {
                 // Found a match and not already installed
@@ -162,20 +163,14 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
                 app.brewType = 'cask'
                 app.status = 'available'
                 app.brewName = matchedCaskName
-
-                logger.verbose(`Matched ${app.originalName} -> ${matchedCaskName} (confidence: ${matchResult.bestMatch.confidence.toFixed(2)})`)
               }
             }
             else {
               // No match found
               app.brewType = 'unavailable'
               app.status = 'unavailable'
-
-              logger.verbose(`No match found for ${app.originalName}`)
             }
           }
-
-          logger.info(`Batch matching complete: ${appsToCheck.filter(app => app.status === 'available').length}/${appsToCheck.length} apps available`)
         }
         else {
           // Fallback to individual brew commands

@@ -20,13 +20,7 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "eslint.rules.customizations": [
-    {
-      "fixable": true,
-      "rule": "*",
-      "severity": "off"
-    }
-  ],
+  "eslint.rules.customizations": [{ "fixable": true, "rule": "*", "severity": "off" }],
   "eslint.runtime": "node",
   "eslint.validate": [
     "astro",

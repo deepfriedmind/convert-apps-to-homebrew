@@ -134,16 +134,6 @@ export class AppMatcher {
     // Determine primary strategy used
     const strategy = this.determineStrategy(filteredMatches)
 
-    // Log the matching strategy in verbose mode
-    if (this.isVerbose) {
-      if (filteredMatches.length > 0) {
-        this.logger.verbose(`App "${appInfo.originalName}" matched using strategy: ${strategy}`)
-      }
-      else {
-        this.logger.verbose(`No matches found for "${appInfo.originalName}"`)
-      }
-    }
-
     return {
       appInfo,
       matches: filteredMatches,
@@ -168,20 +158,37 @@ export class AppMatcher {
 
     // Only compute and log statistics in verbose mode
     if (this.isVerbose) {
-      // Log matching strategy statistics
-      const strategyCounts: Record<string, number> = {}
-      for (const result of results) {
-        const currentCount = strategyCounts[result.strategy] ?? 0
-        strategyCounts[result.strategy] = currentCount + 1
-      }
+      // Create summary table data
+      const matchSummary = results.map((result) => {
+        const { appInfo, matches } = result
+        const bestMatch = matches[0] || null
 
-      this.logger.verbose(`Strategy distribution: ${Object.entries(strategyCounts)
-        .map(([strategy, count]) => `${strategy}: ${count}`)
-        .join(', ')}`)
+        return {
+          /* eslint-disable perfectionist/sort-objects */
+          appName: appInfo.originalName,
+          matchFound: matches.length > 0 ? '✅' : '❌',
+          caskToken: bestMatch ? bestMatch.cask.token : '-',
+          confidence: bestMatch ? bestMatch.confidence.toFixed(2) : '-',
+          matchType: bestMatch ? bestMatch.matchType : '-',
+          /* eslint-enable perfectionist/sort-objects */
+        }
+      })
 
+      // Create statistics summary
       const matchesFound = results.filter(r => r.bestMatch).length
       const noMatches = results.filter(r => r.matches.length === 0).length
-      this.logger.verbose(`Matching complete: ${matchesFound} matches found, ${noMatches} apps without matches`)
+
+      // Log the table with match results
+      console.log('\nMatch Results Summary:')
+      console.table(matchSummary)
+
+      // Log summary statistics
+      console.log('\nMatch Statistics:')
+      console.table({
+        'Matches Found': matchesFound,
+        'No Matches': noMatches,
+        'Total Apps': apps.length,
+      })
     }
     else {
       // Simple completion message for non-verbose mode
@@ -234,11 +241,6 @@ export class AppMatcher {
 
     if (!topMatch)
       return 'hybrid'
-
-    // Log detailed match information in verbose mode
-    if (this.isVerbose) {
-      this.logger.verbose(`Best match: ${topMatch.cask.token} (confidence: ${topMatch.confidence.toFixed(2)}, type: ${topMatch.matchType})`)
-    }
 
     switch (topMatch.matchType) {
       case 'bundle-id-derived':
