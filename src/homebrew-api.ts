@@ -8,6 +8,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { gunzip, gzip } from 'node:zlib'
+import ora, { type Ora } from 'ora'
 
 import type {
   CaskCacheEntry,
@@ -82,7 +83,7 @@ export class HomebrewApiClient {
   /**
    * Fetch all Homebrew casks with caching
    */
-  async fetchAllCasks(forceRefresh = false): Promise<HomebrewApiResult<HomebrewCask[]>> {
+  async fetchAllCasks(forceRefresh = false, showSpinner = true): Promise<HomebrewApiResult<HomebrewCask[]>> {
     try {
       // Try to load from cache first unless force refresh
       if (!forceRefresh) {
@@ -93,17 +94,42 @@ export class HomebrewApiClient {
 
           return { ...cached, fromCache: true }
         }
+
+        this.logger.verbose('Cache not found or invalid, fetching from API...')
+      }
+
+      // Only show spinner when actually fetching from API
+      const spinner = showSpinner ? ora() : null
+
+      if (spinner) {
+        if (forceRefresh) {
+          spinner.start('Refreshing Homebrew cask database from API...')
+        }
+        else {
+          spinner.start('Fetching Homebrew cask database from API...')
+        }
       }
 
       this.logger.verbose('Fetching cask data from Homebrew API...')
 
       // Fetch from API
-      const result = await this.fetchFromApi()
+      const result = await this.fetchFromApi(spinner)
 
       if (result.success && result.data) {
         // Save to cache
+        if (spinner) {
+          spinner.text = 'Caching cask database...'
+        }
+
         await this.saveToCache(result.data)
         this.logger.verbose('Cask data cached successfully')
+
+        if (spinner) {
+          spinner.succeed(`Successfully loaded ${result.data.length} casks from Homebrew API`)
+        }
+      }
+      else if (spinner) {
+        spinner.fail('Failed to fetch cask database from API')
       }
 
       return result
@@ -155,11 +181,21 @@ export class HomebrewApiClient {
   /**
    * Fetch cask data from Homebrew API
    */
-  private async fetchFromApi(): Promise<HomebrewApiResult<HomebrewCask[]>> {
+  private async fetchFromApi(spinner?: null | Ora): Promise<HomebrewApiResult<HomebrewCask[]>> {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), CACHE_CONFIG.REQUEST_TIMEOUT)
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+
+      if (spinner) {
+        spinner.fail(`Request timed out after ${CACHE_CONFIG.REQUEST_TIMEOUT / 1000} seconds`)
+      }
+    }, CACHE_CONFIG.REQUEST_TIMEOUT)
 
     try {
+      if (spinner) {
+        spinner.text = 'Connecting to Homebrew API...'
+      }
+
       const response = await fetch(HOMEBREW_API.CASKS, {
         headers: {
           Accept: 'application/json',
@@ -171,6 +207,10 @@ export class HomebrewApiClient {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
+        if (spinner) {
+          spinner.fail(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
         return {
           error: {
             code: response.status.toString(),
@@ -180,6 +220,14 @@ export class HomebrewApiClient {
         }
       }
 
+      const contentLength = response.headers.get('content-length')
+      const sizeText = contentLength != null && contentLength !== '' ? ` (${Math.round(Number.parseInt(contentLength, 10) / 1000)} kB)` : ''
+
+      if (spinner) {
+        spinner.text = `Downloading cask database${sizeText}...`
+      }
+
+      // The actual download happens here, awaiting the full response
       const casks = await response.json() as HomebrewCask[]
 
       this.logger.verbose(`Fetched ${casks.length} casks from Homebrew API`)
@@ -328,8 +376,12 @@ export class HomebrewApiClient {
 export async function fetchHomebrewCasks(
   verbose = false,
   forceRefresh = false,
+  showSpinner = true,
 ): Promise<HomebrewApiResult<HomebrewCask[]>> {
   const client = new HomebrewApiClient(verbose)
 
-  return client.fetchAllCasks(forceRefresh)
+  // Disable spinner in verbose mode to avoid interfering with detailed logs
+  const shouldShowSpinner = showSpinner && !verbose
+
+  return client.fetchAllCasks(forceRefresh, shouldShowSpinner)
 }

@@ -125,7 +125,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     else {
       try {
         // Fetch Homebrew cask database
-        const caskResult = await fetchHomebrewCasks(config.verbose, config.forceRefreshCache)
+        const caskResult = await fetchHomebrewCasks(config.verbose, config.forceRefreshCache, true)
 
         if (caskResult.success && caskResult.data) {
           // Use the new matching system

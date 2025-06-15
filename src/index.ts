@@ -195,11 +195,17 @@ async function main(): Promise<void> {
     progressTracker.completeOperation('Prerequisites validation')
 
     // Discover applications
-    progressTracker.startOperation('Scanning applications')
-    logger.info(MESSAGES.SCANNING_APPS)
+    if (options.verbose) {
+      progressTracker.startOperation('Scanning applications')
+      logger.info(MESSAGES.SCANNING_APPS)
+    }
+
     const scannerConfig = createScannerConfig(options)
     const discoveredApps = await discoverApps(scannerConfig)
-    progressTracker.completeOperation('Application scanning')
+
+    if (options.verbose) {
+      progressTracker.completeOperation('Application scanning')
+    }
 
     if (discoveredApps.length === 0) {
       logger.warn(MESSAGES.NO_APPS_FOUND)
