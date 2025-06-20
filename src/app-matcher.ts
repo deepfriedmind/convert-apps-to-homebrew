@@ -69,15 +69,24 @@ export class AppMatcher {
         // Index app bundles
         if (artifact.app) {
           for (const appName of artifact.app) {
-            // Defensive programming: ensure appName is a string
+            let appNameString: string
+
+            // Handle both string and object formats
             if (typeof appName === 'string') {
-              const normalized = normalizeAppName(appName.replace(/\.app$/, ''))
-              this.addToMap(index.byAppBundle, normalized, cask)
+              appNameString = appName
+            }
+            else if (typeof appName === 'object' && appName !== null && 'target' in appName) {
+              // Extract the target path from object format
+              appNameString = appName.target
             }
             else {
-              // Log warning for debugging but continue processing
-              this.logger.verbose(`Skipping non-string app name in cask ${cask.token}: ${typeof appName}`)
+              // Log warning for unexpected formats but continue processing
+              this.logger.verbose(`Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`)
+              continue
             }
+
+            const normalized = normalizeAppName(appNameString.replace(/\.app$/, ''))
+            this.addToMap(index.byAppBundle, normalized, cask)
           }
         }
 
@@ -206,7 +215,9 @@ export class AppMatcher {
     const existing = map.get(key)
 
     if (existing) {
-      existing.push(value)
+      if (!existing.includes(value)) {
+        existing.push(value)
+      }
     }
     else {
       map.set(key, [value])

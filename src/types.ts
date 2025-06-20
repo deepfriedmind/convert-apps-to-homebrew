@@ -282,7 +282,7 @@ export interface ScannerConfig {
  */
 interface HomebrewCaskArtifact {
   /** App bundles installed by this cask */
-  app?: string[]
+  app?: (string | { target: string })[]
   /** Binary executables */
   binary?: (string | { target: string })[]
   /** Installer package */
