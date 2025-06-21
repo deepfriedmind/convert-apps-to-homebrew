@@ -2,8 +2,10 @@
  * Utility functions for the convert-apps-to-homebrew application
  */
 
+import type { Buffer } from 'node:buffer'
+
 import chalk from 'chalk'
-import { exec } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
 
 import type { BrewCommandResult, Logger } from './types.ts'
@@ -76,35 +78,15 @@ export function escapeShellArgument(argument: string): string {
  * @param command - The shell command to execute
  * @param timeout - Maximum execution time in milliseconds (defaults to BREW_COMMAND_TIMEOUT)
  * @param dryRun - If true, don't actually execute the command, just return a dry-run message
+ * @param streamOutput - If true, stream command output to console in real-time
  * @returns Promise that resolves to a BrewCommandResult with execution details
  * @throws {Error} When command is empty or contains only whitespace
- *
- * @example
- * ```typescript
- * const result = await executeCommand('brew list --cask');
- * if (result.success) {
- *   console.log('Output:', result.stdout);
- * } else {
- *   console.error('Error:', result.stderr);
- * }
- * ```
- *
- * @example
- * ```typescript
- * // With custom timeout
- * const result = await executeCommand('brew install package', 30000);
- * ```
- *
- * @example
- * ```typescript
- * // Dry run mode
- * const result = await executeCommand('brew install package', DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, true);
- * ```
  */
 export async function executeCommand(
   command: string,
   timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
   dryRun = false,
+  streamOutput = false,
 ): Promise<BrewCommandResult> {
   if (command.trim() === '') {
     throw new Error('Command cannot be empty')
@@ -117,6 +99,47 @@ export async function executeCommand(
       stdout: `[DRY RUN] Would execute: ${command}`,
       success: true,
     }
+  }
+
+  if (streamOutput) {
+    // Use spawn instead of exec to get real-time output
+    return new Promise((resolve) => {
+      let stdoutData = ''
+      let stderrData = ''
+
+      // Use shell: true to support piping and redirection
+      const childProcess = spawn(command, [], { shell: true, timeout })
+
+      childProcess.stdout.on('data', (data: Buffer) => {
+        const output = data.toString()
+        stdoutData += output
+        process.stdout.write(output)
+      })
+
+      childProcess.stderr.on('data', (data: Buffer) => {
+        const output = data.toString()
+        stderrData += output
+        process.stderr.write(output)
+      })
+
+      childProcess.on('close', (code: number) => {
+        resolve({
+          exitCode: code ?? 0,
+          stderr: stderrData.trim(),
+          stdout: stdoutData.trim(),
+          success: code === 0,
+        })
+      })
+
+      childProcess.on('error', (error: Error) => {
+        resolve({
+          exitCode: 1,
+          stderr: error.message,
+          stdout: stdoutData.trim(),
+          success: false,
+        })
+      })
+    })
   }
 
   try {

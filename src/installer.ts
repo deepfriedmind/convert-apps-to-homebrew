@@ -24,7 +24,7 @@ export function getInstallationSummary(result: InstallationResult): string {
     lines.push('🔍 DRY RUN SUMMARY', '═'.repeat(50))
   }
   else {
-    lines.push('📊 INSTALLATION SUMMARY', '═'.repeat(50))
+    lines.push('📦 INSTALLATION SUMMARY', '═'.repeat(50))
   }
 
   if (result.installed.length > 0) {
@@ -143,7 +143,8 @@ async function installCasks(
   logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`)
   logger.verbose(`Command: ${command}`)
 
-  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun)
+  // Use streamOutput=true to show real-time output during installation
+  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun, true)
 
   if (result.success) {
     logger.info(`Successfully installed ${casks.length} ${pluralize('cask', casks.length)}`)

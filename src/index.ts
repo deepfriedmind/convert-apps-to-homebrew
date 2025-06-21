@@ -108,7 +108,7 @@ function handleError(error: Error, logger: Logger): never {
 
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
         logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
-        logger.info('Install Homebrew: https://brew.sh/')
+        displayTroubleshooting()
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
       }
 
@@ -118,33 +118,24 @@ function handleError(error: Error, logger: Logger): never {
       }
 
       case ErrorType.NETWORK_ERROR: {
-        logger.error('Network error occurred. Please check your internet connection.')
+        logger.error(`Network error: ${error.message}`)
         process.exit(EXIT_CODES.NETWORK_ERROR)
       }
 
       case ErrorType.PERMISSION_DENIED: {
         logger.error(MESSAGES.PERMISSION_DENIED)
-        logger.info('Try running with appropriate permissions or check file access.')
+        logger.error(error.message)
+        displayTroubleshooting()
         process.exit(EXIT_CODES.PERMISSION_DENIED)
       }
 
       case ErrorType.UNKNOWN_ERROR: {
         logger.error(`Unknown error: ${error.message}`)
-
-        if (error.originalError !== undefined) {
-          logger.debug(`Original error: ${error.originalError.message}`)
-        }
-
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       default: {
-        logger.error(`Application error: ${error.message}`)
-
-        if (error.originalError !== undefined) {
-          logger.debug(`Original error: ${error.originalError.message}`)
-        }
-
+        logger.error(`Error: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
     }
