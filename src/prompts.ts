@@ -99,12 +99,10 @@ export async function promptAppSelection(
   const choices = createAppChoices(availableApps)
 
   try {
-    console.log(chalk.bold('\n🎯 Select applications to install via Homebrew:'))
-
     const selectedApps = await checkbox({
       choices,
       loop: false,
-      message: 'Choose apps to install (use spacebar to toggle, Enter to confirm):',
+      message: 'Choose apps to install:',
       pageSize: 15,
       required: false,
     })
@@ -124,37 +122,6 @@ export async function promptAppSelection(
       logger.warn('Selection cancelled by user.')
 
       return []
-    }
-    throw error
-  }
-}
-
-/**
- * Prompt for confirmation before proceeding with installation
- */
-export async function promptConfirmation(dryRun = false): Promise<boolean> {
-  const logger = createLogger(false)
-
-  try {
-    const message = dryRun ?
-      'Proceed with dry run?'
-      : 'Proceed with installation?'
-
-    // For now, we'll use a simple approach since @inquirer/confirm might not be available
-    // In a real implementation, you would use @inquirer/confirm
-    console.log(chalk.yellow(`\n❓ ${message} (y/N):`))
-
-    // For the TypeScript implementation, we'll assume confirmation
-    // This would be replaced with actual @inquirer/confirm in production
-    logger.verbose('Auto-confirming for TypeScript implementation')
-
-    return true
-  }
-  catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ExitPromptError') {
-      logger.warn('Confirmation cancelled by user.')
-
-      return false
     }
     throw error
   }
@@ -183,15 +150,14 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   const ignored = apps.filter(app => app.status === 'ignored')
   const unavailable = apps.filter(app => app.status === 'unavailable')
 
-  console.log(chalk.bold('\n📊 Discovery Summary'))
-  console.log(chalk.dim('═'.repeat(50)))
+  console.log(chalk.dim('═'.repeat(50)), '\n')
 
   if (available.length > 0) {
-    console.log(chalk.green(`\n✅ Available for installation (${available.length}):`))
+    console.log(chalk.green(`✅ Available for installation (${available.length}):`))
   }
 
   if (alreadyInstalled.length > 0) {
-    console.log(chalk.blue(`\n🍺 Already installed via Homebrew (${alreadyInstalled.length}):`))
+    console.log(chalk.blue(`🍺 Already installed via Homebrew (${alreadyInstalled.length}):`))
 
     if (options.verbose) {
       console.log(formatList(alreadyInstalled.map(app => app.originalName)))
@@ -199,7 +165,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (ignored.length > 0) {
-    console.log(chalk.yellow(`\n🚫 Ignored (${ignored.length}):`))
+    console.log(chalk.yellow(`🚫 Ignored (${ignored.length}):`))
 
     if (options.verbose) {
       console.log(formatList(ignored.map(app => app.originalName)))
@@ -207,7 +173,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (unavailable.length > 0) {
-    console.log(chalk.red(`\n❌ Not available in Homebrew (${unavailable.length}):`))
+    console.log(chalk.red(`❌ Not available in Homebrew (${unavailable.length}):`))
 
     if (options.verbose) {
       console.log(formatList(unavailable.map(app => app.originalName)))
@@ -215,7 +181,7 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   if (available.length === 0) {
-    console.log(chalk.yellow('\n⚠️  No applications available for installation.'))
+    console.log(chalk.yellow('⚠️  No applications available for installation.'))
 
     if (alreadyInstalled.length > 0) {
       console.log('All discoverable apps are already installed via Homebrew.')
@@ -228,5 +194,5 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   console.log(chalk.cyan('\n💡 Note:'))
-  console.log('• Cask installations will overwrite the original .app files using Homebrew\'s --force flag')
+  console.log(`• Cask installations will overwrite the original .app files using Homebrew's ${chalk.bold.cyan.bgGray('--force')} flag\n`)
 }

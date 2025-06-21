@@ -33,7 +33,6 @@ import {
   displayFinalSummary,
   displayInstallationPlan,
   promptAppSelection,
-  promptConfirmation,
 } from './prompts.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { createLogger } from './utils.ts'
@@ -207,14 +206,6 @@ async function main(): Promise<void> {
 
     // Display installation plan
     displayInstallationPlan(selectedApps, options.dryRun)
-
-    // Confirm before proceeding
-    const confirmed = await promptConfirmation(options.dryRun)
-
-    if (!confirmed) {
-      logger.info(MESSAGES.OPERATION_CANCELLED)
-      process.exit(EXIT_CODES.SUCCESS)
-    }
 
     // Perform installation
     const operationType = options.dryRun ? 'dry run' : 'installation'
