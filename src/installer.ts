@@ -2,8 +2,6 @@
  * Installation logic for Homebrew packages with dry-run support
  */
 
-import { promises as fs } from 'node:fs'
-
 import type {
   AppInfo,
   InstallationResult,
@@ -14,7 +12,7 @@ import type {
 
 import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger, escapeShellArgument, executeCommand, pluralize } from './utils.ts'
+import { createLogger, executeCommand, pluralize } from './utils.ts'
 
 /**
  * Get installation summary for display
@@ -79,17 +77,11 @@ export async function installApps(
   const allResults: PackageInstallResult[] = []
 
   try {
-    // Install casks
+    // Install casks with --force flag to overwrite existing applications
     const caskResults = await installCasks(selectedApps, config, logger)
     allResults.push(...caskResults)
 
-    // Delete original .app files for successful cask installations
-    if (config.sudoPassword !== undefined && !config.dryRun) {
-      await deleteOriginalApps(caskResults, selectedApps, config.sudoPassword, config, logger)
-    }
-    else if (config.sudoPassword === undefined && !config.dryRun) {
-      logger.warn('No sudo password provided - original .app files will not be deleted')
-    }
+    // No need to delete original .app files as --force flag handles overwriting
 
     // Categorize results
     const installed = allResults.filter(result => result.success)
@@ -130,67 +122,6 @@ export async function validateInstallationPrerequisites(): Promise<void> {
       'Homebrew is not installed or not accessible',
       ErrorType.HOMEBREW_NOT_INSTALLED,
     )
-  }
-}
-
-/**
- * Delete original .app files for successfully installed casks
- */
-async function deleteOriginalApps(
-  installedCasks: PackageInstallResult[],
-  caskApps: AppInfo[],
-  sudoPassword: string,
-  config: InstallerConfig,
-  logger: Logger,
-): Promise<void> {
-  const successfulCasks = installedCasks.filter(result => result.success)
-
-  if (successfulCasks.length === 0) {
-    logger.verbose('No successful cask installations to clean up')
-
-    return
-  }
-
-  logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Deleting ${successfulCasks.length} original .app file(s)`)
-
-  for (const result of successfulCasks) {
-    const app = caskApps.find(appInfo => appInfo.brewName === result.packageName)
-
-    if (!app) {
-      logger.warn(`Could not find app info for ${result.packageName}`)
-      continue
-    }
-
-    try {
-      if (config.dryRun) {
-        logger.verbose(`[DRY RUN] Would delete: ${app.appPath}`)
-        continue
-      }
-
-      // Check if the app file still exists
-      try {
-        await fs.access(app.appPath)
-      }
-      catch {
-        logger.verbose(`App file already removed: ${app.appPath}`)
-        continue
-      }
-
-      // Delete the .app directory
-      const deleteCommand = `rm -rf ${escapeShellArgument(app.appPath)}`
-      const deleteResult = await executeCommand(deleteCommand, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun, sudoPassword)
-
-      if (deleteResult.success) {
-        logger.verbose(`Deleted: ${app.appPath}`)
-      }
-      else {
-        logger.warn(`Failed to delete ${app.appPath}: ${deleteResult.stderr}`)
-      }
-    }
-    catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      logger.warn(`Error deleting ${app.appPath}: ${errorMessage}`)
-    }
   }
 }
 

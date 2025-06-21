@@ -543,35 +543,6 @@ void describe('utils', () => {
       assert.strictEqual(result.stderr, '')
     })
 
-    void test('should return dry run message with sudo when sudoPassword is provided', async () => {
-      const result = await executeCommand('rm -rf /some/path', 5000, true, 'password123')
-
-      assert.strictEqual(result.success, true)
-      assert.strictEqual(result.exitCode, 0)
-      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: rm -rf /some/path')
-      assert.strictEqual(result.stderr, '')
-    })
-
-    void test('should build sudo command correctly', async () => {
-      // We can't actually test sudo execution without proper setup,
-      // but we can test the command construction in dry run mode
-      const result = await executeCommand('whoami', 5000, true, 'testpass')
-
-      assert.strictEqual(result.success, true)
-      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: whoami')
-    })
-
-    void test('should escape sudo password properly', async () => {
-      // Test with a password that contains special characters that need escaping
-      const result = await executeCommand('echo test', 5000, true, 'pass"with"quotes')
-
-      assert.strictEqual(result.success, true)
-      assert.strictEqual(result.stdout, '[DRY RUN] Would execute with sudo: echo test')
-
-      // The actual escaping happens internally, but we can verify it doesn't break
-      assert.strictEqual(result.exitCode, 0)
-    })
-
     void test('should use default timeout when not specified', async () => {
       const result = await executeCommand('echo "default timeout test"')
 

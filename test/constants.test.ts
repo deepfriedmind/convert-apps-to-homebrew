@@ -46,22 +46,22 @@ void describe('constants', () => {
 
     void test('INSTALL_CASK should generate correct command for single cask', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['test-app'])
-      assert.strictEqual(result, 'brew install --cask "test-app"')
+      assert.strictEqual(result, 'brew install --cask --force "test-app"')
     })
 
     void test('INSTALL_CASK should generate correct command for multiple casks', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['app1', 'app2', 'app3'])
-      assert.strictEqual(result, 'brew install --cask "app1" "app2" "app3"')
+      assert.strictEqual(result, 'brew install --cask --force "app1" "app2" "app3"')
     })
 
     void test('INSTALL_CASK should handle empty array', () => {
       const result = BREW_COMMANDS.INSTALL_CASK([])
-      assert.strictEqual(result, 'brew install --cask ')
+      assert.strictEqual(result, 'brew install --cask --force ')
     })
 
     void test('INSTALL_CASK should quote names with spaces', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['Test App', 'another-app'])
-      assert.strictEqual(result, 'brew install --cask "Test App" "another-app"')
+      assert.strictEqual(result, 'brew install --cask --force "Test App" "another-app"')
     })
 
     void test('LIST_CASKS should be correct command', () => {

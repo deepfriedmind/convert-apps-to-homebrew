@@ -166,8 +166,8 @@ export class ErrorHandler {
   private showPermissionHelp(): void {
     console.log(chalk.cyan('\n🔐 Permission Help:'))
     console.log('1. Make sure you have read access to /Applications directory')
-    console.log('2. For cask installations, you need admin privileges to delete original apps')
-    console.log('3. Try running: sudo chown -R $(whoami) /usr/local/Homebrew')
+    console.log('2. Make sure you have write access to Homebrew directories')
+    console.log('3. Try running: chown -R $(whoami) /usr/local/Homebrew')
     console.log('4. Or run this tool with appropriate permissions')
   }
 }

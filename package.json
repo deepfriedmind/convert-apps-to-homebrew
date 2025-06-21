@@ -55,7 +55,6 @@
   },
   "dependencies": {
     "@inquirer/checkbox": "^4.1.8",
-    "@inquirer/password": "^4.0.15",
     "bundle-name": "^4.1.0",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",

@@ -3,7 +3,6 @@
  */
 
 import checkbox from '@inquirer/checkbox'
-import password from '@inquirer/password'
 import chalk from 'chalk'
 
 import type { AppChoice, AppInfo, CommandOptions } from './types.ts'
@@ -53,7 +52,6 @@ export function displayFinalSummary(
  */
 export function displayInstallationPlan(
   selectedApps: AppInfo[],
-  sudoPassword: string | undefined,
   dryRun = false,
 ): void {
   if (selectedApps.length === 0) {
@@ -66,13 +64,7 @@ export function displayInstallationPlan(
   if (selectedApps.length > 0) {
     console.log(chalk.cyan(`\n📦 Casks to install (${selectedApps.length}):`))
     console.log(formatList(selectedApps.map(app => `${app.originalName} → ${app.brewName}`)))
-
-    if (sudoPassword === undefined) {
-      console.log(chalk.yellow('   ⚠️  Will skip deletion of original .app files (no sudo access)'))
-    }
-    else {
-      console.log(chalk.green('   ✓ Will delete original .app files (sudo access provided)'))
-    }
+    console.log(chalk.green('   ✓ Will overwrite original .app files using Homebrew\'s --force flag'))
   }
 
   if (dryRun) {
@@ -169,43 +161,6 @@ export async function promptConfirmation(dryRun = false): Promise<boolean> {
 }
 
 /**
- * Prompt for sudo password when needed for cask installations
- */
-export async function promptSudoPassword(selectedApps: AppInfo[]): Promise<string | undefined> {
-  const logger = createLogger(false)
-  console.log(chalk.bold('\n🔐 Administrator Access Required'))
-  console.log(chalk.dim('═'.repeat(50)))
-  console.log(`\nThe following ${pluralize('app', selectedApps.length)} ${selectedApps.length === 1 ? 'requires' : 'require'} deleting original .app files:`)
-  console.log(formatList(selectedApps.map(app => app.originalName)))
-  console.log('\nThis requires administrator privileges to delete files from /Applications.')
-
-  try {
-    const sudoPassword = await password({
-      mask: true,
-      message: 'Enter your password:',
-    })
-
-    if (!sudoPassword || sudoPassword.trim().length === 0) {
-      logger.warn('No password provided. Cask installations will be skipped.')
-
-      return undefined
-    }
-
-    logger.verbose('Sudo password provided for cask installations.')
-
-    return sudoPassword
-  }
-  catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ExitPromptError') {
-      logger.warn('Password prompt cancelled by user.')
-
-      return undefined
-    }
-    throw error
-  }
-}
-
-/**
  * Create choices for the checkbox prompt from available apps
  */
 function createAppChoices(apps: AppInfo[]): AppChoice[] {
@@ -273,5 +228,5 @@ function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
   }
 
   console.log(chalk.cyan('\n💡 Note:'))
-  console.log('• Cask installations will delete the original .app files (requires sudo)')
+  console.log('• Cask installations will overwrite the original .app files using Homebrew\'s --force flag')
 }

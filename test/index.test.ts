@@ -192,13 +192,11 @@ void describe('application flow validation', () => {
     // Test installer config logic
     const installerConfig = {
       dryRun: mockOptions.dryRun || false,
-      sudoPassword: undefined,
       verbose: mockOptions.verbose || false,
     }
 
     assert.strictEqual(installerConfig.dryRun, true, 'Should set dry run correctly')
     assert.strictEqual(installerConfig.verbose, true, 'Should set verbose correctly')
-    assert.strictEqual(installerConfig.sudoPassword, undefined, 'Should handle missing sudo password')
 
     // Test scanner config logic
     const scannerConfig = {

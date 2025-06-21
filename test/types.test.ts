@@ -285,23 +285,20 @@ void describe('types', () => {
       void test('should create valid InstallerConfig object', () => {
         const config: InstallerConfig = {
           dryRun: false,
-          sudoPassword: 'secret',
           verbose: true,
         }
 
         assert.strictEqual(config.dryRun, false)
-        assert.strictEqual(config.sudoPassword, 'secret')
         assert.strictEqual(config.verbose, true)
       })
 
-      void test('should create InstallerConfig without sudo password', () => {
+      void test('should create InstallerConfig with default values', () => {
         const config: InstallerConfig = {
           dryRun: true,
           verbose: false,
         }
 
         assert.strictEqual(config.dryRun, true)
-        assert.strictEqual(config.sudoPassword, undefined)
         assert.strictEqual(config.verbose, false)
       })
     })

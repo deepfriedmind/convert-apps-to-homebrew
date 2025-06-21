@@ -110,7 +110,7 @@ brew install node  # Installs latest Node.js
 **"Permission denied"**
 
 - Ensure you have read access to `/Applications`
-- For cask installations, sudo access is required
+- For cask installations, Homebrew's --force flag is used to overwrite existing applications
 
 **"No applications found"**
 

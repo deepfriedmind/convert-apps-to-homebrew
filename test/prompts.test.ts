@@ -96,11 +96,11 @@ void describe('displayInstallationPlan', () => {
     const selectedApps: AppInfo[] = []
 
     assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, undefined, false)
+      displayInstallationPlan(selectedApps, false)
     })
   })
 
-  void test('should display plan for cask apps with sudo', () => {
+  void test('should display plan for cask apps', () => {
     const caskApp: AppInfo = {
       alreadyInstalled: false,
       appPath: '/Applications/Cask App.app',
@@ -113,24 +113,7 @@ void describe('displayInstallationPlan', () => {
     const selectedApps = [caskApp]
 
     assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, 'sudo-password', false)
-    })
-  })
-
-  void test('should display plan for cask apps without sudo', () => {
-    const caskApp: AppInfo = {
-      alreadyInstalled: false,
-      appPath: '/Applications/Cask App.app',
-      brewName: 'cask-app',
-      brewType: 'cask',
-      originalName: 'Cask App',
-      status: 'available',
-    }
-
-    const selectedApps = [caskApp]
-
-    assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, undefined, false)
+      displayInstallationPlan(selectedApps, false)
     })
   })
 
@@ -147,7 +130,7 @@ void describe('displayInstallationPlan', () => {
     const selectedApps = [app]
 
     assert.doesNotThrow(() => {
-      displayInstallationPlan(selectedApps, undefined, true)
+      displayInstallationPlan(selectedApps, true)
     })
   })
 })

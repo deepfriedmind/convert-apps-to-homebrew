@@ -34,25 +34,18 @@ import {
   displayInstallationPlan,
   promptAppSelection,
   promptConfirmation,
-  promptSudoPassword,
 } from './prompts.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { createLogger } from './utils.ts'
 
 /**
- * Create installer configuration from command options and sudo password
+ * Create installer configuration from command options
  */
-function createInstallerConfig(options: CommandOptions, sudoPassword?: string): InstallerConfig {
-  const config: InstallerConfig = {
+function createInstallerConfig(options: CommandOptions): InstallerConfig {
+  return {
     dryRun: options.dryRun || false,
     verbose: options.verbose || false,
   }
-
-  if (sudoPassword !== undefined) {
-    config.sudoPassword = sudoPassword
-  }
-
-  return config
 }
 
 /**
@@ -221,11 +214,8 @@ async function main(): Promise<void> {
       process.exit(EXIT_CODES.SUCCESS)
     }
 
-    // Get sudo password if needed
-    const sudoPassword = await promptSudoPassword(selectedApps)
-
     // Display installation plan
-    displayInstallationPlan(selectedApps, sudoPassword, options.dryRun)
+    displayInstallationPlan(selectedApps, options.dryRun)
 
     // Confirm before proceeding
     const confirmed = await promptConfirmation(options.dryRun)
@@ -239,7 +229,7 @@ async function main(): Promise<void> {
     const operationType = options.dryRun ? 'dry run' : 'installation'
     progressTracker.startOperation(`Package ${operationType}`, selectedApps.length)
     logger.info(options.dryRun ? 'Starting dry run...' : MESSAGES.INSTALLING_PACKAGES)
-    const installerConfig = createInstallerConfig(options, sudoPassword)
+    const installerConfig = createInstallerConfig(options)
     const installationResult = await installApps(selectedApps, installerConfig)
     progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0)
 

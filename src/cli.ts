@@ -86,7 +86,7 @@ Notes:
   • The tool will scan your Applications directory for .app bundles
   • It fetches the Homebrew cask database for fast batch matching
   • You can interactively select which apps to install via Homebrew
-  • Original .app files are deleted for cask installations (requires sudo)
+  • Original .app files are overwritten using Homebrew's --force flag
   • Use --dry-run to preview changes without making them
   • Use --ignore to skip specific applications by name
   • Use --force-refresh-cache to update the cask database
@@ -111,7 +111,7 @@ ${chalk.cyan('1. Homebrew not installed:')}
 
 ${chalk.cyan('2. Permission denied:')}
    Make sure you have read access to the Applications directory
-   Some apps may require administrator privileges to delete
+   Make sure you have write access to the Applications directory
 
 ${chalk.cyan('3. App not found in Homebrew:')}
    Not all applications are available as Homebrew casks

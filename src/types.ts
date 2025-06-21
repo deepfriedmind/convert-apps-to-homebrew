@@ -220,8 +220,6 @@ export interface InstallationResult {
 export interface InstallerConfig {
   /** Whether to run in dry-run mode */
   dryRun: boolean
-  /** Sudo password for deleting original apps */
-  sudoPassword?: string
   /** Whether to include verbose output */
   verbose: boolean
 }

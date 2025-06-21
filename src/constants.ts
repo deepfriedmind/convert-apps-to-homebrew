@@ -13,8 +13,8 @@ export const DEFAULT_APPLICATIONS_DIR = '/Applications'
 export const BREW_COMMANDS = {
   /** Check if a cask exists */
   INFO_CASK: (name: string): string => `brew info --cask "${name}"`,
-  /** Install casks */
-  INSTALL_CASK: (names: string[]): string => `brew install --cask ${names.map(name => `"${name}"`).join(' ')}`,
+  /** Install casks with force flag to overwrite existing applications */
+  INSTALL_CASK: (names: string[]): string => `brew install --cask --force ${names.map(name => `"${name}"`).join(' ')}`,
   /** List installed casks (one per line) */
   LIST_CASKS: 'brew ls -1 --cask',
   /** Check if Homebrew is installed */

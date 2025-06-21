@@ -76,7 +76,6 @@ export function escapeShellArgument(argument: string): string {
  * @param command - The shell command to execute
  * @param timeout - Maximum execution time in milliseconds (defaults to BREW_COMMAND_TIMEOUT)
  * @param dryRun - If true, don't actually execute the command, just return a dry-run message
- * @param sudoPassword - Optional password for sudo operations
  * @returns Promise that resolves to a BrewCommandResult with execution details
  * @throws {Error} When command is empty or contains only whitespace
  *
@@ -101,41 +100,27 @@ export function escapeShellArgument(argument: string): string {
  * // Dry run mode
  * const result = await executeCommand('brew install package', DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, true);
  * ```
- *
- * @example
- * ```typescript
- * // With sudo
- * const result = await executeCommand('rm -rf /path', DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, false, 'password');
- * ```
  */
 export async function executeCommand(
   command: string,
   timeout: number = DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
   dryRun = false,
-  sudoPassword?: string,
 ): Promise<BrewCommandResult> {
   if (command.trim() === '') {
     throw new Error('Command cannot be empty')
   }
 
-  // Build the final command (with sudo if needed)
-  const finalCommand = sudoPassword === undefined ?
-    command
-    : `echo ${escapeShellArgument(sudoPassword)} | sudo -S ${command}`
-
   if (dryRun) {
-    const dryRunPrefix = sudoPassword === undefined ? '[DRY RUN] Would execute:' : '[DRY RUN] Would execute with sudo:'
-
     return {
       exitCode: 0,
       stderr: '',
-      stdout: `${dryRunPrefix} ${command}`,
+      stdout: `[DRY RUN] Would execute: ${command}`,
       success: true,
     }
   }
 
   try {
-    const { stderr, stdout } = await execAsync(finalCommand, { timeout })
+    const { stderr, stdout } = await execAsync(command, { timeout })
 
     return {
       exitCode: 0,

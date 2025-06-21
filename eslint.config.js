@@ -65,6 +65,7 @@ export default antfu({
     '@stylistic/quote-props': ['error', 'as-needed'],
     '@stylistic/quotes': ['error', 'single', { allowTemplateLiterals: false, avoidEscape: true }],
     'arrow-body-style': 'error',
+    'id-denylist': ['error', 'err', 'cb', '_unused', 'unused'],
     'id-length': 'error',
     'no-console': 'off',
     'no-lonely-if': 'error',
