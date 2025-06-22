@@ -84,12 +84,12 @@ const mockApp: AppInfo = {
 
 void test('AppMatcher', async (testContext) => {
   await testContext.test('should initialize correctly', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     assert.ok(matcher instanceof AppMatcher)
   })
 
   await testContext.test('should build index from casks', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     assert.ok(index.byToken.has('visual-studio-code'))
@@ -98,7 +98,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should match apps by exact bundle name', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const matchResult = matcher.matchApp(mockApp, index)
@@ -109,7 +109,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should match "YubiKey Manager" using normalized cask name match', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const yubiKeyApp: AppInfo = {
@@ -130,7 +130,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should match "Quit All" using hyphen-less normalized cask name match', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const quitAllApp: AppInfo = {
@@ -152,7 +152,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should handle apps with no matches', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const unmatchableApp: AppInfo = {
@@ -171,7 +171,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should match multiple apps in batch', () => {
-    const matcher = new AppMatcher({}, false)
+    const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const apps: AppInfo[] = [
@@ -194,7 +194,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should respect confidence threshold', () => {
-    const matcher = new AppMatcher({ minConfidence: 0.95 }, false)
+    const matcher = new AppMatcher({ minConfidence: 0.95 })
     const index = matcher.buildIndex(mockCasks)
 
     // This should have lower confidence and be filtered out
@@ -214,7 +214,7 @@ void test('AppMatcher', async (testContext) => {
   })
 
   await testContext.test('should match apps using bundle ID resolution', () => {
-    const matcher = new AppMatcher({ enableBundleIdLookup: true }, false)
+    const matcher = new AppMatcher({ enableBundleIdLookup: true })
     const index = matcher.buildIndex(mockCasks)
 
     // Test with an app name that should resolve from bundle ID

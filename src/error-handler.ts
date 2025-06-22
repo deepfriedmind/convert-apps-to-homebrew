@@ -2,23 +2,20 @@
  * Enhanced error handling and progress tracking
  */
 
-import chalk from 'chalk'
+import { consola } from 'consola'
 
-import type { Logger, ProgressCallback } from './types.ts'
+import type { ProgressCallback } from './types.ts'
 
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger } from './utils.ts'
 
 /**
  * Enhanced error handler with context and recovery suggestions
  */
 export class ErrorHandler {
-  private logger: Logger
   private verbose: boolean
 
   constructor(verbose = false) {
-    this.logger = createLogger(verbose)
     this.verbose = verbose
   }
 
@@ -40,56 +37,56 @@ export class ErrorHandler {
     /* eslint-disable no-fallthrough */
     switch (error.type) {
       case ErrorType.COMMAND_FAILED: {
-        this.logger.error(`Command execution failed${context}: ${error.message}`)
+        consola.error(`Command execution failed${context}: ${error.message}`)
         this.showCommandFailureHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       case ErrorType.FILE_NOT_FOUND: {
-        this.logger.error(`File not found${context}: ${error.message}`)
+        consola.error(`File not found${context}: ${error.message}`)
         this.showFileNotFoundHelp()
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
-        this.logger.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
+        consola.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
         this.showHomebrewInstallationHelp()
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
       }
 
       case ErrorType.INVALID_INPUT: {
-        this.logger.error(`Invalid input${context}: ${error.message}`)
+        consola.error(`Invalid input${context}: ${error.message}`)
         this.showInputValidationHelp()
         process.exit(EXIT_CODES.INVALID_INPUT)
       }
 
       case ErrorType.NETWORK_ERROR: {
-        this.logger.error(`Network error occurred${context}. Please check your internet connection.`)
+        consola.error(`Network error occurred${context}. Please check your internet connection.`)
         this.showNetworkHelp()
         process.exit(EXIT_CODES.NETWORK_ERROR)
       }
 
       case ErrorType.PERMISSION_DENIED: {
-        this.logger.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
+        consola.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
         this.showPermissionHelp()
         process.exit(EXIT_CODES.PERMISSION_DENIED)
       }
 
       case ErrorType.UNKNOWN_ERROR: {
-        this.logger.error(`Unknown error${context}: ${error.message}`)
+        consola.error(`Unknown error${context}: ${error.message}`)
 
         if (error.originalError !== undefined && this.verbose) {
-          this.logger.debug(`Original error: ${error.originalError.message}`)
+          consola.debug(`Original error: ${error.originalError.message}`)
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       default: {
-        this.logger.error(`Application error${context}: ${error.message}`)
+        consola.error(`Application error${context}: ${error.message}`)
 
         if (error.originalError !== undefined && this.verbose) {
-          this.logger.debug(`Original error: ${error.originalError.message}`)
+          consola.debug(`Original error: ${error.originalError.message}`)
         }
 
         process.exit(EXIT_CODES.GENERAL_ERROR)
@@ -99,7 +96,7 @@ export class ErrorHandler {
   }
 
   private handleGenericError(error: Error, context: string): never {
-    this.logger.error(`Unexpected error${context}: ${error.message}`)
+    consola.error(`Unexpected error${context}: ${error.message}`)
 
     // Check for common error patterns
     if (error.message.includes('ENOENT')) {
@@ -109,66 +106,66 @@ export class ErrorHandler {
       this.showPermissionHelp()
     }
     else if (error.message.includes('ENOTDIR')) {
-      this.logger.info('💡 The specified path is not a directory. Check your --applications-dir setting.')
+      consola.info('💡 The specified path is not a directory. Check your --applications-dir setting.')
     }
     else if (error.message.includes('spawn') && error.message.includes('ENOENT')) {
-      this.logger.info('💡 Command not found. Make sure Homebrew is installed and in your PATH.')
+      consola.info('💡 Command not found. Make sure Homebrew is installed and in your PATH.')
     }
 
     if (this.verbose) {
-      this.logger.debug(`Stack trace: ${error.stack}`)
+      consola.debug(`Stack trace: ${error.stack}`)
     }
 
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 
   private showCommandFailureHelp(): void {
-    console.log(chalk.cyan('\n⚙️  Command Failure Help:'))
-    console.log('1. Check if Homebrew is working: brew doctor')
-    console.log('2. Update Homebrew: brew update')
-    console.log('3. Check available disk space')
-    console.log('4. Try running with --verbose for more details')
+    consola.info('⚙️  Command Failure Help:')
+    consola.info('1. Check if Homebrew is working: brew doctor')
+    consola.info('2. Update Homebrew: brew update')
+    consola.info('3. Check available disk space')
+    consola.info('4. Try running with --verbose for more details')
   }
 
   private showFileNotFoundHelp(): void {
-    console.log(chalk.cyan('\n📁 File Not Found Help:'))
-    console.log('1. Check if /Applications directory exists')
-    console.log('2. Verify the specified applications directory path')
-    console.log('3. Make sure you have read permissions')
-    console.log('4. Try using --applications-dir to specify a different path')
+    consola.info('📁 File Not Found Help:')
+    consola.info('1. Check if /Applications directory exists')
+    consola.info('2. Verify the specified applications directory path')
+    consola.info('3. Make sure you have read permissions')
+    consola.info('4. Try using --applications-dir to specify a different path')
   }
 
   private showHomebrewInstallationHelp(): void {
-    console.log(chalk.cyan('\n🍺 Homebrew Installation Help:'))
-    console.log('1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
-    console.log('2. Add Homebrew to your PATH (follow the installation instructions)')
-    console.log('3. Verify installation: brew --version')
-    console.log('4. Run this tool again')
-    console.log('\nFor more information: https://brew.sh/')
+    consola.info('🍺 Homebrew Installation Help:')
+    consola.info('1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+    consola.info('2. Add Homebrew to your PATH (follow the installation instructions)')
+    consola.info('3. Verify installation: brew --version')
+    consola.info('4. Run this tool again')
+    consola.info('\nFor more information: https://brew.sh/')
   }
 
   private showInputValidationHelp(): void {
-    console.log(chalk.cyan('\n📝 Input Validation Help:'))
-    console.log('1. Check your command line arguments')
-    console.log('2. App names in --ignore should not be empty or whitespace')
-    console.log('3. Use quotes for app names with spaces: --ignore "Adobe Photoshop"')
-    console.log('4. Use --help to see all available options')
+    consola.info('📝 Input Validation Help:')
+    consola.info('1. Check your command line arguments')
+    consola.info('2. App names in --ignore should not be empty or whitespace')
+    consola.info('3. Use quotes for app names with spaces: --ignore "Adobe Photoshop"')
+    consola.info('4. Use --help to see all available options')
   }
 
   private showNetworkHelp(): void {
-    console.log(chalk.cyan('\n🌐 Network Help:'))
-    console.log('1. Check your internet connection')
-    console.log('2. Verify DNS resolution: nslookup github.com')
-    console.log('3. Check if you\'re behind a corporate firewall')
-    console.log('4. Try again in a few minutes')
+    consola.info('🌐 Network Help:')
+    consola.info('1. Check your internet connection')
+    consola.info('2. Verify DNS resolution: nslookup github.com')
+    consola.info('3. Check if you\'re behind a corporate firewall')
+    consola.info('4. Try again in a few minutes')
   }
 
   private showPermissionHelp(): void {
-    console.log(chalk.cyan('\n🔐 Permission Help:'))
-    console.log('1. Make sure you have read access to /Applications directory')
-    console.log('2. Make sure you have write access to Homebrew directories')
-    console.log('3. Try running: chown -R $(whoami) /usr/local/Homebrew')
-    console.log('4. Or run this tool with appropriate permissions')
+    consola.info('🔐 Permission Help:')
+    consola.info('1. Make sure you have read access to /Applications directory')
+    consola.info('2. Make sure you have write access to Homebrew directories')
+    consola.info('3. Try running: chown -R $(whoami) /usr/local/Homebrew')
+    consola.info('4. Or run this tool with appropriate permissions')
   }
 }
 
@@ -177,11 +174,9 @@ export class ErrorHandler {
  */
 export class ProgressTracker {
   private lastUpdate: number
-  private logger: Logger
   private startTime: number
 
-  constructor(verbose = false) {
-    this.logger = createLogger(verbose)
+  constructor() {
     this.startTime = Date.now()
     this.lastUpdate = this.startTime
   }
@@ -194,10 +189,10 @@ export class ProgressTracker {
     const elapsedSeconds = (elapsed / 1000).toFixed(1)
 
     if (success) {
-      this.logger.info(`✅ ${operation} completed in ${elapsedSeconds}s`)
+      consola.success(`${operation} completed in ${elapsedSeconds}s`)
     }
     else {
-      this.logger.warn(`⚠️  ${operation} completed with errors in ${elapsedSeconds}s`)
+      consola.warn(`${operation} completed with errors in ${elapsedSeconds}s`)
     }
   }
 
@@ -209,10 +204,10 @@ export class ProgressTracker {
     this.lastUpdate = this.startTime
 
     if (total === undefined) {
-      this.logger.info(`🚀 Starting ${operation}...`)
+      consola.start(` Starting ${operation}...`)
     }
     else {
-      this.logger.info(`🚀 Starting ${operation} (${total} items)...`)
+      consola.start(` Starting ${operation} (${total} items)...`)
     }
   }
 
@@ -244,7 +239,7 @@ export class ProgressTracker {
       progressMessage += ` [${elapsedSeconds}s]`
     }
 
-    this.logger.info(progressMessage)
+    consola.info(progressMessage)
   }
 
   /**
@@ -300,12 +295,12 @@ export function setupGlobalErrorHandlers(verbose = false): void {
   const errorHandler = initializeErrorHandler(verbose)
 
   process.on('uncaughtException', (error: Error) => {
-    console.error(chalk.red('\n💥 Uncaught Exception:'))
+    consola.error('💥 Uncaught Exception:')
     errorHandler.handleError(error, 'uncaught exception')
   })
 
   process.on('unhandledRejection', (reason: unknown) => {
-    console.error(chalk.red('\n💥 Unhandled Promise Rejection:'))
+    consola.error('💥 Unhandled Promise Rejection:')
     const error = reason instanceof Error ? reason : new Error(String(reason))
     errorHandler.handleError(error, 'unhandled rejection')
   })

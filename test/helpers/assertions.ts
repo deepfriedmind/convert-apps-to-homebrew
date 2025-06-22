@@ -4,7 +4,7 @@
 
 import assert from 'node:assert'
 
-import type { AppInfo, BrewCommandResult, Logger } from '../../src/types.ts'
+import type { AppInfo, BrewCommandResult } from '../../src/types.ts'
 
 /**
  * Assert that an AppInfo object has the expected structure
@@ -80,17 +80,6 @@ export function assertHasAnsiColors(text: string): void {
  */
 export function assertInRange(value: number, min: number, max: number): void {
   assert.ok(value >= min && value <= max, `Value ${value} should be between ${min} and ${max}`)
-}
-
-/**
- * Assert that a logger has the expected methods
- */
-export function assertLogger(logger: Logger): void {
-  assert.strictEqual(typeof logger.debug, 'function', 'debug should be function')
-  assert.strictEqual(typeof logger.error, 'function', 'error should be function')
-  assert.strictEqual(typeof logger.info, 'function', 'info should be function')
-  assert.strictEqual(typeof logger.verbose, 'function', 'verbose should be function')
-  assert.strictEqual(typeof logger.warn, 'function', 'warn should be function')
 }
 
 /**

@@ -2,14 +2,13 @@
  * CLI argument parsing using Commander.js
  */
 
-import chalk from 'chalk'
 import { Command } from 'commander'
+import { consola } from 'consola'
 
 import type { CommandOptions } from './types.ts'
 
 import packageJson from '../package.json' with { type: 'json' }
 import { MESSAGES } from './constants.ts'
-import { createLogger } from './utils.ts'
 
 /**
  * Create and configure the Commander.js program
@@ -101,56 +100,49 @@ Notes:
  * Display help information for common issues
  */
 export function displayTroubleshooting(): void {
-  console.log(chalk.bold('\n🔧 Troubleshooting'))
-  console.log(chalk.dim('═'.repeat(50)))
-  console.log(`
-${chalk.yellow('Common Issues:')}
+  consola.box('🔧 Troubleshooting')
 
-${chalk.cyan('1. Homebrew not installed:')}
+  consola.info(`Common Issues:
+
+1. Homebrew not installed:
    Install Homebrew first: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-${chalk.cyan('2. Permission denied:')}
+2. Permission denied:
    Make sure you have read access to the Applications directory
    Make sure you have write access to the Applications directory
 
-${chalk.cyan('3. App not found in Homebrew:')}
+3. App not found in Homebrew:
    Not all applications are available as Homebrew casks
    You can search manually: brew search <app-name>
 
-${chalk.cyan('4. Network issues:')}
+4. Network issues:
    Homebrew requires internet access to check package availability
    Check your network connection and try again
 
-${chalk.green('For more help:')}
+For more help:
    • Visit: https://brew.sh/
-   • Report issues: https://github.com/deepfriedmind/convert-apps-to-homebrew/issues
-`)
+   • Report issues: https://github.com/deepfriedmind/convert-apps-to-homebrew/issues`)
 }
 
 /**
  * Display welcome message with current configuration
  */
 export function displayWelcome(options: CommandOptions): void {
-  const logger = createLogger(options.verbose)
-
-  console.log(chalk.bold('\n🍺 Convert Apps to Homebrew'))
-  console.log(chalk.dim('═'.repeat(50)))
+  consola.box('🍺 Convert Apps to Homebrew')
 
   if (options.dryRun) {
-    console.log(chalk.yellow(`\n${MESSAGES.DRY_RUN_MODE}`))
-  }
-
-  logger.info(`Scanning directory: ${options.applicationsDir}`)
-
-  if (options.ignore && options.ignore.length > 0) {
-    logger.info(`Ignoring apps: ${options.ignore.join(', ')}`)
+    consola.warn(`${MESSAGES.DRY_RUN_MODE}`)
   }
 
   if (options.verbose) {
-    logger.verbose('Verbose mode enabled')
+    consola.debug('Verbose mode enabled')
   }
 
-  console.log() // Empty line for spacing
+  if (options.ignore.length > 0) {
+    consola.debug(`Ignoring apps: ${options.ignore.join(', ')}`)
+  }
+
+  // Empty line for spacing
 }
 
 /**
@@ -197,7 +189,6 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     return parsedOptions
   }
   catch (error: unknown) {
-    const logger = createLogger(false)
     const typedError = error as { code?: string, message?: string }
 
     if (typedError.code === 'commander.helpDisplayed') {
@@ -212,8 +203,8 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
 
     // Handle parsing errors
     const errorMessage = typedError.message ?? 'Unknown error'
-    logger.error(`Command line parsing error: ${errorMessage}`)
-    logger.info('Use --help for usage information')
+    consola.error(`Command line parsing error: ${errorMessage}`)
+    consola.info('Use --help for usage information')
     process.exit(1)
   }
 }
@@ -222,30 +213,28 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
  * Handle process signals for graceful shutdown
  */
 export function setupSignalHandlers(): void {
-  const logger = createLogger(false)
-
   process.on('SIGINT', () => {
-    logger.warn('\n\nOperation cancelled by user (Ctrl+C)')
+    consola.warn('Operation cancelled by user (Ctrl+C)')
     process.exit(130) // Standard exit code for SIGINT
   })
 
   process.on('SIGTERM', () => {
-    logger.warn('\n\nOperation terminated')
+    consola.warn('Operation terminated')
     process.exit(143) // Standard exit code for SIGTERM
   })
 
   process.on('uncaughtException', (error) => {
-    logger.error(`Uncaught exception: ${error.message}`)
+    consola.error(`Uncaught exception: ${error.message}`)
 
     if (process.env['NODE_ENV'] === 'development') {
-      console.error(error.stack)
+      consola.error(error.stack)
     }
 
     process.exit(1)
   })
 
   process.on('unhandledRejection', (reason, promise) => {
-    logger.error(`Unhandled rejection at: ${String(promise)}, reason: ${String(reason)}`)
+    consola.error(`Unhandled rejection at: ${String(promise)}, reason: ${String(reason)}`)
     process.exit(1)
   })
 }
@@ -254,25 +243,23 @@ export function setupSignalHandlers(): void {
  * Validate runtime environment
  */
 export function validateEnvironment(): void {
-  const logger = createLogger(false)
-
   // Check Node.js version
   const nodeVersion = process.version
   const [versionPart] = nodeVersion.slice(1).split('.')
   const majorVersion = Number.parseInt(versionPart ?? '0', 10)
 
   if (majorVersion < 22) {
-    logger.error(`Node.js version ${nodeVersion} is not supported. Please use Node.js 22 or later.`)
+    consola.error(`Node.js version ${nodeVersion} is not supported. Please use Node.js 22 or later.`)
     process.exit(1)
   }
 
   // Check if running on macOS
   if (process.platform !== 'darwin') {
-    logger.error('This tool is designed for macOS only.')
+    consola.error('This tool is designed for macOS only.')
     process.exit(1)
   }
 
-  logger.verbose(`Runtime environment validated: Node.js ${nodeVersion} on ${process.platform}`)
+  consola.debug(`Runtime environment validated: Node.js ${nodeVersion} on ${process.platform}`)
 }
 
 /**

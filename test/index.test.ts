@@ -191,8 +191,8 @@ void describe('application flow validation', () => {
 
     // Test installer config logic
     const installerConfig = {
-      dryRun: mockOptions.dryRun || false,
-      verbose: mockOptions.verbose || false,
+      dryRun: mockOptions.dryRun,
+      verbose: mockOptions.verbose,
     }
 
     assert.strictEqual(installerConfig.dryRun, true, 'Should set dry run correctly')
@@ -200,9 +200,9 @@ void describe('application flow validation', () => {
 
     // Test scanner config logic
     const scannerConfig = {
-      applicationsDir: mockOptions.applicationsDir ?? '/Applications',
-      ignoredApps: mockOptions.ignore ?? [],
-      verbose: mockOptions.verbose ?? false,
+      applicationsDir: mockOptions.applicationsDir,
+      ignoredApps: mockOptions.ignore,
+      verbose: mockOptions.verbose,
     }
 
     assert.strictEqual(scannerConfig.applicationsDir, '/custom/apps', 'Should use custom applications directory')

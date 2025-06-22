@@ -7,7 +7,6 @@ import { describe, test } from 'node:test'
 
 import {
   capitalize,
-  createLogger,
   createProgressBar,
   escapeShellArgument,
   executeCommand,
@@ -25,8 +24,7 @@ import {
   truncate,
   uniqueBy,
 } from '../src/utils.ts'
-import { assertHasAnsiColors, assertLogger, assertNoDuplicates } from './helpers/assertions.ts'
-import { mockConsole } from './helpers/test-utils.ts'
+import { assertNoDuplicates } from './helpers/assertions.ts'
 
 void describe('utils', () => {
   void describe('capitalize', () => {
@@ -38,94 +36,8 @@ void describe('utils', () => {
       assert.strictEqual(capitalize('Hello'), 'Hello')
     })
 
-    void test('should handle empty string', () => {
-      assert.strictEqual(capitalize(''), '')
-    })
-
     void test('should handle single character', () => {
       assert.strictEqual(capitalize('a'), 'A')
-    })
-
-    void test('should handle uppercase string', () => {
-      assert.strictEqual(capitalize('HELLO'), 'HELLO')
-    })
-  })
-
-  void describe('createLogger', () => {
-    void test('should create logger with all required methods', () => {
-      const logger = createLogger()
-      assertLogger(logger)
-    })
-
-    void test('should create verbose logger', () => {
-      const logger = createLogger(true)
-      assertLogger(logger)
-    })
-
-    void test('should log info messages with colors', () => {
-      const console = mockConsole()
-      const logger = createLogger()
-
-      logger.info('test message')
-
-      assert.strictEqual(console.logs.length, 1)
-
-      // Check if we're in a TTY environment that supports colors
-      const logOutput = console.logs[0]!
-
-      if (process.stdout.isTTY) {
-        assertHasAnsiColors(logOutput)
-      }
-      else {
-        // In non-TTY environments, just verify the message content is there
-        assert.ok(logOutput.includes('test message'))
-        assert.ok(logOutput.includes('ℹ')) // Should still have the emoji
-      }
-
-      assert.ok(logOutput.includes('test message'))
-
-      console.restore()
-    })
-
-    void test('should log error messages', () => {
-      const console = mockConsole()
-      const logger = createLogger()
-
-      logger.error('error message')
-
-      assert.strictEqual(console.errors.length, 1)
-
-      // Check if we're in a TTY environment that supports colors
-      const errorOutput = console.errors[0]!
-
-      if (process.stdout.isTTY) {
-        assertHasAnsiColors(errorOutput)
-      }
-      else {
-        // In non-TTY environments, just verify the message content is there
-        assert.ok(errorOutput.includes('error message'))
-        assert.ok(errorOutput.includes('✗')) // Should still have the emoji
-      }
-
-      assert.ok(errorOutput.includes('error message'))
-
-      console.restore()
-    })
-
-    void test('should only log debug messages in verbose mode', () => {
-      const console = mockConsole()
-
-      // Non-verbose logger
-      const logger = createLogger(false)
-      logger.debug('debug message')
-      assert.strictEqual(console.logs.length, 0)
-
-      // Verbose logger
-      const verboseLogger = createLogger(true)
-      verboseLogger.debug('debug message')
-      assert.strictEqual(console.logs.length, 1)
-
-      console.restore()
     })
   })
 

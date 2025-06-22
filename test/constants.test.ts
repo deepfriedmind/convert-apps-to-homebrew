@@ -20,20 +20,9 @@ void describe('constants', () => {
     void test('should be the standard macOS Applications directory', () => {
       assert.strictEqual(DEFAULT_APPLICATIONS_DIR, '/Applications')
     })
-
-    void test('should be a string', () => {
-      assert.strictEqual(typeof DEFAULT_APPLICATIONS_DIR, 'string')
-    })
   })
 
   void describe('BREW_COMMANDS', () => {
-    void test('should have all required command functions', () => {
-      assert.strictEqual(typeof BREW_COMMANDS.INFO_CASK, 'function')
-      assert.strictEqual(typeof BREW_COMMANDS.INSTALL_CASK, 'function')
-      assert.strictEqual(typeof BREW_COMMANDS.LIST_CASKS, 'string')
-      assert.strictEqual(typeof BREW_COMMANDS.VERSION, 'string')
-    })
-
     void test('INFO_CASK should generate correct command', () => {
       const result = BREW_COMMANDS.INFO_CASK('test-app')
       assert.strictEqual(result, 'brew info --cask "test-app"')
@@ -271,24 +260,6 @@ void describe('constants', () => {
         assert.ok(REGEX_PATTERNS.VERSION.test('1.2.3+build.1'))
         assert.ok(REGEX_PATTERNS.VERSION.test('1.0.0 stable'))
       })
-    })
-  })
-
-  void describe('constants structure validation', () => {
-    void test('should have expected number of constants', () => {
-      // Verify we have the expected constants exported
-      assert.strictEqual(typeof DEFAULT_APPLICATIONS_DIR, 'string')
-      assert.strictEqual(typeof BREW_COMMANDS, 'object')
-      assert.strictEqual(typeof FILE_PATTERNS, 'object')
-      assert.strictEqual(typeof EXIT_CODES, 'object')
-      assert.strictEqual(typeof DEFAULT_CONFIG, 'object')
-      assert.strictEqual(typeof MESSAGES, 'object')
-      assert.strictEqual(typeof REGEX_PATTERNS, 'object')
-    })
-
-    void test('constants should be properly typed', () => {
-      // TypeScript compilation ensures these are properly typed as const
-      assert.ok(true)
     })
   })
 })

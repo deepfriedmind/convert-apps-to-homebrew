@@ -4,11 +4,10 @@
 
 import type { Buffer } from 'node:buffer'
 
-import chalk from 'chalk'
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import type { BrewCommandResult, Logger } from './types.ts'
+import type { BrewCommandResult } from './types.ts'
 
 import { DEFAULT_CONFIG, REGEX_PATTERNS } from './constants.ts'
 
@@ -19,33 +18,6 @@ const execAsync = promisify(exec)
  */
 export function capitalize(string_: string): string {
   return string_.charAt(0).toUpperCase() + string_.slice(1)
-}
-
-/**
- * Create a simple console logger
- */
-export function createLogger(verbose = false): Logger {
-  return {
-    debug: (message: string): void => {
-      if (verbose) {
-        console.log(chalk.magenta(`🐛 ${message}`))
-      }
-    },
-    error: (message: string): void => {
-      console.error(chalk.red(`✗ ${message}`))
-    },
-    info: (message: string): void => {
-      console.log(chalk.blue(`ℹ ${message}`))
-    },
-    verbose: (message: string): void => {
-      if (verbose) {
-        console.log(chalk.dim(`📝 ${message}`))
-      }
-    },
-    warn: (message: string): void => {
-      console.warn(chalk.yellow(`⚠ ${message}`))
-    },
-  }
 }
 
 /**

@@ -96,7 +96,7 @@ describe('ProgressTracker', () => {
   })
 
   void test('should create progress tracker with verbose true', () => {
-    const tracker = new ProgressTracker(true)
+    const tracker = new ProgressTracker()
     assert.strictEqual(typeof tracker, 'object')
   })
 

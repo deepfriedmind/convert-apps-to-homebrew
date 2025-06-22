@@ -5,12 +5,13 @@
  * Orchestrates the entire application flow
  */
 
+import { consola } from 'consola'
+
 import type {
   AppInfo,
   CommandOptions,
   InstallationResult,
   InstallerConfig,
-  Logger,
   OperationSummary,
   ScannerConfig,
 } from './types.ts'
@@ -28,22 +29,21 @@ import {
   ProgressTracker,
   setupGlobalErrorHandlers,
 } from './error-handler.ts'
-import { getInstallationSummary, installApps, validateInstallationPrerequisites } from './installer.ts'
+import { installApps, validateInstallationPrerequisites } from './installer.ts'
 import {
   displayFinalSummary,
   displayInstallationPlan,
   promptAppSelection,
 } from './prompts.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger } from './utils.ts'
 
 /**
  * Create installer configuration from command options
  */
 function createInstallerConfig(options: CommandOptions): InstallerConfig {
   return {
-    dryRun: options.dryRun || false,
-    verbose: options.verbose || false,
+    dryRun: options.dryRun,
+    verbose: options.verbose,
   }
 }
 
@@ -52,12 +52,12 @@ function createInstallerConfig(options: CommandOptions): InstallerConfig {
  */
 function createScannerConfig(options: CommandOptions): ScannerConfig {
   return {
-    applicationsDir: options.applicationsDir ?? '/Applications',
+    applicationsDir: options.applicationsDir,
     ...(options.fallbackToCli !== undefined && { fallbackToCli: options.fallbackToCli }),
     ...(options.forceRefreshCache !== undefined && { forceRefreshCache: options.forceRefreshCache }),
-    ignoredApps: options.ignore ?? [],
+    ignoredApps: options.ignore,
     ...(options.matchingThreshold !== undefined && { matchingThreshold: options.matchingThreshold }),
-    verbose: options.verbose ?? false,
+    verbose: options.verbose,
   }
 }
 
@@ -91,60 +91,60 @@ function generateOperationSummary(
 /**
  * Handle application errors with appropriate exit codes
  */
-function handleError(error: Error, logger: Logger): never {
+function handleError(error: Error): never {
   if (error instanceof ConvertAppsError) {
     /* eslint-disable no-fallthrough */
     switch (error.type) {
       case ErrorType.COMMAND_FAILED: {
-        logger.error(`Command execution failed: ${error.message}`)
+        consola.error(`Command execution failed: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       case ErrorType.FILE_NOT_FOUND: {
-        logger.error(`File not found: ${error.message}`)
+        consola.error(`File not found: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       case ErrorType.HOMEBREW_NOT_INSTALLED: {
-        logger.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
+        consola.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
         displayTroubleshooting()
         process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
       }
 
       case ErrorType.INVALID_INPUT: {
-        logger.error(`Invalid input: ${error.message}`)
+        consola.error(`Invalid input: ${error.message}`)
         process.exit(EXIT_CODES.INVALID_INPUT)
       }
 
       case ErrorType.NETWORK_ERROR: {
-        logger.error(`Network error: ${error.message}`)
+        consola.error(`Network error: ${error.message}`)
         process.exit(EXIT_CODES.NETWORK_ERROR)
       }
 
       case ErrorType.PERMISSION_DENIED: {
-        logger.error(MESSAGES.PERMISSION_DENIED)
-        logger.error(error.message)
+        consola.error(MESSAGES.PERMISSION_DENIED)
+        consola.error(error.message)
         displayTroubleshooting()
         process.exit(EXIT_CODES.PERMISSION_DENIED)
       }
 
       case ErrorType.UNKNOWN_ERROR: {
-        logger.error(`Unknown error: ${error.message}`)
+        consola.error(`Unknown error: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
 
       default: {
-        logger.error(`Error: ${error.message}`)
+        consola.error(`Error: ${error.message}`)
         process.exit(EXIT_CODES.GENERAL_ERROR)
       }
     }
     /* eslint-enable no-fallthrough */
   }
 
-  logger.error(`Unexpected error: ${error.message}`)
+  consola.error(`Unexpected error: ${error.message}`)
 
   if (error.stack !== undefined) {
-    logger.debug(error.stack)
+    consola.debug(error.stack)
   }
 
   process.exit(EXIT_CODES.GENERAL_ERROR)
@@ -163,11 +163,13 @@ async function main(): Promise<void> {
 
     // Parse command line arguments
     const options = parseArguments()
-    const logger = createLogger(options.verbose ?? false)
+
+    // Configure consola log level based on verbose flag
+    consola.level = options.verbose ? 4 : 3
 
     // Set up enhanced error handling
-    setupGlobalErrorHandlers(options.verbose ?? false)
-    const progressTracker = new ProgressTracker(options.verbose ?? false)
+    setupGlobalErrorHandlers(options.verbose)
+    const progressTracker = new ProgressTracker()
 
     // Display welcome message
     displayWelcome(options)
@@ -178,29 +180,21 @@ async function main(): Promise<void> {
     progressTracker.completeOperation('Prerequisites validation')
 
     // Discover applications
-    if (options.verbose) {
-      progressTracker.startOperation('Scanning applications')
-      logger.info(MESSAGES.SCANNING_APPS)
-    }
-
     const scannerConfig = createScannerConfig(options)
     const discoveredApps = await discoverApps(scannerConfig)
-
-    if (options.verbose) {
-      progressTracker.completeOperation('Application scanning')
-    }
+    progressTracker.completeOperation('Application scanning')
 
     if (discoveredApps.length === 0) {
-      logger.warn(MESSAGES.NO_APPS_FOUND)
+      consola.warn(MESSAGES.NO_APPS_FOUND)
       process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Interactive app selection
-    const selectedApps = await promptAppSelection(discoveredApps, options)
+    const selectedApps = await promptAppSelection(discoveredApps)
 
     if (selectedApps.length === 0) {
-      logger.info(MESSAGES.NO_APPS_SELECTED)
-      logger.info('Run the command again to select different apps.')
+      consola.info(MESSAGES.NO_APPS_SELECTED)
+      consola.info('Run the command again to select different apps.')
       process.exit(EXIT_CODES.SUCCESS)
     }
 
@@ -210,13 +204,9 @@ async function main(): Promise<void> {
     // Perform installation
     const operationType = options.dryRun ? 'dry run' : 'installation'
     progressTracker.startOperation(`Package ${operationType}`, selectedApps.length)
-    logger.info(options.dryRun ? 'Starting dry run...' : MESSAGES.INSTALLING_PACKAGES)
     const installerConfig = createInstallerConfig(options)
     const installationResult = await installApps(selectedApps, installerConfig)
     progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0)
-
-    // Display results
-    console.log(`\n${getInstallationSummary(installationResult)}`)
 
     // Display final summary
     const installedApps = selectedApps.filter(app =>
@@ -237,30 +227,27 @@ async function main(): Promise<void> {
       options.dryRun ?? false,
     )
 
-    logger.verbose(`Operation summary: ${JSON.stringify(summary, null, 2)}`)
+    consola.debug(`Operation summary: ${JSON.stringify(summary, null, 2)}`)
 
     // Exit with appropriate code
     if (installationResult.failed.length > 0) {
-      logger.warn(`${installationResult.failed.length} installations failed.`)
+      consola.warn(`${installationResult.failed.length} installations failed.`)
       process.exit(EXIT_CODES.GENERAL_ERROR)
     }
     else {
-      logger.info(MESSAGES.OPERATION_COMPLETE)
       process.exit(EXIT_CODES.SUCCESS)
     }
   }
   catch (error: unknown) {
-    const logger = createLogger(false)
-
     // Handle user cancellation gracefully
     if (error instanceof Error && error.name === 'ExitPromptError') {
-      logger.info('\nOperation cancelled by user.')
+      consola.info('\nOperation cancelled by user.')
       process.exit(EXIT_CODES.SUCCESS)
     }
 
     // Handle other errors
     const errorToHandle = error instanceof Error ? error : new Error(String(error))
-    handleError(errorToHandle, logger)
+    handleError(errorToHandle)
   }
 }
 
@@ -270,9 +257,8 @@ async function main(): Promise<void> {
 // Check if this module is being run directly (ES module equivalent of require.main === module)
 if (import.meta.url === `file://${process.argv[1]}`) {
   void main().catch((error: unknown) => {
-    const logger = createLogger(false)
     const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error(`Fatal error: ${errorMessage}`)
+    consola.error(`Fatal error: ${errorMessage}`)
 
     // Show troubleshooting info for common issues
     if (errorMessage.includes('Homebrew')

@@ -2,12 +2,12 @@
  * App scanner module for discovering macOS applications and checking Homebrew availability
  */
 
+import { consola } from 'consola'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import type {
   AppInfo,
-  Logger,
   ScannerConfig,
 } from './types.ts'
 
@@ -20,7 +20,6 @@ import {
 import { fetchHomebrewCasks } from './homebrew-api.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
-  createLogger,
   executeCommand,
   extractAppName,
   normalizeAppName,
@@ -31,10 +30,6 @@ import {
  * Main function to discover and analyze applications
  */
 export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
-  const logger = createLogger(config.verbose)
-
-  logger.verbose('Starting app discovery...')
-
   // Check if Homebrew is installed
   const homebrewInstalled = await checkHomebrewInstalled()
 
@@ -45,22 +40,22 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     )
   }
 
-  logger.verbose('Homebrew installation verified')
+  consola.debug('Homebrew installation verified')
 
   // Scan applications directory
-  logger.verbose(`Scanning ${config.applicationsDir}...`)
   const appPaths = await scanApplicationsDirectory(config.applicationsDir)
 
   if (appPaths.length === 0) {
-    logger.warn('No applications found in the Applications directory')
+    consola.warn('No applications found in the Applications directory')
 
     return []
   }
 
-  logger.verbose(`Found ${appPaths.length} applications`)
+  consola.debug(`Found ${appPaths.length} applications`)
 
   // Get list of already installed Homebrew casks
-  logger.verbose('Getting list of already installed Homebrew casks...')
+  consola.debug('Getting list of already installed Homebrew casks...')
+
   const installedCasks = await getInstalledCasks()
   const installedCaskSet = new Set(installedCasks)
 
@@ -115,17 +110,18 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   const appsToCheck = apps.filter(app => app.status === 'unavailable')
 
   if (appsToCheck.length > 0) {
-    logger.verbose(`Batch checking Homebrew availability for ${appsToCheck.length} apps...`)
+    consola.debug(`Batch checking Homebrew availability for ${appsToCheck.length} apps...`)
 
     // Use fallback to CLI if requested
     if (config.fallbackToCli === true) {
-      logger.verbose('Using individual brew commands as requested')
-      await procesAppsIndividually(appsToCheck, logger)
+      consola.debug('Using individual brew commands as requested')
+
+      await procesAppsIndividually(appsToCheck)
     }
     else {
       try {
         // Fetch Homebrew cask database
-        const caskResult = await fetchHomebrewCasks(config.verbose, config.forceRefreshCache, true)
+        const caskResult = await fetchHomebrewCasks(config.forceRefreshCache, true)
 
         if (caskResult.success && caskResult.data) {
           // Use the new matching system
@@ -135,10 +131,8 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
             maxMatches: 5,
             minConfidence: config.matchingThreshold ?? 0.6,
           }
-          const matcher = new AppMatcher(matchingConfig, config.verbose)
+          const matcher = new AppMatcher(matchingConfig)
           const index = matcher.buildIndex(caskResult.data)
-
-          logger.verbose(`Built search index for ${caskResult.data.length} casks`)
 
           // Match apps against cask database using batch method to get console.table output
           const matchResults = matcher.matchApps(appsToCheck, index)
@@ -174,19 +168,19 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         }
         else {
           // Fallback to individual brew commands
-          logger.warn('Failed to fetch Homebrew cask database, falling back to individual commands')
-          await procesAppsIndividually(appsToCheck, logger)
+          consola.warn('Failed to fetch Homebrew cask database, falling back to individual commands')
+          await procesAppsIndividually(appsToCheck)
         }
       }
       catch (error) {
-        logger.warn(`Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        logger.warn('Falling back to individual brew commands')
-        await procesAppsIndividually(appsToCheck, logger)
+        consola.warn(`Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        consola.warn('Falling back to individual brew commands')
+        await procesAppsIndividually(appsToCheck)
       }
     }
   }
 
-  logger.info(`Discovery complete: ${apps.length} apps processed`)
+  consola.ready(`Discovery complete: ${apps.length} apps processed`)
 
   return apps
 }
@@ -242,9 +236,9 @@ async function isCaskAvailable(packageName: string): Promise<boolean> {
 /**
  * Fallback function to process apps individually using brew commands
  */
-async function procesAppsIndividually(apps: AppInfo[], logger: Logger): Promise<void> {
+async function procesAppsIndividually(apps: AppInfo[]): Promise<void> {
   for (const app of apps) {
-    logger.verbose(`Checking Homebrew availability for: ${app.originalName}`)
+    consola.debug(`Checking Homebrew availability for: ${app.originalName}`)
 
     try {
       const packageInfo = await determinePackageInfo(app.originalName, app.brewName)
@@ -254,7 +248,7 @@ async function procesAppsIndividually(apps: AppInfo[], logger: Logger): Promise<
       app.status = packageInfo.brewType === 'unavailable' ? 'unavailable' : 'available'
     }
     catch (error) {
-      logger.warn(`Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`)
+      consola.warn(`Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`)
       app.alreadyInstalled = false
       app.brewType = 'unavailable'
       app.status = 'unavailable'

@@ -3,11 +3,12 @@
  */
 
 import checkbox from '@inquirer/checkbox'
-import chalk from 'chalk'
+import { consola } from 'consola'
 
-import type { AppChoice, AppInfo, CommandOptions } from './types.ts'
+import type { AppChoice, AppInfo } from './types.ts'
 
-import { createLogger, formatList, pluralize } from './utils.ts'
+import packageJson from '../package.json' with { type: 'json' }
+import { formatList, pluralize } from './utils.ts'
 
 /**
  * Display final summary after installation
@@ -18,33 +19,30 @@ export function displayFinalSummary(
   failedApps: AppInfo[],
   dryRun = false,
 ): void {
-  console.log(chalk.bold(`\n🎉 ${dryRun ? 'Dry Run' : 'Installation'} Complete`))
-  console.log(chalk.dim('═'.repeat(50)))
+  consola.box(`🎉 ${dryRun ? 'Dry Run' : 'Installation'} Complete`)
 
   if (dryRun) {
-    console.log(chalk.blue(`\n📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`))
+    consola.info(`📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`)
 
     if (selectedApps.length > 0) {
-      console.log(chalk.cyan(`   📦 ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`))
+      consola.log(`   📦 ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`)
     }
   }
   else {
     if (installedApps.length > 0) {
-      console.log(chalk.green(`\n✅ Successfully installed (${installedApps.length}):`))
-      console.log(formatList(installedApps.map(app => app.originalName)))
+      consola.success(`Successfully installed (${installedApps.length}):`)
+      consola.log(formatList(installedApps.map(app => app.originalName)))
     }
 
     if (failedApps.length > 0) {
-      console.log(chalk.red(`\n❌ Failed to install (${failedApps.length}):`))
-      console.log(formatList(failedApps.map(app => app.originalName)))
+      consola.error(`❌ Failed to install (${failedApps.length}):`)
+      consola.log(formatList(failedApps.map(app => app.originalName)))
     }
 
     if (installedApps.length === 0 && failedApps.length === 0) {
-      console.log(chalk.yellow('\n⚠️  No apps were processed.'))
+      consola.warn(' No apps were processed.')
     }
   }
-
-  console.log(chalk.green('\n🍺 Thank you for using convert-apps-to-homebrew!'))
 }
 
 /**
@@ -58,20 +56,8 @@ export function displayInstallationPlan(
     return
   }
 
-  console.log(chalk.bold(`\n📋 Installation Plan ${dryRun ? '(DRY RUN)' : ''}`))
-  console.log(chalk.dim('═'.repeat(50)))
-
-  if (selectedApps.length > 0) {
-    console.log(chalk.cyan(`\n📦 Casks to install (${selectedApps.length}):`))
-    console.log(formatList(selectedApps.map(app => `${app.originalName} → ${app.brewName}`)))
-    console.log(chalk.green('   ✓ Will overwrite original .app files using Homebrew\'s --force flag'))
-  }
-
   if (dryRun) {
-    console.log(chalk.yellow('\n🔍 This is a dry run - no actual changes will be made.'))
-  }
-  else {
-    console.log(chalk.green('\n🚀 Ready to proceed with installation.'))
+    consola.warn('This is a dry run - no actual changes will be made.')
   }
 }
 
@@ -80,17 +66,14 @@ export function displayInstallationPlan(
  */
 export async function promptAppSelection(
   apps: AppInfo[],
-  options: CommandOptions,
 ): Promise<AppInfo[]> {
-  const logger = createLogger(options.verbose || false)
-
   // Display summary of discovered apps
-  displayAppSummary(apps, options)
+  displayAppSummary(apps)
 
   const availableApps = apps.filter(app => app.status === 'available')
 
   if (availableApps.length === 0) {
-    logger.info('No apps available for selection.')
+    consola.info('No apps available for selection.')
 
     return []
   }
@@ -108,18 +91,16 @@ export async function promptAppSelection(
     })
 
     if (selectedApps.length === 0) {
-      logger.warn('No applications selected for installation.')
+      consola.warn('No applications selected for installation.')
 
       return []
     }
-
-    logger.info(`Selected ${selectedApps.length} ${pluralize('app', selectedApps.length)} for installation.`)
 
     return selectedApps
   }
   catch (error: unknown) {
     if (error instanceof Error && error.name === 'ExitPromptError') {
-      logger.warn('Selection cancelled by user.')
+      consola.warn('Selection cancelled by user.')
 
       return []
     }
@@ -144,55 +125,45 @@ function createAppChoices(apps: AppInfo[]): AppChoice[] {
 /**
  * Display summary of discovered apps before selection
  */
-function displayAppSummary(apps: AppInfo[], options: CommandOptions): void {
+function displayAppSummary(apps: AppInfo[]): void {
   const available = apps.filter(app => app.status === 'available')
   const alreadyInstalled = apps.filter(app => app.status === 'already-installed')
   const ignored = apps.filter(app => app.status === 'ignored')
   const unavailable = apps.filter(app => app.status === 'unavailable')
 
-  console.log(chalk.dim('═'.repeat(50)), '\n')
-
   if (available.length > 0) {
-    console.log(chalk.green(`✅ Available for installation (${available.length}):`))
+    consola.success(`Available for installation (${available.length}):`)
+    consola.debug(formatList(available.map(app => app.originalName)))
   }
 
   if (alreadyInstalled.length > 0) {
-    console.log(chalk.blue(`🍺 Already installed via Homebrew (${alreadyInstalled.length}):`))
-
-    if (options.verbose) {
-      console.log(formatList(alreadyInstalled.map(app => app.originalName)))
-    }
+    consola.info(`🍺 Already installed via Homebrew (${alreadyInstalled.length}):`)
+    consola.debug(formatList(alreadyInstalled.map(app => app.originalName)))
   }
 
   if (ignored.length > 0) {
-    console.log(chalk.yellow(`🚫 Ignored (${ignored.length}):`))
-
-    if (options.verbose) {
-      console.log(formatList(ignored.map(app => app.originalName)))
-    }
+    consola.warn(`🚫 Ignored (${ignored.length}):`)
+    consola.debug(formatList(ignored.map(app => app.originalName)))
   }
 
   if (unavailable.length > 0) {
-    console.log(chalk.red(`❌ Not available in Homebrew (${unavailable.length}):`))
-
-    if (options.verbose) {
-      console.log(formatList(unavailable.map(app => app.originalName)))
-    }
+    consola.info(`❌ Not available in Homebrew (${unavailable.length}):`)
+    consola.debug(formatList(unavailable.map(app => app.originalName)))
+    consola.debug(`If any of these apps actually exist in Homebrew, please file an issue at: ${packageJson.bugs.url}/new/`)
   }
 
   if (available.length === 0) {
-    console.log(chalk.yellow('⚠️  No applications available for installation.'))
+    consola.warn(' No applications available for installation.')
 
     if (alreadyInstalled.length > 0) {
-      console.log('All discoverable apps are already installed via Homebrew.')
+      consola.log('All discoverable apps are already installed via Homebrew.')
     }
     else if (unavailable.length > 0) {
-      console.log('No discoverable apps are available as Homebrew packages.')
+      consola.log('No discoverable apps are available as Homebrew packages.')
     }
 
     return
   }
 
-  console.log(chalk.cyan('\n💡 Note:'))
-  console.log(`• Cask installations will overwrite the original .app files using Homebrew's ${chalk.bold.cyan.bgGray('--force')} flag\n`)
+  consola.box('💡 Note:\n\nCask installations will overwrite the original .app files using Homebrew\'s --force flag')
 }

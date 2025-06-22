@@ -2,6 +2,7 @@
  * Homebrew cask API client with caching capabilities
  */
 
+import { consola } from 'consola'
 import { Buffer } from 'node:buffer'
 import { promises as fs } from 'node:fs'
 import os from 'node:os'
@@ -14,11 +15,9 @@ import type {
   CaskCacheEntry,
   HomebrewApiResult,
   HomebrewCask,
-  Logger,
 } from './types.ts'
 
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger } from './utils.ts'
 
 const gunzipAsync = promisify(gunzip)
 const gzipAsync = promisify(gzip)
@@ -54,10 +53,8 @@ const CACHE_CONFIG = {
  */
 export class HomebrewApiClient {
   private readonly cachePath: string
-  private readonly logger: Logger
 
-  constructor(verbose = false) {
-    this.logger = createLogger(verbose)
+  constructor() {
     this.cachePath = this.getCachePath()
   }
 
@@ -67,7 +64,8 @@ export class HomebrewApiClient {
   async clearCache(): Promise<void> {
     try {
       await fs.unlink(this.cachePath)
-      this.logger.verbose('Cache cleared successfully')
+
+      consola.debug('Cache cleared successfully')
     }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -90,12 +88,12 @@ export class HomebrewApiClient {
         const cached = await this.loadFromCache()
 
         if (cached.success && cached.data) {
-          this.logger.verbose('Using cached cask data')
+          consola.debug('Using cached cask data')
 
           return { ...cached, fromCache: true }
         }
 
-        this.logger.verbose('Cache not found or invalid, fetching from API...')
+        consola.debug('Cache not found or invalid, fetching from API...')
       }
 
       // Only show spinner when actually fetching from API
@@ -110,7 +108,7 @@ export class HomebrewApiClient {
         }
       }
 
-      this.logger.verbose('Fetching cask data from Homebrew API...')
+      consola.debug('Fetching cask data from Homebrew API...')
 
       // Fetch from API
       const result = await this.fetchFromApi(spinner)
@@ -122,7 +120,8 @@ export class HomebrewApiClient {
         }
 
         await this.saveToCache(result.data)
-        this.logger.verbose('Cask data cached successfully')
+
+        consola.debug('Cask data cached successfully')
 
         if (spinner) {
           spinner.succeed(`Successfully loaded ${result.data.length} casks from Homebrew API`)
@@ -230,7 +229,7 @@ export class HomebrewApiClient {
       // The actual download happens here, awaiting the full response
       const casks = await response.json() as HomebrewCask[]
 
-      this.logger.verbose(`Fetched ${casks.length} casks from Homebrew API`)
+      consola.debug(`Fetched ${casks.length} casks from Homebrew API`)
 
       return { data: casks, success: true }
     }
@@ -326,12 +325,12 @@ export class HomebrewApiClient {
         return { error: { message: 'No valid cache found' }, success: false }
       }
 
-      this.logger.verbose(`Loaded ${cacheEntry.data.length} casks from cache`)
+      consola.debug(`Loaded ${cacheEntry.data.length} casks from cache`)
 
       return { data: cacheEntry.data, success: true }
     }
     catch (error) {
-      this.logger.verbose('Failed to load cache, will fetch from API')
+      consola.debug('Failed to load cache, will fetch from API')
 
       return {
         error: {
@@ -361,11 +360,11 @@ export class HomebrewApiClient {
 
       await fs.writeFile(this.cachePath, compressedData)
 
-      this.logger.verbose(`Cached ${casks.length} casks (${Math.round(compressedData.length / 1024)}KB compressed)`)
+      consola.debug(`Cached ${casks.length} casks (${Math.round(compressedData.length / 1024)}KB compressed)`)
     }
     catch (error) {
       // Don't throw on cache save failures, just log
-      this.logger.warn(`Failed to save cache: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      consola.warn(`Failed to save cache: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 }
@@ -374,14 +373,10 @@ export class HomebrewApiClient {
  * Convenience function to create an API client and fetch casks
  */
 export async function fetchHomebrewCasks(
-  verbose = false,
   forceRefresh = false,
   showSpinner = true,
 ): Promise<HomebrewApiResult<HomebrewCask[]>> {
-  const client = new HomebrewApiClient(verbose)
+  const client = new HomebrewApiClient()
 
-  // Disable spinner in verbose mode to avoid interfering with detailed logs
-  const shouldShowSpinner = showSpinner && !verbose
-
-  return client.fetchAllCasks(forceRefresh, shouldShowSpinner)
+  return client.fetchAllCasks(forceRefresh, showSpinner)
 }

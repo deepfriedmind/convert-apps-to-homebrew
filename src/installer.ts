@@ -2,17 +2,18 @@
  * Installation logic for Homebrew packages with dry-run support
  */
 
+import { consola } from 'consola'
+
 import type {
   AppInfo,
   InstallationResult,
   InstallerConfig,
-  Logger,
   PackageInstallResult,
 } from './types.ts'
 
 import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
-import { createLogger, executeCommand, pluralize } from './utils.ts'
+import { executeCommand, pluralize } from './utils.ts'
 
 /**
  * Get installation summary for display
@@ -28,7 +29,7 @@ export function getInstallationSummary(result: InstallationResult): string {
   }
 
   if (result.installed.length > 0) {
-    lines.push(`✅ Successfully installed: ${result.installed.length}`)
+    lines.push(`Successfully installed: ${result.installed.length}`)
 
     for (const app of result.installed) {
       lines.push(`   • ${app.appName} (${app.packageName})`)
@@ -44,7 +45,7 @@ export function getInstallationSummary(result: InstallationResult): string {
   }
 
   if (result.installed.length === 0 && result.failed.length === 0) {
-    lines.push('⚠️  No packages were processed')
+    lines.push(' No packages were processed')
   }
 
   return lines.join('\n')
@@ -57,10 +58,8 @@ export async function installApps(
   selectedApps: AppInfo[],
   config: InstallerConfig,
 ): Promise<InstallationResult> {
-  const logger = createLogger(config.verbose)
-
   if (selectedApps.length === 0) {
-    logger.info('No apps selected for installation')
+    consola.info('No apps selected for installation')
 
     return {
       alreadyInstalled: [],
@@ -72,13 +71,11 @@ export async function installApps(
     }
   }
 
-  logger.info(`Starting installation: ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`)
-
   const allResults: PackageInstallResult[] = []
 
   try {
     // Install casks with --force flag to overwrite existing applications
-    const caskResults = await installCasks(selectedApps, config, logger)
+    const caskResults = await installCasks(selectedApps, config)
     allResults.push(...caskResults)
 
     // No need to delete original .app files as --force flag handles overwriting
@@ -86,8 +83,6 @@ export async function installApps(
     // Categorize results
     const installed = allResults.filter(result => result.success)
     const failed = allResults.filter(result => !result.success)
-
-    logger.info(`Installation complete: ${installed.length} successful, ${failed.length} failed`)
 
     return {
       alreadyInstalled: [],
@@ -100,7 +95,7 @@ export async function installApps(
   }
   catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error(`Installation failed: ${errorMessage}`)
+    consola.error(`Installation failed: ${errorMessage}`)
 
     throw new ConvertAppsError(
       `Installation process failed: ${errorMessage}`,
@@ -131,7 +126,6 @@ export async function validateInstallationPrerequisites(): Promise<void> {
 async function installCasks(
   casks: AppInfo[],
   config: InstallerConfig,
-  logger: Logger,
 ): Promise<PackageInstallResult[]> {
   if (casks.length === 0) {
     return []
@@ -140,15 +134,14 @@ async function installCasks(
   const caskNames = casks.map(app => app.brewName)
   const command = BREW_COMMANDS.INSTALL_CASK(caskNames)
 
-  logger.info(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`)
-  logger.verbose(`Command: ${command}`)
+  consola.debug(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`)
+
+  consola.debug(`Command: ${command}`)
 
   // Use streamOutput=true to show real-time output during installation
   const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun, true)
 
   if (result.success) {
-    logger.info(`Successfully installed ${casks.length} ${pluralize('cask', casks.length)}`)
-
     return casks.map(app => ({
       appName: app.originalName,
       dryRun: config.dryRun,
@@ -157,7 +150,7 @@ async function installCasks(
     }))
   }
   else {
-    logger.error(`Failed to install casks: ${result.stderr}`)
+    consola.error(`Failed to install casks: ${result.stderr}`)
 
     // In case of batch failure, mark all as failed
     return casks.map(app => ({

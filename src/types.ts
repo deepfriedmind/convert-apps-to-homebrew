@@ -49,11 +49,6 @@ export interface AppMatchResult {
 }
 
 /**
- * Status of an application in relation to Homebrew
- */
-export type AppStatus = 'already-installed' | 'available' | 'ignored' | 'unavailable'
-
-/**
  * Result of a Homebrew command execution
  */
 export interface BrewCommandResult {
@@ -66,11 +61,6 @@ export interface BrewCommandResult {
   /** Whether the command was successful */
   success: boolean
 }
-
-/**
- * Type of Homebrew package
- */
-export type BrewPackageType = 'cask' | 'unavailable'
 
 /**
  * Cache entry for Homebrew cask data
@@ -124,19 +114,19 @@ export interface CaskMatch {
  */
 export interface CommandOptions {
   /** Custom Applications directory path */
-  applicationsDir?: string
+  applicationsDir: string
   /** Whether to run in dry-run mode (show what would happen without executing) */
-  dryRun?: boolean
+  dryRun: boolean
   /** Whether to use individual brew commands instead of batch API */
   fallbackToCli?: boolean
   /** Whether to force refresh of cask database cache */
   forceRefreshCache?: boolean
   /** List of app names to ignore */
-  ignore?: string[]
+  ignore: string[]
   /** Confidence threshold for matching (0.0-1.0) */
   matchingThreshold?: number
   /** Verbose output */
-  verbose?: boolean
+  verbose: boolean
 }
 
 /**
@@ -276,6 +266,16 @@ export interface ScannerConfig {
 }
 
 /**
+ * Status of an application in relation to Homebrew
+ */
+type AppStatus = 'already-installed' | 'available' | 'ignored' | 'unavailable'
+
+/**
+ * Type of Homebrew package
+ */
+type BrewPackageType = 'cask' | 'unavailable'
+
+/**
  * Homebrew cask artifact types from the API
  */
 interface HomebrewCaskArtifact {
@@ -332,19 +332,6 @@ export const ErrorType = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const
 
-export type ErrorTypeValue = typeof ErrorType[keyof typeof ErrorType]
-
-/**
- * Logger interface for consistent logging
- */
-export interface Logger {
-  debug: (message: string) => void
-  error: (message: string) => void
-  info: (message: string) => void
-  verbose: (message: string) => void
-  warn: (message: string) => void
-}
-
 /**
  * Summary statistics for the operation
  */
@@ -373,6 +360,8 @@ export interface OperationSummary {
  * Progress callback function type
  */
 export type ProgressCallback = (message: string, current: number, total: number) => void
+
+type ErrorTypeValue = typeof ErrorType[keyof typeof ErrorType]
 
 /**
  * Custom error class for application-specific errors

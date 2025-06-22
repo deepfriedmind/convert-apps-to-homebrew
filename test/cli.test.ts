@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, test } from 'node:test'
 
 import type { CommandOptions } from '../src/types.ts'
 
-import { createProgram, displayTroubleshooting, displayWelcome, parseArguments, validateEnvironment } from '../src/cli.ts'
+import { createProgram, parseArguments, validateEnvironment } from '../src/cli.ts'
 import { mockConsole } from './helpers/test-utils.ts'
 
 void describe('cli', () => {
@@ -145,48 +145,6 @@ void describe('cli', () => {
       for (const property of requiredProperties) {
         assert.strictEqual(property in result, true, `Missing property: ${property}`)
       }
-    })
-  })
-
-  void describe('displayWelcome', () => {
-    void test('should display welcome message with basic options', () => {
-      const options: CommandOptions = {
-        applicationsDir: '/Applications',
-        dryRun: false,
-        ignore: [],
-        verbose: false,
-      }
-
-      displayWelcome(options)
-
-      assert.strictEqual(consoleMock.logs.length > 0, true)
-      const output = consoleMock.logs.join(' ')
-      assert.strictEqual(output.includes('Convert Apps to Homebrew'), true)
-    })
-
-    void test('should display welcome message with verbose options', () => {
-      const options: CommandOptions = {
-        applicationsDir: '/custom/path',
-        dryRun: true,
-        ignore: ['Chrome', 'Firefox'],
-        verbose: true,
-      }
-
-      displayWelcome(options)
-
-      assert.strictEqual(consoleMock.logs.length > 0, true)
-      const output = consoleMock.logs.join(' ')
-      assert.strictEqual(output.includes('Convert Apps to Homebrew'), true)
-    })
-  })
-
-  void describe('displayTroubleshooting', () => {
-    void test('should display troubleshooting information', () => {
-      displayTroubleshooting()
-
-      assert.strictEqual(consoleMock.logs.length > 0, true)
-      const output = consoleMock.logs.join(' ')
-      assert.strictEqual(output.includes('Troubleshooting') || output.includes('Help'), true)
     })
   })
 

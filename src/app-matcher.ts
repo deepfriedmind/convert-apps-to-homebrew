@@ -3,6 +3,7 @@
  */
 
 import bundleName from 'bundle-name'
+import { consola } from 'consola'
 
 import type {
   AppInfo,
@@ -10,12 +11,11 @@ import type {
   CaskIndex,
   CaskMatch,
   HomebrewCask,
-  Logger,
   MatchingConfig,
   MatchingStrategy,
 } from './types.ts'
 
-import { createLogger, normalizeAppName } from './utils.ts'
+import { normalizeAppName } from './utils.ts'
 
 /**
  * Default matching configuration
@@ -32,12 +32,8 @@ const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
 export class AppMatcher {
   private caskIndex?: CaskIndex
   private readonly config: MatchingConfig
-  private readonly isVerbose: boolean
-  private readonly logger: Logger
 
-  constructor(config: Partial<MatchingConfig> = {}, verbose = false) {
-    this.isVerbose = verbose
-    this.logger = createLogger(verbose)
+  constructor(config: Partial<MatchingConfig> = {}) {
     this.config = { ...DEFAULT_MATCHING_CONFIG, ...config }
   }
 
@@ -45,7 +41,7 @@ export class AppMatcher {
    * Build search indexes from cask data
    */
   buildIndex(casks: HomebrewCask[]): CaskIndex {
-    this.logger.verbose(`Building search index for ${casks.length} casks...`)
+    consola.debug(`Building search index for ${casks.length} casks...`)
 
     const index: CaskIndex = {
       byAppBundle: new Map(),
@@ -81,7 +77,7 @@ export class AppMatcher {
             }
             else {
               // Log warning for unexpected formats but continue processing
-              this.logger.verbose(`Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`)
+              consola.debug(`Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`)
               continue
             }
 
@@ -106,7 +102,8 @@ export class AppMatcher {
     }
 
     this.caskIndex = index
-    this.logger.verbose('Search index built successfully')
+
+    consola.debug('Search index built successfully')
 
     return index
   }
@@ -161,49 +158,46 @@ export class AppMatcher {
       throw new Error('No cask index available. Call buildIndex() first.')
     }
 
-    this.logger.verbose(`Matching ${apps.length} apps against cask database...`)
+    consola.debug(`Matching ${apps.length} apps against cask database...`)
 
     const results = apps.map(app => this.matchApp(app, index))
 
-    // Only compute and log statistics in verbose mode
-    if (this.isVerbose) {
-      // Create summary table data
-      const matchSummary = results.map((result) => {
-        const { appInfo, matches } = result
-        const bestMatch = matches[0] || null
+    // Compute and log statistics in verbose mode
+    // Create summary table data
+    const matchSummary = results.map((result) => {
+      const { appInfo, matches } = result
+      const bestMatch = matches[0] || null
 
-        return {
-          /* eslint-disable perfectionist/sort-objects */
-          appName: appInfo.originalName,
-          matchFound: matches.length > 0 ? '✅' : '❌',
-          caskToken: bestMatch ? bestMatch.cask.token : '-',
-          confidence: bestMatch ? bestMatch.confidence.toFixed(2) : '-',
-          matchType: bestMatch ? bestMatch.matchType : '-',
-          /* eslint-enable perfectionist/sort-objects */
-        }
-      })
+      return {
+        /* eslint-disable perfectionist/sort-objects */
+        appName: appInfo.originalName,
+        matchFound: matches.length > 0 ? '✅' : '❌',
+        caskToken: bestMatch ? bestMatch.cask.token : '-',
+        confidence: bestMatch ? bestMatch.confidence.toFixed(2) : '-',
+        matchType: bestMatch ? bestMatch.matchType : '-',
+        /* eslint-enable perfectionist/sort-objects */
+      }
+    })
 
-      // Create statistics summary
-      const matchesFound = results.filter(result => result.bestMatch).length
-      const noMatches = results.filter(result => result.matches.length === 0).length
+    // Create statistics summary
+    const matchesFound = results.filter(result => result.bestMatch).length
+    const noMatches = results.filter(result => result.matches.length === 0).length
 
-      // Log the table with match results
-      console.log('\nMatch Results Summary:')
+    // Log the table with match results
+    if (consola.level >= 4) {
+      consola.debug('Match Results Summary:')
       console.table(matchSummary)
 
       // Log summary statistics
-      console.log('\nMatch Statistics:')
+      consola.debug('Match Statistics:')
       console.table({
         'Matches Found': matchesFound,
         'No Matches': noMatches,
         'Total Apps': apps.length,
       })
     }
-    else {
-      // Simple completion message for non-verbose mode
-      const matchesFound = results.filter(result => result.bestMatch).length
-      this.logger.debug(`Matching complete: ${matchesFound}/${apps.length} matches found`)
-    }
+
+    consola.debug(`Matching complete: ${matchesFound}/${apps.length} matches found`)
 
     return results
   }

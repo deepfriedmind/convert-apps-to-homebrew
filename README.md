@@ -8,14 +8,14 @@
 
 A CLI tool for macOS that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations.
 
-## ✨ Features
+## Features
 
-- 🔍 **Automatic Discovery**: Scans `/Applications` directory and identifies available Homebrew packages
-- ✅ **Interactive Selection**: Checkbox interface for selecting apps to install
-- 🧪 **Dry-Run Mode**: Preview changes without executing them
-- 🚫 **Flexible Filtering**: Pre-ignore specific applications
+- **Automatic Discovery**: Scans `/Applications` directory and identifies available Homebrew packages
+- **Interactive Selection**: Checkbox interface for selecting apps to install
+- **Dry-Run Mode**: Preview changes without executing them
+- **Flexible Filtering**: Pre-ignore specific applications
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -28,13 +28,13 @@ npm install -g convert-apps-to-homebrew
 convert-apps-to-homebrew
 ```
 
-## 📋 Requirements
+## Requirements
 
 - **macOS**: This tool is designed specifically for macOS
 - **Node.js 24+**: Required for running the application
 - **Homebrew**: Must be installed and accessible in PATH
 
-## 🔧 Command-line options
+## Command-line options
 
 | Option                      | Description                       | Example                                       |
 | --------------------------- | --------------------------------- | --------------------------------------------- |
@@ -45,7 +45,7 @@ convert-apps-to-homebrew
 | `--help`                    | Show help information             |                                               |
 | `--version`                 | Show version number               |                                               |
 
-## 🛠️ Development
+## Development
 
 ### Building from source
 
@@ -70,7 +70,7 @@ npm test
 npm run test:coverage
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
@@ -81,17 +81,18 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 3. **Documentation**: Update README.md for new features
 4. **Code Style**: Follow the existing code style and linting rules
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Homebrew](https://brew.sh/) - The missing package manager for macOS
 - [Inquirer.js](https://github.com/SBoudrias/Inquirer.js) - Interactive command line interfaces
 - [Commander.js](https://github.com/tj/commander.js) - Command-line interface framework
+- [Consola](https://github.com/unjs/consola) - Elegant Console Logger for Node.js and Browser
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
