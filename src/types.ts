@@ -204,8 +204,6 @@ export interface InstallerConfig {
  * Configuration for app matching
  */
 export interface MatchingConfig {
-  /** Whether to use bundle ID lookup */
-  enableBundleIdLookup: boolean
   /** Maximum number of matches to return per app */
   maxMatches: number
   /** Minimum confidence threshold for matches */
@@ -299,7 +297,6 @@ interface HomebrewCaskArtifact {
 type MatchType
   = | 'bundle-id-derived' // Bundle ID found through app name lookup
     | 'bundle-id-exact' // Exact bundle ID match
-    | 'bundle-id-resolved' // Bundle ID resolved to app name using bundle-name
     | 'exact-app-bundle' // Exact match of app bundle name
     | 'name-exact' // Exact name match from cask names
     | 'normalized-app-bundle' // Normalized app bundle name match

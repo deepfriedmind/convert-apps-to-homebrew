@@ -2,7 +2,6 @@
  * App matching logic for finding Homebrew casks that correspond to local applications
  */
 
-import bundleName from 'bundle-name'
 import { consola } from 'consola'
 
 import type {
@@ -21,7 +20,6 @@ import { normalizeAppName } from './utils.ts'
  * Default matching configuration
  */
 const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
-  enableBundleIdLookup: true,
   maxMatches: 5,
   minConfidence: 0.6,
 }
@@ -120,15 +118,9 @@ export class AppMatcher {
 
     const allMatches: CaskMatch[] = []
 
-    // Strategy 1: Direct app bundle matching
+    // Direct app bundle matching
     const bundleMatches = this.findAppBundleMatches(appInfo, index)
     allMatches.push(...bundleMatches)
-
-    // Strategy 2: Bundle ID matching (if enabled and available)
-    if (this.config.enableBundleIdLookup) {
-      const bundleIdMatches = this.findBundleIdMatches(appInfo, index)
-      allMatches.push(...bundleIdMatches)
-    }
 
     // Remove duplicates and sort by confidence
     const uniqueMatches = this.deduplicateMatches(allMatches)
@@ -249,8 +241,7 @@ export class AppMatcher {
 
     switch (topMatch.matchType) {
       case 'bundle-id-derived':
-      case 'bundle-id-exact':
-      case 'bundle-id-resolved': {
+      case 'bundle-id-exact': {
         return 'bundle-id'
       }
       case 'exact-app-bundle':
@@ -353,50 +344,6 @@ export class AppMatcher {
           },
           matchType: 'normalized-app-bundle',
         })
-      }
-    }
-
-    return matches
-  }
-
-  /**
-   * Find matches by converting bundle IDs to app names and matching against local app
-   * This uses the bundle-name package to resolve bundle IDs to their actual app names
-   */
-  private findBundleIdMatches(appInfo: AppInfo, index: CaskIndex): CaskMatch[] {
-    const matches: CaskMatch[] = []
-    const targetAppName = normalizeAppName(appInfo.originalName)
-
-    // Iterate through all bundle IDs in the index
-    for (const [bundleId, casks] of index.byBundleId.entries()) {
-      try {
-        // Convert bundle ID to app name (this is synchronous in bundle-name v4+)
-        const resolvedAppName = bundleName.sync(bundleId)
-
-        if (resolvedAppName !== null && resolvedAppName.length > 0) {
-          const normalizedResolvedName = normalizeAppName(resolvedAppName)
-
-          // Check if the resolved app name matches our target app
-          if (normalizedResolvedName === targetAppName) {
-            // Add matches for all casks with this bundle ID
-            for (const cask of casks) {
-              matches.push({
-                cask,
-                confidence: 0.95, // High confidence for bundle ID matches
-                matchDetails: {
-                  matchedValue: bundleId,
-                  source: 'bundle-name-lookup',
-                },
-                matchType: 'bundle-id-resolved',
-              })
-            }
-          }
-        }
-      }
-      catch {
-        // Skip if bundle-name fails to resolve the bundle ID
-        // This is expected for some bundle IDs that don't correspond to apps
-        continue
       }
     }
 

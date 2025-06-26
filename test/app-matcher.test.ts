@@ -212,33 +212,4 @@ void test('AppMatcher', async (testContext) => {
     // Should have fewer or no matches due to high confidence threshold
     assert.ok(matchResult.matches.length <= 1)
   })
-
-  await testContext.test('should match apps using bundle ID resolution', () => {
-    const matcher = new AppMatcher({ enableBundleIdLookup: true })
-    const index = matcher.buildIndex(mockCasks)
-
-    // Test with an app name that should resolve from bundle ID
-    // The bundle-name package should convert "com.microsoft.VSCode" to "Visual Studio Code"
-    const testApp: AppInfo = {
-      alreadyInstalled: false,
-      appPath: '/Applications/Visual Studio Code.app',
-      brewName: 'unknown',
-      brewType: 'unavailable',
-      originalName: 'Visual Studio Code',
-      status: 'unavailable',
-    }
-
-    const matchResult = matcher.matchApp(testApp, index)
-
-    // Should find a match using bundle ID resolution
-    assert.ok(matchResult.matches.length > 0)
-
-    // Note: This might not always work in CI/test environments
-    // where bundle-name package may not have access to actual macOS bundle info
-    // So we just check that the functionality doesn't throw errors
-    assert.ok(matchResult !== null)
-
-    // We don't check for bundle ID matches specifically since the test
-    // environment may not have access to macOS bundle information
-  })
 })
