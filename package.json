@@ -54,7 +54,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@inquirer/checkbox": "^4.1.8",
     "bundle-name": "^4.1.0",
     "commander": "^14.0.0",
     "consola": "^3.4.2",

@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Main entry point for convert-apps-to-homebrew
- * Orchestrates the entire application flow
- */
-
 import { consola } from 'consola'
 
 import type {
@@ -175,7 +170,7 @@ async function main(): Promise<void> {
     displayWelcome(options)
 
     // Validate prerequisites
-    progressTracker.startOperation('Validating prerequisites')
+    progressTracker.startOperation('validating prerequisites')
     await validateInstallationPrerequisites()
     progressTracker.completeOperation('Prerequisites validation')
 
@@ -203,7 +198,7 @@ async function main(): Promise<void> {
 
     // Perform installation
     const operationType = options.dryRun ? 'dry run' : 'installation'
-    progressTracker.startOperation(`Package ${operationType}`, selectedApps.length)
+    progressTracker.startOperation(`package ${operationType}`, selectedApps.length)
     const installerConfig = createInstallerConfig(options)
     const installationResult = await installApps(selectedApps, installerConfig)
     progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0)

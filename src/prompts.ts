@@ -1,11 +1,9 @@
 /**
- * Interactive prompts using Inquirer.js
+ * Interactive prompts using consola
  */
-
-import checkbox from '@inquirer/checkbox'
 import { consola } from 'consola'
 
-import type { AppChoice, AppInfo } from './types.ts'
+import type { AppInfo } from './types.ts'
 
 import packageJson from '../package.json' with { type: 'json' }
 import { formatList, pluralize } from './utils.ts'
@@ -19,7 +17,7 @@ export function displayFinalSummary(
   failedApps: AppInfo[],
   dryRun = false,
 ): void {
-  consola.box(`🎉 ${dryRun ? 'Dry Run' : 'Installation'} Complete`)
+  consola.box(`🎉 ${dryRun ? 'Dry run' : 'Installation'} complete`)
 
   if (dryRun) {
     consola.info(`📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`)
@@ -40,7 +38,7 @@ export function displayFinalSummary(
     }
 
     if (installedApps.length === 0 && failedApps.length === 0) {
-      consola.warn(' No apps were processed.')
+      consola.warn('No apps were processed.')
     }
   }
 }
@@ -67,7 +65,6 @@ export function displayInstallationPlan(
 export async function promptAppSelection(
   apps: AppInfo[],
 ): Promise<AppInfo[]> {
-  // Display summary of discovered apps
   displayAppSummary(apps)
 
   const availableApps = apps.filter(app => app.status === 'available')
@@ -78,48 +75,47 @@ export async function promptAppSelection(
     return []
   }
 
-  // Create choices for the checkbox prompt
-  const choices = createAppChoices(availableApps)
-
   try {
-    const selectedApps = await checkbox({
-      choices,
-      loop: false,
-      message: 'Choose apps to install:',
-      pageSize: 15,
-      required: false,
-    })
+    consola.info('↑/↓ - Navigate  |  Space - Toggle selection  |  a - Select/deselect all  |  Enter - Confirm  |  Esc - Cancel')
 
-    if (selectedApps.length === 0) {
+    const options = availableApps.map(app => ({
+      hint: app.brewName === app.originalName ? '' : app.brewName,
+      label: app.originalName,
+      value: app.originalName,
+    }))
+
+    const selectedValues = await consola.prompt('Choose apps to convert to Homebrew:', {
+      cancel: 'symbol',
+      initial: availableApps.map(app => app.originalName),
+      options,
+      required: false,
+      type: 'multiselect',
+    }) as string[] | symbol
+
+    if (typeof selectedValues === 'symbol') {
+      consola.warn('Selection cancelled by user.')
+
+      return []
+    }
+
+    if (selectedValues === undefined || !Array.isArray(selectedValues) || selectedValues.length === 0) {
       consola.warn('No applications selected for installation.')
 
       return []
     }
 
+    // Map selected values back to AppInfo objects
+    const selectedApps = availableApps.filter(app =>
+      selectedValues.includes(app.originalName),
+    )
+
     return selectedApps
   }
-  catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ExitPromptError') {
-      consola.warn('Selection cancelled by user.')
+  catch (error) {
+    consola.error('Error during app selection:', error)
 
-      return []
-    }
-    throw error
+    return []
   }
-}
-
-/**
- * Create choices for the checkbox prompt from available apps
- */
-function createAppChoices(apps: AppInfo[]): AppChoice[] {
-  return apps
-    .filter(app => app.status === 'available')
-    .map(app => ({
-      checked: true,
-      disabled: false,
-      name: app.originalName,
-      value: app,
-    }))
 }
 
 /**
@@ -132,28 +128,28 @@ function displayAppSummary(apps: AppInfo[]): void {
   const unavailable = apps.filter(app => app.status === 'unavailable')
 
   if (available.length > 0) {
-    consola.success(`Available for installation (${available.length}):`)
+    consola.info(`👍 ${available.length} available for installation`)
     consola.debug(formatList(available.map(app => app.originalName)))
   }
 
   if (alreadyInstalled.length > 0) {
-    consola.info(`🍺 Already installed via Homebrew (${alreadyInstalled.length}):`)
+    consola.info(`🍺 ${alreadyInstalled.length} already installed via Homebrew`)
     consola.debug(formatList(alreadyInstalled.map(app => app.originalName)))
   }
 
   if (ignored.length > 0) {
-    consola.warn(`🚫 Ignored (${ignored.length}):`)
+    consola.warn(`🚫 ${ignored.length} ignored`)
     consola.debug(formatList(ignored.map(app => app.originalName)))
   }
 
   if (unavailable.length > 0) {
-    consola.info(`❌ Not available in Homebrew (${unavailable.length}):`)
+    consola.info(`❌ ${unavailable.length} not available in Homebrew`)
     consola.debug(formatList(unavailable.map(app => app.originalName)))
     consola.debug(`If any of these apps actually exist in Homebrew, please file an issue at: ${packageJson.bugs.url}/new/`)
   }
 
   if (available.length === 0) {
-    consola.warn(' No applications available for installation.')
+    consola.warn('No applications available for installation.')
 
     if (alreadyInstalled.length > 0) {
       consola.log('All discoverable apps are already installed via Homebrew.')
@@ -165,5 +161,5 @@ function displayAppSummary(apps: AppInfo[]): void {
     return
   }
 
-  consola.box('💡 Note:\n\nCask installations will overwrite the original .app files using Homebrew\'s --force flag')
+  consola.box('💡 Note:\nThe original .app files will be replaced by Homebrew\'s force install')
 }

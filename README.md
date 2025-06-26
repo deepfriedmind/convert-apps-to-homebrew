@@ -88,7 +88,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - [Homebrew](https://brew.sh/) - The missing package manager for macOS
-- [Inquirer.js](https://github.com/SBoudrias/Inquirer.js) - Interactive command line interfaces
 - [Commander.js](https://github.com/tj/commander.js) - Command-line interface framework
 - [Consola](https://github.com/unjs/consola) - Elegant Console Logger for Node.js and Browser
 

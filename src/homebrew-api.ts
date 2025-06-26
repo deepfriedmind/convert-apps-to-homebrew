@@ -61,7 +61,7 @@ export class HomebrewApiClient {
   /**
    * Clear the cache
    */
-  async clearCache(): Promise<void> {
+  async clearCache() {
     try {
       await fs.unlink(this.cachePath)
 

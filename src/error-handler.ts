@@ -204,10 +204,10 @@ export class ProgressTracker {
     this.lastUpdate = this.startTime
 
     if (total === undefined) {
-      consola.start(` Starting ${operation}...`)
+      consola.start(`Starting ${operation}...`)
     }
     else {
-      consola.start(` Starting ${operation} (${total} items)...`)
+      consola.start(`Starting ${operation} (${total} items)...`)
     }
   }
 

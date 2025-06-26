@@ -2,7 +2,7 @@
  * Test data and fixtures for testing
  */
 
-import type { AppChoice, AppInfo, BrewCommandResult, OperationSummary } from '../../src/types.ts'
+import type { AppInfo, BrewCommandResult, OperationSummary } from '../../src/types.ts'
 
 /**
  * Sample application information for testing
@@ -14,15 +14,6 @@ export const sampleAppInfo: AppInfo = {
   brewType: 'cask',
   originalName: 'Sample App',
   status: 'available',
-}
-
-/**
- * Sample app choice for testing prompts
- */
-export const sampleAppChoice: AppChoice = {
-  checked: false,
-  name: 'Sample App (Cask)',
-  value: sampleAppInfo,
 }
 
 /**

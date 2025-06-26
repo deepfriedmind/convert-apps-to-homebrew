@@ -3,20 +3,6 @@
  */
 
 /**
- * Choice item for Inquirer.js checkbox
- */
-export interface AppChoice {
-  /** Whether the choice is checked by default */
-  checked: boolean
-  /** Whether the choice is disabled */
-  disabled?: boolean | string
-  /** Display name for the choice */
-  name: string
-  /** Value to return when selected */
-  value: AppInfo
-}
-
-/**
  * Information about a macOS application
  */
 export interface AppInfo {
