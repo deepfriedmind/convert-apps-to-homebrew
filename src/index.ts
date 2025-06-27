@@ -21,6 +21,7 @@ import {
 } from './cli.ts'
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import {
+  getErrorHandler,
   ProgressTracker,
   setupGlobalErrorHandlers,
 } from './error-handler.ts'
@@ -30,7 +31,6 @@ import {
   displayInstallationPlan,
   promptAppSelection,
 } from './prompts.ts'
-import { ConvertAppsError, ErrorType } from './types.ts'
 
 /**
  * Create installer configuration from command options
@@ -81,68 +81,6 @@ function generateOperationSummary(
     totalApps: allApps.length,
     unavailable: unavailable.length,
   }
-}
-
-/**
- * Handle application errors with appropriate exit codes
- */
-function handleError(error: Error): never {
-  if (error instanceof ConvertAppsError) {
-    /* eslint-disable no-fallthrough */
-    switch (error.type) {
-      case ErrorType.COMMAND_FAILED: {
-        consola.error(`Command execution failed: ${error.message}`)
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      case ErrorType.FILE_NOT_FOUND: {
-        consola.error(`File not found: ${error.message}`)
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      case ErrorType.HOMEBREW_NOT_INSTALLED: {
-        consola.error(MESSAGES.HOMEBREW_NOT_INSTALLED)
-        displayTroubleshooting()
-        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
-      }
-
-      case ErrorType.INVALID_INPUT: {
-        consola.error(`Invalid input: ${error.message}`)
-        process.exit(EXIT_CODES.INVALID_INPUT)
-      }
-
-      case ErrorType.NETWORK_ERROR: {
-        consola.error(`Network error: ${error.message}`)
-        process.exit(EXIT_CODES.NETWORK_ERROR)
-      }
-
-      case ErrorType.PERMISSION_DENIED: {
-        consola.error(MESSAGES.PERMISSION_DENIED)
-        consola.error(error.message)
-        displayTroubleshooting()
-        process.exit(EXIT_CODES.PERMISSION_DENIED)
-      }
-
-      case ErrorType.UNKNOWN_ERROR: {
-        consola.error(`Unknown error: ${error.message}`)
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      default: {
-        consola.error(`Error: ${error.message}`)
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-    }
-    /* eslint-enable no-fallthrough */
-  }
-
-  consola.error(`Unexpected error: ${error.message}`)
-
-  if (error.stack !== undefined) {
-    consola.debug(error.stack)
-  }
-
-  process.exit(EXIT_CODES.GENERAL_ERROR)
 }
 
 /**
@@ -242,7 +180,7 @@ async function main(): Promise<void> {
 
     // Handle other errors
     const errorToHandle = error instanceof Error ? error : new Error(String(error))
-    handleError(errorToHandle)
+    getErrorHandler().handleError(errorToHandle)
   }
 }
 
