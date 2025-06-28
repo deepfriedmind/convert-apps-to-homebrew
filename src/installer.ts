@@ -74,13 +74,9 @@ export async function installApps(
   const allResults: PackageInstallResult[] = []
 
   try {
-    // Install casks with --force flag to overwrite existing applications
     const caskResults = await installCasks(selectedApps, config)
     allResults.push(...caskResults)
 
-    // No need to delete original .app files as --force flag handles overwriting
-
-    // Categorize results
     const installed = allResults.filter(result => result.success)
     const failed = allResults.filter(result => !result.success)
 

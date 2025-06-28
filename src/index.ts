@@ -104,7 +104,6 @@ async function main(): Promise<void> {
     setupGlobalErrorHandlers(options.verbose)
     const progressTracker = new ProgressTracker()
 
-    // Display welcome message
     displayWelcome(options)
 
     // Validate prerequisites

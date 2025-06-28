@@ -154,11 +154,9 @@ void describe('cli', () => {
       const originalPlatform = process.platform
       const originalVersion = process.version
 
-      // Mock macOS with Node.js 22
       Object.defineProperty(process, 'platform', { configurable: true, value: 'darwin' })
-      Object.defineProperty(process, 'version', { configurable: true, value: 'v22.0.0' })
+      Object.defineProperty(process, 'version', { configurable: true, value: 'v24.0.0' })
 
-      // Should not throw on valid environment
       assert.doesNotThrow(() => {
         validateEnvironment()
       })

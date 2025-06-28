@@ -94,7 +94,7 @@ void test('AppMatcher', async (testContext) => {
 
     assert.ok(index.byToken.has('visual-studio-code'))
     assert.ok(index.byToken.has('google-chrome'))
-    assert.strictEqual(index.byToken.size, 4) // Updated due to new mock casks
+    assert.strictEqual(index.byToken.size, 4)
   })
 
   await testContext.test('should match apps by exact bundle name', () => {

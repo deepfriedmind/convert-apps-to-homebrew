@@ -30,7 +30,6 @@ import {
  * Main function to discover and analyze applications
  */
 export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
-  // Check if Homebrew is installed
   const homebrewInstalled = await checkHomebrewInstalled()
 
   if (!homebrewInstalled) {
@@ -42,7 +41,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
   consola.debug('Homebrew installation verified')
 
-  // Scan applications directory
   const appPaths = await scanApplicationsDirectory(config.applicationsDir)
 
   if (appPaths.length === 0) {
@@ -53,7 +51,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
   consola.debug(`Found ${appPaths.length} applications`)
 
-  // Get list of already installed Homebrew casks
   consola.debug('Getting list of already installed Homebrew casks...')
 
   const installedCasks = await getInstalledCasks()
@@ -80,7 +77,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
       continue
     }
 
-    // Check if already installed first
     const isAlreadyInstalledCask = installedCaskSet.has(brewName)
 
     if (isAlreadyInstalledCask) {
@@ -124,7 +120,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         const caskResult = await fetchHomebrewCasks(config.forceRefreshCache, true)
 
         if (caskResult.success && caskResult.data) {
-          // Use the new matching system
           const matchingConfig = {
             enableBundleIdLookup: true,
             enableFuzzyMatching: true,
@@ -134,10 +129,8 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
           const matcher = new AppMatcher(matchingConfig)
           const index = matcher.buildIndex(caskResult.data)
 
-          // Match apps against cask database using batch method to get console.table output
           const matchResults = matcher.matchApps(appsToCheck, index)
 
-          // Process match results
           for (const matchResult of matchResults) {
             const app = matchResult.appInfo
 
@@ -201,7 +194,6 @@ async function determinePackageInfo(_appName: string, brewName: string): Promise
   alreadyInstalled: boolean
   brewType: 'cask' | 'unavailable'
 }> {
-  // Check if it's available as a cask (most GUI apps are casks)
   const isCask = await isCaskAvailable(brewName)
 
   if (isCask) {

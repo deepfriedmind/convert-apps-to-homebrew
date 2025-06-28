@@ -53,10 +53,6 @@ void describe('Integration Tests', () => {
 
   void describe('Workflow Integration', () => {
     void test('should demonstrate dry-run workflow pattern', async () => {
-      // This test demonstrates how the pieces fit together
-      // In a real integration test, you might set up temp directories
-      // and test the full scanning -> analysis -> dry-run workflow
-
       const { getInstallationSummary } = await import('../src/installer.ts')
 
       // Mock data that represents a realistic scenario

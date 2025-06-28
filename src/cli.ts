@@ -22,7 +22,6 @@ export function createProgram(): Command {
     .version(getPackageVersion(), '-v, --version', 'display version number')
     .helpOption('-h, --help', 'display help for command')
 
-  // Configure options
   program
     .option(
       '-i, --ignore <apps...>',
@@ -69,7 +68,6 @@ export function createProgram(): Command {
       0.6,
     )
 
-  // Add examples to help
   program.addHelpText('after', `
 Examples:
   $ npx convert-apps-to-homebrew
@@ -141,8 +139,6 @@ export function displayWelcome(options: CommandOptions): void {
   if (options.ignore.length > 0) {
     consola.debug(`Ignoring apps: ${options.ignore.join(', ')}`)
   }
-
-  // Empty line for spacing
 }
 
 /**

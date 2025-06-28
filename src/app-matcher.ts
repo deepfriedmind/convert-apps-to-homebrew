@@ -154,8 +154,6 @@ export class AppMatcher {
 
     const results = apps.map(app => this.matchApp(app, index))
 
-    // Compute and log statistics in verbose mode
-    // Create summary table data
     const matchSummary = results.map((result) => {
       const { appInfo, matches } = result
       const bestMatch = matches[0] || null
@@ -171,16 +169,13 @@ export class AppMatcher {
       }
     })
 
-    // Create statistics summary
     const matchesFound = results.filter(result => result.bestMatch).length
     const noMatches = results.filter(result => result.matches.length === 0).length
 
-    // Log the table with match results
     if (consola.level >= 4) {
       consola.debug('Match Results Summary:')
       console.table(matchSummary)
 
-      // Log summary statistics
       consola.debug('Match Statistics:')
       console.table({
         'Matches Found': matchesFound,
@@ -337,7 +332,7 @@ export class AppMatcher {
       for (const cask of brewMatchesNoHyphens) {
         matches.push({
           cask,
-          confidence: 0.88, // Lower confidence
+          confidence: 0.88,
           matchDetails: {
             matchedValue: appInfo.brewName,
             source: 'brew-name-no-hyphens',
