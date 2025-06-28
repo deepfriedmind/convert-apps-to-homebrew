@@ -76,7 +76,7 @@ export default antfu({
       'error',
       {
         case: 'kebabCase',
-        ignore: [String.raw`^README|PUBLISHING\.md$`],
+        ignore: [String.raw`.*\.md$`],
       },
     ],
     'unicorn/no-null': 'off',
