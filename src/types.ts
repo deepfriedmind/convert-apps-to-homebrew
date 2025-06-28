@@ -295,12 +295,10 @@ interface HomebrewCaskArtifact {
  * Specific match types within strategies
  */
 type MatchType
-  = | 'bundle-id-derived' // Bundle ID found through app name lookup
-    | 'bundle-id-exact' // Exact bundle ID match
-    | 'exact-app-bundle' // Exact match of app bundle name
-    | 'name-exact' // Exact name match from cask names
-    | 'normalized-app-bundle' // Normalized app bundle name match
-    | 'token-match' // Matched against cask token
+  = | 'exact-app-bundle'
+    | 'name-exact'
+    | 'normalized-app-bundle'
+    | 'token-match'
 
 /**
  * Error types that can occur during execution

@@ -235,10 +235,6 @@ export class AppMatcher {
       return 'hybrid'
 
     switch (topMatch.matchType) {
-      case 'bundle-id-derived':
-      case 'bundle-id-exact': {
-        return 'bundle-id'
-      }
       case 'exact-app-bundle':
       case 'name-exact':
       case 'normalized-app-bundle':
