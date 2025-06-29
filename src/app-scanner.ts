@@ -18,6 +18,7 @@ import {
   FILE_PATTERNS,
 } from './constants.ts'
 import { fetchHomebrewCasks } from './homebrew-api.ts'
+import { getMacAppStoreApps, isAppFromMacAppStore } from './mas-integration.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
   executeCommand,
@@ -40,6 +41,17 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   }
 
   consola.debug('Homebrew installation verified')
+
+  // Get Mac App Store apps if mas is available
+  const masResult = await getMacAppStoreApps()
+  const masApps = masResult.success ? masResult.apps : []
+
+  if (masResult.masInstalled) {
+    consola.debug(`Mac App Store integration enabled: found ${masApps.length} installed apps`)
+  }
+  else {
+    consola.debug('Mac App Store integration not available (mas CLI not installed)')
+  }
 
   const appPaths = await scanApplicationsDirectory(config.applicationsDir)
 
@@ -64,6 +76,14 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     const originalName = extractAppName(appPath)
     const brewName = normalizeAppName(originalName)
 
+    // Check if this app is from Mac App Store
+    const fromMacAppStore = isAppFromMacAppStore(originalName, masApps)
+
+    // Skip Mac App Store apps if --ignore-app-store flag is set
+    if (config.ignoreAppStore && fromMacAppStore) {
+      continue
+    }
+
     // Skip ignored apps
     if (ignoredSet.has(brewName)) {
       apps.push({
@@ -71,6 +91,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         appPath,
         brewName,
         brewType: 'unavailable',
+        fromMacAppStore,
         originalName,
         status: 'ignored',
       })
@@ -85,6 +106,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
         appPath,
         brewName,
         brewType: 'cask',
+        fromMacAppStore,
         originalName,
         status: 'already-installed',
       })
@@ -97,6 +119,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
       appPath,
       brewName,
       brewType: 'unavailable', // Will be updated after matching
+      fromMacAppStore,
       originalName,
       status: 'unavailable', // Will be updated after matching
     })
@@ -109,7 +132,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     consola.debug(`Batch checking Homebrew availability for ${appsToCheck.length} apps...`)
 
     // Use fallback to CLI if requested
-    if (config.fallbackToCli === true) {
+    if (config.fallbackToCli) {
       consola.debug('Using individual brew commands as requested')
 
       await procesAppsIndividually(appsToCheck)

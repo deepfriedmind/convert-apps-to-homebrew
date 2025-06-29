@@ -101,6 +101,13 @@ void describe('cli', () => {
       assert.strictEqual(result.verbose, true)
     })
 
+    void test('should parse ignore-app-store option correctly', () => {
+      const argv = ['node', 'script.js', '--ignore-app-store']
+      const result = parseArguments(argv)
+
+      assert.strictEqual(result.ignoreAppStore, true)
+    })
+
     void test('should parse custom applications directory', () => {
       const customDirectory = '/System/Applications'
       const argv = ['node', 'script.js', '--applications-dir', customDirectory]
@@ -115,6 +122,7 @@ void describe('cli', () => {
         'script.js',
         '--verbose',
         '--dry-run',
+        '--ignore-app-store',
         '--ignore',
         'Chrome',
         'Firefox',
@@ -125,6 +133,7 @@ void describe('cli', () => {
 
       assert.strictEqual(result.verbose, true)
       assert.strictEqual(result.dryRun, true)
+      assert.strictEqual(result.ignoreAppStore, true)
       assert.strictEqual(result.ignore?.includes('Chrome'), true)
       assert.strictEqual(result.ignore?.includes('Firefox'), true)
       assert.strictEqual(result.applicationsDir, '/custom/path')
@@ -140,6 +149,7 @@ void describe('cli', () => {
         'dryRun',
         'verbose',
         'applicationsDir',
+        'ignoreAppStore',
       ]
 
       for (const property of requiredProperties) {

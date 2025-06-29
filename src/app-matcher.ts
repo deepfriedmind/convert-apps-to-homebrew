@@ -158,15 +158,24 @@ export class AppMatcher {
       const { appInfo, matches } = result
       const bestMatch = matches[0] || null
 
-      return {
-        /* eslint-disable perfectionist/sort-objects */
+      const summaryRow: Record<string, string> = {
         appName: appInfo.originalName,
         matchFound: matches.length > 0 ? '✅' : '❌',
-        caskToken: bestMatch ? bestMatch.cask.token : '-',
-        confidence: bestMatch ? bestMatch.confidence.toFixed(2) : '-',
-        matchType: bestMatch ? bestMatch.matchType : '-',
-        /* eslint-enable perfectionist/sort-objects */
       }
+
+      // Only add appStore property if the app is from Mac App Store
+      if (appInfo.fromMacAppStore) {
+        summaryRow['appStore'] = '✅'
+      }
+
+      // Only add match-related properties if there's a match
+      if (bestMatch) {
+        summaryRow['caskToken'] = bestMatch.cask.token
+        summaryRow['confidence'] = bestMatch.confidence.toFixed(2)
+        summaryRow['matchType'] = bestMatch.matchType
+      }
+
+      return summaryRow
     })
 
     const matchesFound = results.filter(result => result.bestMatch).length

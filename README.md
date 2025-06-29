@@ -13,7 +13,7 @@ A CLI tool for macOS that automatically discovers applications in your `/Applica
 - **Automatic Discovery**: Scans `/Applications` directory and identifies available Homebrew packages
 - **Interactive Selection**: Checkbox interface for selecting apps to install
 - **Dry-Run Mode**: Preview changes without executing them
-- **Flexible Filtering**: Pre-ignore specific applications
+- **Flexible Filtering**: Pre-ignore specific applications or App Store apps
 
 ## Quick Start
 
@@ -33,17 +33,20 @@ convert-apps-to-homebrew
 - **macOS**: This tool is designed specifically for macOS
 - **Node.js 24+**: Required for running the application
 - **Homebrew**: Must be installed and accessible in PATH
+- **[mas-cli](https://github.com/mas-cli/mas)** (optional): For Mac App Store integration - install with `brew install mas`
+  - Required for detecting if apps are installed via Mac App Store.
 
 ## Command-line options
 
-| Option                      | Description                       | Example                                       |
-| --------------------------- | --------------------------------- | --------------------------------------------- |
-| `--ignore <apps...>`        | Ignore specific applications      | `--ignore "Adobe Photoshop" "Microsoft Word"` |
-| `--dry-run`                 | Preview changes without executing |                                               |
-| `--verbose`                 | Enable detailed logging           |                                               |
-| `--applications-dir <path>` | Custom applications directory     | `--applications-dir /Applications`            |
-| `--help`                    | Show help information             |                                               |
-| `--version`                 | Show version number               |                                               |
+| Option                      | Description                                                                            | Example                                       |
+| --------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `--ignore <apps...>`        | Ignore specific applications                                                           | `--ignore "Adobe Photoshop" "Microsoft Word"` |
+| `--ignore-app-store`        | Ignore apps installed via App Store (requires [`mas`](https://github.com/mas-cli/mas)) |                                               |
+| `--dry-run`                 | Preview changes without executing                                                      |                                               |
+| `--verbose`                 | Enable detailed logging                                                                |                                               |
+| `--applications-dir <path>` | Custom applications directory                                                          | `--applications-dir /Applications`            |
+| `--help`                    | Show help information                                                                  |                                               |
+| `--version`                 | Show version number                                                                    |                                               |
 
 ## Development
 

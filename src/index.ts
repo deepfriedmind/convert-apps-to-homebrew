@@ -50,6 +50,7 @@ function createScannerConfig(options: CommandOptions): ScannerConfig {
     applicationsDir: options.applicationsDir,
     ...(options.fallbackToCli !== undefined && { fallbackToCli: options.fallbackToCli }),
     ...(options.forceRefreshCache !== undefined && { forceRefreshCache: options.forceRefreshCache }),
+    ...(options.ignoreAppStore !== undefined && { ignoreAppStore: options.ignoreAppStore }),
     ignoredApps: options.ignore,
     ...(options.matchingThreshold !== undefined && { matchingThreshold: options.matchingThreshold }),
     verbose: options.verbose,

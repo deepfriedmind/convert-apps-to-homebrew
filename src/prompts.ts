@@ -78,11 +78,23 @@ export async function promptAppSelection(
   try {
     consola.info('↑/↓ - Navigate  |  Space - Toggle selection  |  a - Select/deselect all  |  Enter - Confirm  |  Esc - Cancel')
 
-    const options = availableApps.map(app => ({
-      hint: app.brewName === app.originalName ? '' : app.brewName,
-      label: app.originalName,
-      value: app.originalName,
-    }))
+    const options = availableApps.map((app) => {
+      const brewHint = app.brewName === app.originalName ? '' : app.brewName
+      const appStoreHint = app.fromMacAppStore ? '– installed via App Store' : ''
+
+      // Combine hints with space if both exist
+      const combinedHint = [brewHint, appStoreHint].filter(Boolean).join(' ')
+
+      const appLabel = app.fromMacAppStore ?
+        `${app.originalName} `
+        : app.originalName
+
+      return {
+        hint: combinedHint,
+        label: appLabel,
+        value: app.originalName,
+      }
+    })
 
     const selectedValues = await consola.prompt('Choose apps to convert to Homebrew:', {
       cancel: 'symbol',

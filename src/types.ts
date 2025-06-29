@@ -14,6 +14,8 @@ export interface AppInfo {
   brewName: string
   /** Type of Homebrew package */
   brewType: BrewPackageType
+  /** Whether this app was installed via Mac App Store */
+  fromMacAppStore?: boolean
   /** Original application name (e.g., "Google Chrome") */
   originalName: string
   /** Current status of the app */
@@ -109,6 +111,8 @@ export interface CommandOptions {
   forceRefreshCache?: boolean
   /** List of app names to ignore */
   ignore: string[]
+  /** Whether to ignore Mac App Store apps */
+  ignoreAppStore?: boolean
   /** Confidence threshold for matching (0.0-1.0) */
   matchingThreshold?: number
   /** Verbose output */
@@ -201,6 +205,30 @@ export interface InstallerConfig {
 }
 
 /**
+ * Information about a Mac App Store app from mas CLI
+ */
+export interface MasAppInfo {
+  /** App Store app ID */
+  appId: string
+  /** App name as reported by mas */
+  name: string
+  /** App version */
+  version: string
+}
+
+/**
+ * Result of Mac App Store integration
+ */
+export interface MasIntegrationResult {
+  /** List of Mac App Store apps */
+  apps: MasAppInfo[]
+  /** Whether mas CLI tool is installed */
+  masInstalled: boolean
+  /** Whether the operation was successful */
+  success: boolean
+}
+
+/**
  * Configuration for app matching
  */
 export interface MatchingConfig {
@@ -241,6 +269,8 @@ export interface ScannerConfig {
   fallbackToCli?: boolean
   /** Whether to force refresh of cask database cache */
   forceRefreshCache?: boolean
+  /** Whether to ignore Mac App Store apps */
+  ignoreAppStore?: boolean
   /** Apps to ignore during scanning */
   ignoredApps: string[]
   /** Confidence threshold for matching (0.0-1.0) */
