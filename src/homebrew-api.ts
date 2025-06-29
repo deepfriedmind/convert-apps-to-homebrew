@@ -2,6 +2,7 @@
  * Homebrew cask API client with caching capabilities
  */
 
+import { spinner } from '@clack/prompts'
 import { consola } from 'consola'
 import { Buffer } from 'node:buffer'
 import { promises as fs } from 'node:fs'
@@ -9,7 +10,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { gunzip, gzip } from 'node:zlib'
-import ora, { type Ora } from 'ora'
 
 import type {
   CaskCacheEntry,
@@ -97,38 +97,38 @@ export class HomebrewApiClient {
       }
 
       // Only show spinner when actually fetching from API
-      const spinner = showSpinner ? ora() : null
+      const spinnerIndicator = showSpinner ? spinner() : null
 
-      if (spinner) {
+      if (spinnerIndicator) {
         if (forceRefresh) {
-          spinner.start('Refreshing Homebrew cask database from API...')
+          spinnerIndicator.start('Refreshing Homebrew cask database from API...')
         }
         else {
-          spinner.start('Fetching Homebrew cask database from API...')
+          spinnerIndicator.start('Fetching Homebrew cask database from API...')
         }
       }
 
       consola.debug('Fetching cask data from Homebrew API...')
 
       // Fetch from API
-      const result = await this.fetchFromApi(spinner)
+      const result = await this.fetchFromApi(spinnerIndicator)
 
       if (result.success && result.data) {
         // Save to cache
-        if (spinner) {
-          spinner.text = 'Caching cask database...'
+        if (spinnerIndicator) {
+          spinnerIndicator.message('Caching cask database...')
         }
 
         await this.saveToCache(result.data)
 
         consola.debug('Cask data cached successfully')
 
-        if (spinner) {
-          spinner.succeed(`Successfully loaded ${result.data.length} casks from Homebrew API`)
+        if (spinnerIndicator) {
+          spinnerIndicator.stop(`Successfully loaded ${result.data.length} casks from Homebrew API`)
         }
       }
-      else if (spinner) {
-        spinner.fail('Failed to fetch cask database from API')
+      else if (spinnerIndicator) {
+        spinnerIndicator.stop('Failed to fetch cask database from API', 1)
       }
 
       return result
@@ -180,19 +180,19 @@ export class HomebrewApiClient {
   /**
    * Fetch cask data from Homebrew API
    */
-  private async fetchFromApi(spinner?: null | Ora): Promise<HomebrewApiResult<HomebrewCask[]>> {
+  private async fetchFromApi(spinnerIndicator?: null | ReturnType<typeof spinner>): Promise<HomebrewApiResult<HomebrewCask[]>> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => {
       controller.abort()
 
-      if (spinner) {
-        spinner.fail(`Request timed out after ${CACHE_CONFIG.REQUEST_TIMEOUT / 1000} seconds`)
+      if (spinnerIndicator) {
+        spinnerIndicator.stop(`Request timed out after ${CACHE_CONFIG.REQUEST_TIMEOUT / 1000} seconds`, 1)
       }
     }, CACHE_CONFIG.REQUEST_TIMEOUT)
 
     try {
-      if (spinner) {
-        spinner.text = 'Connecting to Homebrew API...'
+      if (spinnerIndicator) {
+        spinnerIndicator.message('Connecting to Homebrew API...')
       }
 
       const response = await fetch(HOMEBREW_API.CASKS, {
@@ -206,8 +206,8 @@ export class HomebrewApiClient {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        if (spinner) {
-          spinner.fail(`HTTP ${response.status}: ${response.statusText}`)
+        if (spinnerIndicator) {
+          spinnerIndicator.stop(`HTTP ${response.status}: ${response.statusText}`, 1)
         }
 
         return {
@@ -220,10 +220,11 @@ export class HomebrewApiClient {
       }
 
       const contentLength = response.headers.get('content-length')
-      const sizeText = contentLength != null && contentLength !== '' ? ` (${Math.round(Number.parseInt(contentLength, 10) / 1000)} kB)` : ''
+      const totalBytes = contentLength !== null && contentLength !== '' ? Number.parseInt(contentLength, 10) : 0
+      const sizeText = totalBytes > 0 ? ` (${Math.round(totalBytes / 1000)} kB)` : ''
 
-      if (spinner) {
-        spinner.text = `Downloading cask database${sizeText}...`
+      if (spinnerIndicator) {
+        spinnerIndicator.message(`Downloading cask database${sizeText}...`)
       }
 
       // The actual download happens here, awaiting the full response
