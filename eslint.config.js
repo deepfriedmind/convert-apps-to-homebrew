@@ -69,6 +69,13 @@ export default antfu({
     'id-length': 'error',
     'no-console': 'off',
     'no-lonely-if': 'error',
+    'no-restricted-syntax': [
+      'error',
+      {
+        message: "Don't compare for equality against boolean literals",
+        selector: 'BinaryExpression[operator=/^(==|===|!=|!==)$/][left.raw=/^(true|false)$/], BinaryExpression[operator=/^(==|===|!=|!==)$/][right.raw=/^(true|false)$/]',
+      },
+    ],
     'no-useless-concat': 'error',
     'node/prefer-global/process': ['error', 'always'],
     'test/no-import-node-test': 'off',
