@@ -250,6 +250,42 @@ export function pluralize(word: string, count: number, suffix = 's'): string {
 }
 
 /**
+ * Check if an app should be ignored based on ignore patterns
+ * Supports matching against both original app name and brew package name
+ */
+export function shouldIgnoreApp(
+  originalName: string,
+  brewName: string,
+  ignoredApps: string[],
+): boolean {
+  if (ignoredApps.length === 0) {
+    return false
+  }
+
+  const normalizedOriginalName = normalizeAppName(originalName)
+  const normalizedBrewName = normalizeAppName(brewName)
+
+  for (const ignoredApp of ignoredApps) {
+    const normalizedIgnoredApp = normalizeAppName(ignoredApp.trim())
+
+    // Exact match against original name or brew name
+    if (normalizedIgnoredApp === normalizedOriginalName
+      || normalizedIgnoredApp === normalizedBrewName) {
+      return true
+    }
+
+    // Handle partial brew name matching (e.g., "bartender" should match "bartender-5")
+    // This allows users to specify the base package name without version suffixes
+    if (normalizedBrewName.startsWith(`${normalizedIgnoredApp}-`)
+      || normalizedOriginalName.startsWith(`${normalizedIgnoredApp}-`)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
  * Sleep for a specified number of milliseconds
  */
 export async function sleep(ms: number): Promise<void> {

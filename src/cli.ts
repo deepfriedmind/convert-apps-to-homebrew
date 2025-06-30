@@ -77,13 +77,13 @@ export function createProgram(): Command {
 Examples:
   $ npx convert-apps-to-homebrew
   $ npx convert-apps-to-homebrew --dry-run
-  $ npx convert-apps-to-homebrew --ignore "Adobe Photoshop" "Microsoft Word"
   $ npx convert-apps-to-homebrew --verbose --dry-run
+  $ npx convert-apps-to-homebrew --ignore "Adobe Photoshop" "Microsoft Word" google-chrome
+  $ npx convert-apps-to-homebrew --ignore-app-store
   $ npx convert-apps-to-homebrew --applications-dir "custom/path/to/Applications"
   $ npx convert-apps-to-homebrew --force-refresh-cache
   $ npx convert-apps-to-homebrew --matching-threshold 0.8
   $ npx convert-apps-to-homebrew --fallback-to-cli
-  $ npx convert-apps-to-homebrew --ignore-app-store
 
 Notes:
   • The tool will scan your Applications directory for .app bundles
@@ -94,7 +94,7 @@ Notes:
   • Use --ignore to skip specific applications by name
   • Use --ignore-app-store to skip Mac App Store applications
   • Use --force-refresh-cache to update the cask database
-  • Use --fallback-to-cli to use individual brew commands (slower)
+  • Use --fallback-to-cli to use individual brew commands instead of using the homebrew API (much slower)
   • Use --matching-threshold to adjust fuzzy matching sensitivity
 
 Requirements:

@@ -38,15 +38,15 @@ convert-apps-to-homebrew
 
 ## Command-line options
 
-| Option                      | Description                                                                            | Example                                       |
-| --------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `--ignore <apps...>`        | Ignore specific applications                                                           | `--ignore "Adobe Photoshop" "Microsoft Word"` |
-| `--ignore-app-store`        | Ignore apps installed via App Store (requires [`mas`](https://github.com/mas-cli/mas)) |                                               |
-| `--dry-run`                 | Preview changes without executing                                                      |                                               |
-| `--verbose`                 | Enable detailed logging                                                                |                                               |
-| `--applications-dir <path>` | Custom applications directory                                                          | `--applications-dir /Applications`            |
-| `--help`                    | Show help information                                                                  |                                               |
-| `--version`                 | Show version number                                                                    |                                               |
+| Option                      | Description                                                                            | Example                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `--ignore <apps...>`        | Ignore specific applications                                                           | `--ignore "Adobe Photoshop" "Microsoft Word" google-chrome` |
+| `--ignore-app-store`        | Ignore apps installed via App Store (requires [`mas`](https://github.com/mas-cli/mas)) |                                                             |
+| `--dry-run`                 | Preview changes without executing                                                      |                                                             |
+| `--verbose`                 | Enable detailed logging                                                                |                                                             |
+| `--applications-dir <path>` | Custom applications directory                                                          | `--applications-dir /Applications`                          |
+| `--help`                    | Show help information                                                                  |                                                             |
+| `--version`                 | Show version number                                                                    |                                                             |
 
 ## Development
 

@@ -25,6 +25,7 @@ import {
   extractAppName,
   normalizeAppName,
   parseCommandOutput,
+  shouldIgnoreApp,
 } from './utils.ts'
 
 /**
@@ -70,7 +71,6 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
   // Create initial app info objects
   const apps: AppInfo[] = []
-  const ignoredSet = new Set(config.ignoredApps.map(name => normalizeAppName(name)))
 
   for (const appPath of appPaths) {
     const originalName = extractAppName(appPath)
@@ -81,11 +81,20 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
 
     // Skip Mac App Store apps if --ignore-app-store flag is set
     if (config.ignoreAppStore && fromMacAppStore) {
+      apps.push({
+        alreadyInstalled: false,
+        appPath,
+        brewName,
+        brewType: 'unavailable',
+        fromMacAppStore,
+        originalName,
+        status: 'ignored',
+      })
       continue
     }
 
-    // Skip ignored apps
-    if (ignoredSet.has(brewName)) {
+    // Skip ignored apps - check against both original name and brew name
+    if (shouldIgnoreApp(originalName, brewName, config.ignoredApps)) {
       apps.push({
         alreadyInstalled: false,
         appPath,

@@ -149,11 +149,6 @@ function displayAppSummary(apps: AppInfo[]): void {
     consola.debug(formatList(alreadyInstalled.map(app => app.originalName)))
   }
 
-  if (ignored.length > 0) {
-    consola.warn(`🚫 ${ignored.length} ignored`)
-    consola.debug(formatList(ignored.map(app => app.originalName)))
-  }
-
   if (unavailable.length > 0) {
     consola.info(`❌ ${unavailable.length} not available in Homebrew`)
     consola.debug(formatList(unavailable.map(app => app.originalName)))
@@ -171,6 +166,11 @@ function displayAppSummary(apps: AppInfo[]): void {
     }
 
     return
+  }
+
+  if (ignored.length > 0) {
+    consola.warn(`🚫 ${ignored.length} ignored`)
+    consola.debug(formatList(ignored.map(app => app.originalName)))
   }
 
   consola.box('💡 Note:\nThe original .app files will be replaced by Homebrew\'s force install')

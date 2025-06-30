@@ -20,6 +20,7 @@ import {
   normalizeAppName,
   parseCommandOutput,
   pluralize,
+  shouldIgnoreApp,
   sleep,
   truncate,
   uniqueBy,
@@ -535,6 +536,80 @@ void describe('utils', () => {
       // but should not crash and should return proper structure
       assert.ok(typeof result.success === 'boolean')
       assert.ok(typeof result.exitCode === 'number')
+    })
+  })
+
+  void describe('shouldIgnoreApp', () => {
+    void test('should return false when ignore list is empty', () => {
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [])
+      assert.strictEqual(result, false)
+    })
+
+    void test('should ignore app by original name', () => {
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['Bartender 5'])
+      assert.strictEqual(result, true)
+    })
+
+    void test('should ignore app by brew name', () => {
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+      assert.strictEqual(result, true)
+    })
+
+    void test('should ignore app case insensitively', () => {
+      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['BARTENDER 5'])
+      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['BARTENDER'])
+      assert.strictEqual(result1, true)
+      assert.strictEqual(result2, true)
+    })
+
+    void test('should handle multiple ignore patterns', () => {
+      const ignoreList = ['chrome', 'Visual Studio Code', 'bartender']
+
+      assert.strictEqual(shouldIgnoreApp('Google Chrome', 'google-chrome', ignoreList), false)
+      assert.strictEqual(shouldIgnoreApp('Chrome', 'chrome', ignoreList), true)
+      assert.strictEqual(shouldIgnoreApp('Visual Studio Code', 'visual-studio-code', ignoreList), true)
+      assert.strictEqual(shouldIgnoreApp('Bartender 5', 'bartender-5', ignoreList), true)
+    })
+
+    void test('should not ignore when no match found', () => {
+      const result = shouldIgnoreApp('Firefox', 'firefox', ['chrome', 'safari'])
+      assert.strictEqual(result, false)
+    })
+
+    void test('should handle whitespace in ignore patterns', () => {
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [' bartender '])
+      assert.strictEqual(result, true)
+    })
+
+    void test('should handle special characters', () => {
+      const result = shouldIgnoreApp('App with (parens)', 'app-with-parens', ['app with (parens)'])
+      assert.strictEqual(result, true)
+    })
+
+    void test('should match exact normalized names only', () => {
+      // "bartender" should match "bartender-5" (prefix matching)
+      const result1 = shouldIgnoreApp('Bartender', 'bartender', ['bartender-5'])
+      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+
+      assert.strictEqual(result1, false) // "bartender" != "bartender-5"
+      assert.strictEqual(result2, true) // "bartender" matches "bartender-5" via prefix
+    })
+
+    void test('should handle prefix matching for versioned apps', () => {
+      // Test the key use case: --ignore bartender should ignore "Bartender 5"
+      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+      const result2 = shouldIgnoreApp('Chrome 110', 'chrome-110', ['chrome'])
+      const result3 = shouldIgnoreApp('App 2.0', 'app-2.0', ['app'])
+
+      assert.strictEqual(result1, true)
+      assert.strictEqual(result2, true)
+      assert.strictEqual(result3, true)
+    })
+
+    void test('should not match unrelated prefixes', () => {
+      // "bart" should not match "bartender-5"
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bart'])
+      assert.strictEqual(result, false)
     })
   })
 })
