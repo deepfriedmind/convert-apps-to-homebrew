@@ -9,6 +9,7 @@ export default antfu({
     overrides: {
       'ts/no-explicit-any': 'error',
       'ts/no-inferrable-types': 'error',
+      'ts/no-redeclare': ['error', { builtinGlobals: false, ignoreDeclarationMerge: false }],
       'ts/prefer-destructuring': [
         'error',
         {

@@ -21,7 +21,6 @@ export interface AppInfo {
   /** Current status of the app */
   status: AppStatus
 }
-
 /**
  * Result of matching a local app to Homebrew casks
  */
@@ -100,23 +99,17 @@ export interface CaskMatch {
 /**
  * Command line options parsed by Commander.js
  */
-export interface CommandOptions {
+export interface CommandOptions extends BaseConfig, HomebrewConfig {
   /** Custom Applications directory path */
   applicationsDir: string
   /** Whether to run in dry-run mode (show what would happen without executing) */
   dryRun: boolean
-  /** Whether to use individual brew commands instead of batch API */
-  fallbackToCli?: boolean
-  /** Whether to force refresh of cask database cache */
-  forceRefreshCache?: boolean
   /** List of app names to ignore */
   ignore: string[]
   /** Whether to ignore Mac App Store apps */
   ignoreAppStore?: boolean
   /** Confidence threshold for matching (0.0-1.0) */
   matchingThreshold?: number
-  /** Verbose output */
-  verbose: boolean
 }
 
 /**
@@ -197,11 +190,9 @@ export interface InstallationResult {
 /**
  * Configuration for the installer
  */
-export interface InstallerConfig {
+export interface InstallerConfig extends BaseConfig {
   /** Whether to run in dry-run mode */
   dryRun: boolean
-  /** Whether to include verbose output */
-  verbose: boolean
 }
 
 /**
@@ -262,21 +253,11 @@ export interface PackageInstallResult {
 /**
  * Configuration for the application scanner
  */
-export interface ScannerConfig {
+export interface ScannerConfig extends BaseConfig, FilteringConfig, HomebrewConfig {
   /** Directory to scan for applications */
   applicationsDir: string
-  /** Whether to use individual brew commands instead of batch API */
-  fallbackToCli?: boolean
-  /** Whether to force refresh of cask database cache */
-  forceRefreshCache?: boolean
-  /** Whether to ignore Mac App Store apps */
-  ignoreAppStore?: boolean
-  /** Apps to ignore during scanning */
-  ignoredApps: string[]
   /** Confidence threshold for matching (0.0-1.0) */
   matchingThreshold?: number
-  /** Whether to include verbose output */
-  verbose: boolean
 }
 
 /**
@@ -285,9 +266,27 @@ export interface ScannerConfig {
 type AppStatus = 'already-installed' | 'available' | 'ignored' | 'unavailable'
 
 /**
+ * Base configuration shared across components
+ */
+interface BaseConfig {
+  /** Whether to include verbose output */
+  verbose: boolean
+}
+
+/**
  * Type of Homebrew package
  */
 type BrewPackageType = 'cask' | 'unavailable'
+
+/**
+ * Configuration for application filtering
+ */
+interface FilteringConfig {
+  /** Whether to ignore Mac App Store apps */
+  ignoreAppStore?: boolean
+  /** Apps to ignore during scanning */
+  ignoredApps: string[]
+}
 
 /**
  * Homebrew cask artifact types from the API
@@ -319,6 +318,16 @@ interface HomebrewCaskArtifact {
     delete?: string[]
     trash?: string[]
   }>
+}
+
+/**
+ * Configuration for Homebrew operations
+ */
+interface HomebrewConfig {
+  /** Whether to use individual brew commands instead of the Homebrew API (much slower) */
+  fallbackToCli?: boolean
+  /** Whether to force refresh of cask database cache */
+  forceRefreshCache?: boolean
 }
 
 /**
