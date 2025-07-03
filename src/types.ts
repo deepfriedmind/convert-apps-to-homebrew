@@ -376,11 +376,6 @@ export interface OperationSummary {
   unavailable: number
 }
 
-/**
- * Progress callback function type
- */
-export type ProgressCallback = (message: string, current: number, total: number) => void
-
 type ErrorTypeValue = typeof ErrorType[keyof typeof ErrorType]
 
 /**

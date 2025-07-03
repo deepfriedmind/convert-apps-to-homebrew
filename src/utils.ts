@@ -9,16 +9,9 @@ import { promisify } from 'node:util'
 
 import type { BrewCommandResult } from './types.ts'
 
-import { DEFAULT_CONFIG, REGEX_PATTERNS } from './constants.ts'
+import { DEFAULT_CONFIG } from './constants.ts'
 
 const execAsync = promisify(exec)
-
-/**
- * Capitalize the first letter of a string
- */
-export function capitalize(string_: string): string {
-  return string_.charAt(0).toUpperCase() + string_.slice(1)
-}
 
 /**
  * Escape shell arguments to prevent injection
@@ -136,73 +129,10 @@ export function extractAppName(appPath: string): string {
 }
 
 /**
- * Format a duration in milliseconds to a human-readable string
- */
-export function formatDuration(ms: number): string {
-  if (ms < 1000) {
-    return `${ms}ms`
-  }
-
-  const seconds = Math.floor(ms / 1000)
-
-  if (seconds < 60) {
-    return `${seconds}s`
-  }
-
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-
-  return `${minutes}m ${remainingSeconds}s`
-}
-
-/**
  * Format a list of items for display
  */
 export function formatList(items: string[], indent = '  '): string {
   return items.map(item => `${indent}• ${item}`).join('\n')
-}
-
-/**
- * Group an array of items by a key function
- */
-export function groupBy<T, K extends number | string | symbol>(
-  items: T[],
-  keyFunction: (item: T) => K,
-): Record<K, T[]> {
-  const groups = {} as Record<K, T[]>
-
-  for (const item of items) {
-    const key = keyFunction(item)
-
-    if (!(key in groups)) {
-      groups[key] = []
-    }
-
-    groups[key].push(item)
-  }
-
-  return groups
-}
-
-/**
- * Check if a string is empty or only whitespace
- */
-export function isEmpty(string_: null | string | undefined): boolean {
-  return string_ == null || string_.trim().length === 0
-}
-
-/**
- * Validate if a string is a valid application name
- */
-export function isValidAppName(name: string): boolean {
-  return REGEX_PATTERNS.APP_NAME.test(name) && name.trim().length > 0
-}
-
-/**
- * Validate if a string is a valid Homebrew package name
- */
-export function isValidBrewPackageName(name: string): boolean {
-  return REGEX_PATTERNS.BREW_PACKAGE_NAME.test(name)
 }
 
 /**
@@ -271,39 +201,4 @@ export function shouldIgnoreApp(
   return false
 }
 
-/**
- * Sleep for a specified number of milliseconds
- */
-export async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-/**
- * Truncate a string to a maximum length with ellipsis
- */
-export function truncate(string_: string, maxLength: number): string {
-  if (string_.length <= maxLength) {
-    return string_
-  }
-
-  return `${string_.slice(0, maxLength - 3)}...`
-}
-
-/**
- * Remove duplicates from an array based on a key function
- */
-export function uniqueBy<T, K>(items: T[], keyFunction: (item: T) => K): T[] {
-  const seen = new Set<K>()
-
-  return items.filter((item) => {
-    const key = keyFunction(item)
-
-    if (seen.has(key)) {
-      return false
-    }
-
-    seen.add(key)
-
-    return true
-  })
-}
+/* Removed unused utility functions */

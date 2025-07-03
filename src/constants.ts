@@ -73,15 +73,3 @@ export const MESSAGES = {
   PERMISSION_DENIED: 'Permission denied. You may need to run with appropriate permissions.',
   SCANNING_APPS: 'Scanning applications...',
 } as const
-
-/**
- * Regular expressions for validation
- */
-export const REGEX_PATTERNS = {
-  /** macOS application name */
-  APP_NAME: /^[^/\0]+$/,
-  /** Valid Homebrew package name */
-  BREW_PACKAGE_NAME: /^[a-z0-9][\w\-.]*$/i,
-  /** Version string */
-  VERSION: /^\d+\.\d+\.\d+/,
-} as const

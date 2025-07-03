@@ -84,10 +84,10 @@ void describe('Integration Tests', () => {
   void describe('Error Handling Integration', () => {
     void test('should handle error propagation across modules', async () => {
       const { ConvertAppsError, ErrorType } = await import('../src/types.ts')
-      const { initializeErrorHandler } = await import('../src/error-handler.ts')
+      const { ErrorHandler } = await import('../src/error-handler.ts')
 
       // Test error handling integration
-      const errorHandler = initializeErrorHandler(false) // non-verbose
+      const errorHandler = new ErrorHandler(false) // non-verbose
 
       const testError = new ConvertAppsError(
         'Integration test error',
@@ -97,6 +97,7 @@ void describe('Integration Tests', () => {
       // In a real integration test, you might verify logging output
       // or error propagation through the application layers
       assert.ok(typeof errorHandler === 'object')
+      assert.strictEqual(errorHandler.constructor.name, 'ErrorHandler')
       assert.ok(testError instanceof ConvertAppsError)
       assert.strictEqual(testError.type, ErrorType.COMMAND_FAILED)
     })

@@ -7,30 +7,21 @@ import { test } from 'node:test'
 
 import type { HomebrewCask } from '../src/types.ts'
 
-import { HomebrewApiClient } from '../src/homebrew-api.ts'
+import { clearHomebrewCache, getHomebrewCacheInfo } from '../src/homebrew-api.ts'
 
-void test('HomebrewApiClient', async (testContext) => {
-  await testContext.test('should initialize correctly', () => {
-    const client = new HomebrewApiClient()
-    assert.ok(client instanceof HomebrewApiClient)
-  })
-
+void test('Homebrew API Functions', async (testContext) => {
   await testContext.test('should handle cache operations', async () => {
-    const client = new HomebrewApiClient()
-
     // Clear any existing cache first
-    await client.clearCache()
+    await clearHomebrewCache()
 
     // Test cache info for non-existent cache
-    const cacheInfo = await client.getCacheInfo()
+    const cacheInfo = await getHomebrewCacheInfo()
     assert.strictEqual(cacheInfo.exists, false)
   })
 
   await testContext.test('should clear cache without errors', async () => {
-    const client = new HomebrewApiClient()
-
     // Should not throw even if cache doesn't exist
-    await client.clearCache()
+    await clearHomebrewCache()
   })
 })
 

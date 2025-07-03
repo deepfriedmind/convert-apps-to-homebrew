@@ -12,7 +12,6 @@ import {
   EXIT_CODES,
   FILE_PATTERNS,
   MESSAGES,
-  REGEX_PATTERNS,
 } from '../src/constants.ts'
 
 void describe('constants', () => {
@@ -174,92 +173,5 @@ void describe('constants', () => {
     })
   })
 
-  void describe('REGEX_PATTERNS', () => {
-    void test('should have all required regex patterns', () => {
-      assert.ok(REGEX_PATTERNS.APP_NAME instanceof RegExp)
-      assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME instanceof RegExp)
-      assert.ok(REGEX_PATTERNS.VERSION instanceof RegExp)
-    })
-
-    void describe('APP_NAME pattern', () => {
-      void test('should match valid app names', () => {
-        assert.ok(REGEX_PATTERNS.APP_NAME.test('TestApp'))
-        assert.ok(REGEX_PATTERNS.APP_NAME.test('My App'))
-        assert.ok(REGEX_PATTERNS.APP_NAME.test('App-Name_123'))
-        assert.ok(REGEX_PATTERNS.APP_NAME.test('éÄñ'))
-      })
-
-      void test('should not match names with path separators', () => {
-        assert.ok(!REGEX_PATTERNS.APP_NAME.test('folder/app'))
-        assert.ok(!REGEX_PATTERNS.APP_NAME.test('/app'))
-      })
-
-      void test('should not match names with null characters', () => {
-        assert.ok(!REGEX_PATTERNS.APP_NAME.test('app\0name'))
-        assert.ok(!REGEX_PATTERNS.APP_NAME.test('\0'))
-      })
-
-      void test('should not match empty string', () => {
-        // Note: The regex ^[^/\0]+$ requires at least one character
-        assert.ok(!REGEX_PATTERNS.APP_NAME.test(''))
-      })
-    })
-
-    void describe('BREW_PACKAGE_NAME pattern', () => {
-      void test('should match valid package names', () => {
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test-app'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test_app'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test.app'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('123app'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('app123'))
-      })
-
-      void test('should not match names starting with special characters', () => {
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('-test'))
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('_test'))
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('.test'))
-      })
-
-      void test('should not match names with invalid characters', () => {
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test app'))
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test@app'))
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test('test#app'))
-      })
-
-      void test('should not match empty string', () => {
-        assert.ok(!REGEX_PATTERNS.BREW_PACKAGE_NAME.test(''))
-      })
-
-      void test('should be case insensitive', () => {
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('TestApp'))
-        assert.ok(REGEX_PATTERNS.BREW_PACKAGE_NAME.test('TESTAPP'))
-        assert.strictEqual(REGEX_PATTERNS.BREW_PACKAGE_NAME.flags, 'i')
-      })
-    })
-
-    void describe('VERSION pattern', () => {
-      void test('should match valid version strings', () => {
-        assert.ok(REGEX_PATTERNS.VERSION.test('1.0.0'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('2.1.3'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('10.15.7'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('1.0.0-beta'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('2.1.3 (build 123)'))
-      })
-
-      void test('should not match invalid version strings', () => {
-        assert.ok(!REGEX_PATTERNS.VERSION.test('1.0'))
-        assert.ok(!REGEX_PATTERNS.VERSION.test('1'))
-        assert.ok(!REGEX_PATTERNS.VERSION.test('v1.0.0'))
-        assert.ok(!REGEX_PATTERNS.VERSION.test('version 1.0.0'))
-        assert.ok(!REGEX_PATTERNS.VERSION.test(''))
-      })
-
-      void test('should match versions with additional content', () => {
-        assert.ok(REGEX_PATTERNS.VERSION.test('1.0.0-alpha.1'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('1.2.3+build.1'))
-        assert.ok(REGEX_PATTERNS.VERSION.test('1.0.0 stable'))
-      })
-    })
-  })
+/* Removed REGEX_PATTERNS tests as it is no longer in source code */
 })

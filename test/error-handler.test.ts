@@ -7,10 +7,8 @@ import { describe, mock, test } from 'node:test'
 
 import { EXIT_CODES } from '../src/constants.ts'
 import {
-  createProgressCallback,
   ErrorHandler,
   getErrorHandler,
-  initializeErrorHandler,
   ProgressTracker,
 } from '../src/error-handler.ts'
 import { ConvertAppsError, ErrorType } from '../src/types.ts'
@@ -138,21 +136,6 @@ describe('ProgressTracker', () => {
 })
 
 describe('module functions', () => {
-  void test('should create progress callback function', () => {
-    const tracker = new ProgressTracker()
-    const callback = createProgressCallback(tracker)
-
-    assert.strictEqual(typeof callback, 'function')
-  })
-
-  void test('should call tracker.updateProgress when callback invoked', () => {
-    const tracker = new ProgressTracker()
-    const callback = createProgressCallback(tracker)
-
-    // Should not throw when called
-    callback('test message', 10, 100)
-  })
-
   void test('should return ErrorHandler instance', () => {
     const handler = getErrorHandler()
     assert.strictEqual(typeof handler, 'object')
@@ -161,24 +144,6 @@ describe('module functions', () => {
 
   void test('should return same instance on multiple calls', () => {
     const handler1 = getErrorHandler()
-    const handler2 = getErrorHandler()
-    assert.strictEqual(handler1, handler2)
-  })
-
-  void test('should initialize error handler with default verbose false', () => {
-    const handler = initializeErrorHandler()
-    assert.strictEqual(typeof handler, 'object')
-    assert.strictEqual(handler.constructor.name, 'ErrorHandler')
-  })
-
-  void test('should initialize error handler with verbose true', () => {
-    const handler = initializeErrorHandler(true)
-    assert.strictEqual(typeof handler, 'object')
-    assert.strictEqual(handler.constructor.name, 'ErrorHandler')
-  })
-
-  void test('should return same instance as getErrorHandler after initialization', () => {
-    const handler1 = initializeErrorHandler()
     const handler2 = getErrorHandler()
     assert.strictEqual(handler1, handler2)
   })

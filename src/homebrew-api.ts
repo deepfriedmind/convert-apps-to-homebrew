@@ -50,8 +50,9 @@ const CACHE_CONFIG = {
 
 /**
  * Homebrew API client with intelligent caching
+ * @internal
  */
-export class HomebrewApiClient {
+class HomebrewApiClient {
   private readonly cachePath: string
 
   constructor() {
@@ -371,7 +372,15 @@ export class HomebrewApiClient {
 }
 
 /**
- * Convenience function to create an API client and fetch casks
+ * Clear the Homebrew cask cache
+ */
+export async function clearHomebrewCache(): Promise<void> {
+  const client = new HomebrewApiClient()
+  await client.clearCache()
+}
+
+/**
+ * Fetch all Homebrew casks with caching
  */
 export async function fetchHomebrewCasks(
   forceRefresh = false,
@@ -380,4 +389,18 @@ export async function fetchHomebrewCasks(
   const client = new HomebrewApiClient()
 
   return client.fetchAllCasks(forceRefresh, showSpinner)
+}
+
+/**
+ * Get information about the Homebrew cask cache
+ */
+export async function getHomebrewCacheInfo(): Promise<{
+  exists: boolean
+  isValid?: boolean
+  lastModified?: Date
+  size?: number
+}> {
+  const client = new HomebrewApiClient()
+
+  return client.getCacheInfo()
 }

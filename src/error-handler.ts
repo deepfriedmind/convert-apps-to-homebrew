@@ -4,8 +4,6 @@
 
 import { consola } from 'consola'
 
-import type { ProgressCallback } from './types.ts'
-
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 
@@ -260,15 +258,6 @@ export class ProgressTracker {
 let globalErrorHandler: ErrorHandler | null = null
 
 /**
- * Create a progress callback function
- */
-export function createProgressCallback(tracker: ProgressTracker): ProgressCallback {
-  return (message: string, current: number, total: number) => {
-    tracker.updateProgress(message, current, total)
-  }
-}
-
-/**
  * Get the global error handler instance
  */
 export function getErrorHandler(): ErrorHandler {
@@ -280,19 +269,10 @@ export function getErrorHandler(): ErrorHandler {
 }
 
 /**
- * Initialize global error handler
- */
-export function initializeErrorHandler(verbose = false): ErrorHandler {
-  globalErrorHandler = new ErrorHandler(verbose)
-
-  return globalErrorHandler
-}
-
-/**
  * Handle uncaught exceptions and unhandled rejections
  */
 export function setupGlobalErrorHandlers(verbose = false): void {
-  const errorHandler = initializeErrorHandler(verbose)
+  const errorHandler = new ErrorHandler(verbose)
 
   process.on('uncaughtException', (error: Error) => {
     consola.error('💥 Uncaught Exception:')
