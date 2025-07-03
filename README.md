@@ -60,6 +60,10 @@ cd convert-apps-to-homebrew
 # Install dependencies
 npm install
 
+### Install commit hooks:
+
+npx simple-git-hooks
+
 # Run the project
 npm start
 

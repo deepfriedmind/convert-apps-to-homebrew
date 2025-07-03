@@ -53,6 +53,9 @@
     "test:watch": "node --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
     "type-check": "tsc --noEmit"
   },
+  "simple-git-hooks": {
+    "prepare-commit-msg": "npx devmoji --edit"
+  },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
     "commander": "^14.0.0",
@@ -64,10 +67,12 @@
     "@tsconfig/node24": "^24.0.1",
     "@types/node": "^24.0.10",
     "del-cli": "^6.0.0",
+    "devmoji": "^2.3.0",
     "eslint": "^9.30.1",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-perfectionist": "^4.15.0",
     "knip": "^5.61.3",
+    "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3"
   },
   "packageManager": "npm@11.4.2",
