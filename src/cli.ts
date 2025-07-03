@@ -51,7 +51,7 @@ export function createProgram(): Command {
     )
     .option(
       '--fallback-to-cli',
-      'use individual brew commands instead of batch API (slower)',
+      'use individual brew commands instead of the Homebrew API (much slower)',
       false,
     )
     .option(
@@ -76,15 +76,15 @@ export function createProgram(): Command {
 
   program.addHelpText('after', `
 Examples:
-  $ npx convert-apps-to-homebrew
-  $ npx convert-apps-to-homebrew --dry-run
-  $ npx convert-apps-to-homebrew --verbose --dry-run
-  $ npx convert-apps-to-homebrew --ignore "Adobe Photoshop" "Microsoft Word" google-chrome
-  $ npx convert-apps-to-homebrew --ignore-app-store
-  $ npx convert-apps-to-homebrew --applications-dir "custom/path/to/Applications"
-  $ npx convert-apps-to-homebrew --force-refresh-cache
-  $ npx convert-apps-to-homebrew --matching-threshold 0.8
-  $ npx convert-apps-to-homebrew --fallback-to-cli
+  $ npx convert-apps-to-homebrew@latest
+  $ npx convert-apps-to-homebrew@latest --dry-run
+  $ npx convert-apps-to-homebrew@latest --verbose --dry-run
+  $ npx convert-apps-to-homebrew@latest --ignore "Adobe Photoshop" "Microsoft Word" google-chrome
+  $ npx convert-apps-to-homebrew@latest --ignore-app-store
+  $ npx convert-apps-to-homebrew@latest --applications-dir "custom/path/to/Applications"
+  $ npx convert-apps-to-homebrew@latest --force-refresh-cache
+  $ npx convert-apps-to-homebrew@latest --matching-threshold 0.8
+  $ npx convert-apps-to-homebrew@latest --fallback-to-cli
 
 Notes:
   • The tool will scan your Applications directory for .app bundles
@@ -110,28 +110,30 @@ Requirements:
  * Display help information for common issues
  */
 export function displayTroubleshooting(): void {
-  consola.box('🔧 Troubleshooting')
-
-  consola.info(`Common Issues:
+  consola.log(box(
+    `Common Issues:
 
 1. Homebrew not installed:
-   Install Homebrew first: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  Install Homebrew first:
+  ${colors.whiteBright(colors.bgBlack('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'))}
 
 2. Permission denied:
-   Make sure you have read access to the Applications directory
-   Make sure you have write access to the Applications directory
+  Make sure you have read access to the Applications directory
+  Make sure you have write access to the Applications directory
 
 3. App not found in Homebrew:
-   Not all applications are available as Homebrew casks
-   You can search manually: brew search <app-name>
+  Not all applications are available as Homebrew casks
+  You can search manually: ${colors.whiteBright(colors.bgBlack('brew search <app-name>'))}
 
 4. Network issues:
-   Homebrew requires internet access to check package availability
-   Check your network connection and try again
+  Homebrew requires internet access to check package availability
+  Check your network connection and try again
 
 For more help:
-   • Visit: https://brew.sh/
-   • Report issues: https://github.com/deepfriedmind/convert-apps-to-homebrew/issues`)
+  • Visit: ${colors.blue('https://brew.sh')}
+  ${packageJson.bugs?.url && `• Report issues: ${colors.blue(packageJson.bugs.url)}`}`,
+    { style: { borderColor: 'yellow' }, title: '🔧 Troubleshooting' },
+  ))
 }
 
 /**

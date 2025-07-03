@@ -2,6 +2,7 @@
  * Interactive prompts using consola
  */
 import { consola } from 'consola'
+import { box, colors } from 'consola/utils'
 
 import type { AppInfo } from './types.ts'
 
@@ -17,14 +18,10 @@ export function displayFinalSummary(
   failedApps: AppInfo[],
   dryRun = false,
 ): void {
-  consola.box(`🎉 ${dryRun ? 'Dry run' : 'Installation'} complete`)
+  consola.log(box(`${dryRun ? 'Dry run' : 'Installation'} complete`, { style: { borderColor: 'greenBright' }, title: '🎉' }))
 
   if (dryRun) {
-    consola.info(`📊 Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}:`)
-
-    if (selectedApps.length > 0) {
-      consola.log(`   📦 ${selectedApps.length} ${pluralize('cask', selectedApps.length)}`)
-    }
+    consola.info(`Would have processed ${selectedApps.length} ${pluralize('app', selectedApps.length)}.`)
   }
   else {
     if (installedApps.length > 0) {
@@ -152,7 +149,12 @@ function displayAppSummary(apps: AppInfo[]): void {
   if (unavailable.length > 0) {
     consola.info(`❌ ${unavailable.length} not available in Homebrew`)
     consola.debug(formatList(unavailable.map(app => app.originalName)))
-    consola.debug(`If any of these apps actually exist in Homebrew, please file an issue at: ${packageJson.bugs.url}/new/`)
+    consola.debug(`If any of these apps actually exist in Homebrew, please file an issue at: ${colors.blue(`${packageJson.bugs.url}/new/`)}`)
+  }
+
+  if (ignored.length > 0) {
+    consola.info(`🚫 ${ignored.length} ignored`)
+    consola.debug(formatList(ignored.map(app => app.originalName)))
   }
 
   if (available.length === 0) {
@@ -168,10 +170,6 @@ function displayAppSummary(apps: AppInfo[]): void {
     return
   }
 
-  if (ignored.length > 0) {
-    consola.warn(`🚫 ${ignored.length} ignored`)
-    consola.debug(formatList(ignored.map(app => app.originalName)))
-  }
-
-  consola.box('💡 Note:\nThe original .app files will be replaced by Homebrew\'s force install')
+  consola.log(box(`• The original .app files will be replaced by Homebrew's force install.
+• Some app installations may require entering an administrator password.`, { style: { borderColor: 'yellow' }, title: '💡 Note' }))
 }
