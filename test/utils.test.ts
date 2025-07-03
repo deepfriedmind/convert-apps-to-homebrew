@@ -7,7 +7,6 @@ import { describe, test } from 'node:test'
 
 import {
   capitalize,
-  createProgressBar,
   escapeShellArgument,
   executeCommand,
   extractAppName,
@@ -39,38 +38,6 @@ void describe('utils', () => {
 
     void test('should handle single character', () => {
       assert.strictEqual(capitalize('a'), 'A')
-    })
-  })
-
-  void describe('createProgressBar', () => {
-    void test('should create progress bar for partial completion', () => {
-      const result = createProgressBar(3, 10)
-      assert.ok(result.includes('['))
-      assert.ok(result.includes(']'))
-      assert.ok(result.includes('30%'))
-      assert.ok(result.includes('(3/10)'))
-    })
-
-    void test('should create progress bar for 0% completion', () => {
-      const result = createProgressBar(0, 10)
-      assert.ok(result.includes('0%'))
-      assert.ok(result.includes('(0/10)'))
-    })
-
-    void test('should create progress bar for 100% completion', () => {
-      const result = createProgressBar(10, 10)
-      assert.ok(result.includes('100%'))
-      assert.ok(result.includes('(10/10)'))
-    })
-
-    void test('should handle custom width', () => {
-      const result = createProgressBar(5, 10, 10)
-      assert.ok(result.includes('50%'))
-    })
-
-    void test('should cap at 100% even if current > total', () => {
-      const result = createProgressBar(15, 10)
-      assert.ok(result.includes('100%'))
     })
   })
 

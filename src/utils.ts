@@ -21,20 +21,6 @@ export function capitalize(string_: string): string {
 }
 
 /**
- * Create a progress bar string
- */
-export function createProgressBar(current: number, total: number, width = 20): string {
-  const percentage = Math.min(current / total, 1)
-  const filled = Math.floor(percentage * width)
-  const empty = width - filled
-
-  const bar = '█'.repeat(filled) + '░'.repeat(empty)
-  const percent = Math.floor(percentage * 100)
-
-  return `[${bar}] ${percent}% (${current}/${total})`
-}
-
-/**
  * Escape shell arguments to prevent injection
  */
 export function escapeShellArgument(argument: string): string {
