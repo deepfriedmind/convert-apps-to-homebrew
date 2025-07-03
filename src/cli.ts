@@ -4,6 +4,7 @@
 
 import { Command } from 'commander'
 import { consola } from 'consola'
+import { box, colors } from 'consola/utils'
 
 import type { CommandOptions } from './types.ts'
 
@@ -137,7 +138,15 @@ For more help:
  * Display welcome message with current configuration
  */
 export function displayWelcome(options: CommandOptions): void {
-  consola.box('🍺 Convert Apps to Homebrew')
+  consola.log(box(`${colors.magentaBright('    ▄▖          ▗   ▄▖        ▗     ▖▖       ▌')}
+    ${colors.magentaBright('▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌')}
+    ${colors.magenta('▙▖▙▌▌▌▚▘▙▖▌ ▐▖  ▛▌▙▌▙▌▄▌  ▐▖▙▌  ▌▌▙▌▌▌▌▙▖▙▌▌ ▙▖▚▚▘   ')}
+    ${colors.magenta('                  ▌ ▌')}`, { style: { borderColor: 'magentaBright' }, title: '🍺' }))
+
+  // ▄▖          ▗   ▄▖        ▗     ▖▖       ▌
+  // ▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌
+  // ▙▖▙▌▌▌▚▘▙▖▌ ▐▖  ▛▌▙▌▙▌▄▌  ▐▖▙▌  ▌▌▙▌▌▌▌▙▖▙▌▌ ▙▖▚▚▘
+  //                   ▌ ▌
 
   if (options.dryRun) {
     consola.warn(`${MESSAGES.DRY_RUN_MODE}`)
