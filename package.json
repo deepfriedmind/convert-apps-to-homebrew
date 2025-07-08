@@ -1,7 +1,7 @@
 {
   "name": "convert-apps-to-homebrew",
   "version": "1.0.0",
-  "description": "Convert macOS applications to Homebrew installations with interactive selection",
+  "description": "A CLI tool for macOS that automatically discovers applications in your /Applications directory and converts them to Homebrew-managed installations.",
   "keywords": [
     "homebrew",
     "macos",
