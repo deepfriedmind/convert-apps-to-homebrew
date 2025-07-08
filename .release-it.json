@@ -1,0 +1,33 @@
+{
+  "$schema": "https://unpkg.com/release-it@19/schema/release-it.json",
+  "git": {
+    "commitMessage": "chore(release): 🚀 v${version}",
+    "requireCleanWorkingDir": false
+  },
+  "github": {
+    "release": true
+  },
+  "hooks": {
+    "after:bump": "npm run build",
+    "before:init": "npm run check"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "section": "Features",
+            "type": "feat"
+          },
+          {
+            "section": "Bug Fixes",
+            "type": "fix"
+          },
+          {}
+        ]
+      }
+    }
+  }
+}

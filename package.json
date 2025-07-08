@@ -24,19 +24,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/deepfriedmind/convert-apps-to-homebrew.git"
+    "url": "git+https://github.com/deepfriedmind/convert-apps-to-homebrew.git"
   },
   "license": "MIT",
   "author": "deepfriedmind",
   "type": "module",
   "exports": "./dist/index.js",
   "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "bin": {
+    "convert-apps-to-homebrew": "dist/index.js"
+  },
   "files": [
-    "CHANGELOG.md",
-    "LICENSE",
-    "README.md",
-    "dist/**/*"
+    "dist"
   ],
   "scripts": {
     "build": "npm run clean && tsc --project tsconfig.build.json",
@@ -46,13 +45,15 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "lint:inspect": "npx -y @eslint/config-inspector@latest",
+    "prepublish": "npm run build",
+    "publish": "npm publish",
+    "release": "release-it",
     "start": "node src/index.ts",
     "test": "node --no-warnings --test --test-timeout=10000 'test/*.test.ts'",
     "test:coverage": "node --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
     "test:integration": "node --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
     "test:watch": "node --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
-    "type-check": "tsc --noEmit",
-    "release": "release-it"
+    "type-check": "tsc --noEmit"
   },
   "simple-git-hooks": {
     "prepare-commit-msg": "npx devmoji --edit"
@@ -64,6 +65,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.2",
+    "@release-it/conventional-changelog": "^10.0.1",
     "@tsconfig/node-ts": "^23.6.1",
     "@tsconfig/node24": "^24.0.1",
     "@types/node": "^24.0.10",
@@ -84,8 +86,5 @@
   },
   "os": [
     "darwin"
-  ],
-  "release-it": {
-    "$schema": "https://unpkg.com/release-it/schema/release-it.json"
-  }
+  ]
 }
