@@ -51,7 +51,8 @@
     "test:coverage": "node --no-warnings --test --test-timeout=10000 --experimental-test-coverage 'test/*.test.ts'",
     "test:integration": "node --no-warnings --test --test-timeout=30000 'test/integration.test.ts'",
     "test:watch": "node --no-warnings --test --test-timeout=10000 --watch 'test/*.test.ts'",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "release": "release-it"
   },
   "simple-git-hooks": {
     "prepare-commit-msg": "npx devmoji --edit"
@@ -72,6 +73,7 @@
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-perfectionist": "^4.15.0",
     "knip": "^5.61.3",
+    "release-it": "^19.0.3",
     "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3"
   },
@@ -82,5 +84,8 @@
   },
   "os": [
     "darwin"
-  ]
+  ],
+  "release-it": {
+    "$schema": "https://unpkg.com/release-it/schema/release-it.json"
+  }
 }
