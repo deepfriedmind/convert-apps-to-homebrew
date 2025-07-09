@@ -56,11 +56,6 @@
     "package-lock.json": true
   },
   "git.inputValidationSubjectLength": 72,
-  "github.copilot.chat.commitMessageGeneration.instructions": [
-    {
-      "file": ".github/copilot-commit-message-instructions.md"
-    }
-  ],
   "nodejs-testing.extensions": [
     {
       "extensions": [
