@@ -1,6 +1,6 @@
 {
   "name": "convert-apps-to-homebrew",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "A CLI tool for macOS that automatically discovers applications in your /Applications directory and converts them to Homebrew-managed installations.",
   "keywords": [
     "homebrew",
@@ -45,8 +45,6 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "lint:inspect": "npx -y @eslint/config-inspector@latest",
-    "prepublish": "npm run build",
-    "publish": "npm publish",
     "release": "release-it",
     "start": "node src/index.ts",
     "test": "node --no-warnings --test --test-timeout=10000 'test/*.test.ts'",

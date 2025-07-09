@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.2](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.0...1.1.2) (2025-07-09)
+
+### Bug Fixes
+
+* **main:** 🐛 correct main module detection logic ([fd2f2f8](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/fd2f2f8f71b00b5c16495e86f24108f3286720af))
+
+## [1.1.1](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.0...1.1.1) (2025-07-09)
+
+### Bug Fixes
+
+* **main:** 🐛 correct main module detection logic ([fd2f2f8](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/fd2f2f8f71b00b5c16495e86f24108f3286720af))
+
 ## 1.1.0 (2025-07-09)
 
 ### Features
