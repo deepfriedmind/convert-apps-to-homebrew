@@ -184,11 +184,31 @@ async function main(): Promise<void> {
   }
 }
 
-/**
- * Entry point with error handling
- */
 // Check if this module is being run directly (ES module equivalent of require.main === module)
-if (import.meta.url === `file://${process.argv[1]}`) {
+// This prevents the main logic from running when the module is imported as a dependency,
+// ensuring it only executes when run as a standalone script (e.g., via CLI or direct node execution)
+const argvPath = (process.argv[1] ?? '') || ''
+const argvFileName = (argvPath.split('/').pop() ?? '') || ''
+let isMain = false
+if (argvPath) {
+  isMain = import.meta.url === `file://${argvPath}`
+}
+
+if (!isMain && argvFileName) {
+  isMain = import.meta.url.endsWith(argvFileName)
+}
+
+if (!isMain && argvPath) {
+  // Check if being run via linked binary (npm link creates a symlink in bin directory)
+  const binaryName = 'convert-apps-to-homebrew'
+  const isBinaryPath = argvPath.includes(binaryName)
+
+  if (isBinaryPath) {
+    isMain = true
+  }
+}
+
+if (isMain) {
   void main().catch((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error)
     consola.error(`Fatal error: ${errorMessage}`)
