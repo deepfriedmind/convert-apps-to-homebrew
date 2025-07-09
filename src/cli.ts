@@ -9,7 +9,7 @@ import { box, colors } from 'consola/utils'
 import type { CommandOptions } from './types.ts'
 
 import packageJson from '../package.json' with { type: 'json' }
-import { MESSAGES } from './constants.ts'
+import { MESSAGES, MIN_NODE_VERSION } from './constants.ts'
 
 /**
  * Create and configure the Commander.js program
@@ -267,8 +267,8 @@ export function validateEnvironment(): void {
   const [versionPart] = nodeVersion.slice(1).split('.')
   const majorVersion = Number.parseInt(versionPart ?? '0', 10)
 
-  if (majorVersion < 22) {
-    consola.error(`Node.js version ${nodeVersion} is not supported. Please use Node.js 22 or later.`)
+  if (majorVersion < MIN_NODE_VERSION) {
+    consola.error(`Node.js version ${nodeVersion} is not supported. Please use Node.js ${MIN_NODE_VERSION} or later.`)
     process.exit(1)
   }
 

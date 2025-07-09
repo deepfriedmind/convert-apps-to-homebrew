@@ -1,9 +1,9 @@
 # convert-apps-to-homebrew
 
-[![npm version](https://badge.fury.io/js/convert-apps-to-homebrew.svg)](https://badge.fury.io/js/convert-apps-to-homebrew)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-24+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+![NPM Version](https://img.shields.io/npm/v/convert-apps-to-homebrew)
+![NPM License](https://img.shields.io/npm/l/convert-apps-to-homebrew)
+![Node Current](https://img.shields.io/node/v/convert-apps-to-homebrew)
+![GitHub top language](https://img.shields.io/github/languages/top/deepfriedmind/convert-apps-to-homebrew)
 [![code style](https://antfu.me/badge-code-style.svg)](https://github.com/antfu/eslint-config)
 
 A CLI tool for macOS that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations.
@@ -13,7 +13,7 @@ A CLI tool for macOS that automatically discovers applications in your `/Applica
 - **Automatic Discovery**: Scans `/Applications` directory and identifies available Homebrew packages
 - **Interactive Selection**: Checkbox interface for selecting apps to install
 - **Dry-Run Mode**: Preview changes without executing them
-- **Flexible Filtering**: Pre-ignore specific applications or App Store apps
+- **Flexible Filtering**: Pre-ignore specific applications and/or App Store apps
 
 ## Quick Start
 
@@ -60,8 +60,7 @@ cd convert-apps-to-homebrew
 # Install dependencies
 npm install
 
-### Install commit hooks:
-
+# Install commit hooks
 npx simple-git-hooks
 
 # Run the project
@@ -75,6 +74,9 @@ npm test
 
 # Run tests with coverage
 npm run test:coverage
+
+# Run all checks
+npm run check
 ```
 
 ## Contributing
@@ -102,24 +104,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Common Issues
 
-**"Homebrew is not installed"**
+#### "Homebrew is not installed"
+
+Install [Homebrew](https://brew.sh/):
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-**"Node.js version not supported"**
+#### "Node.js version `<version>` is not supported. Please use Node.js 24 or later."
+
+Install latest Node.js:
 
 ```bash
-brew install node  # Installs latest Node.js
+brew install node
 ```
 
-**"Permission denied"**
+#### "Permission denied"
 
 - Ensure you have read access to `/Applications`
 - For cask installations, Homebrew's --force flag is used to overwrite existing applications
 
-**"No applications found"**
+#### "No applications found"
 
 - Check that applications exist in `/Applications`
 - Try using `--applications-dir` to specify a different path
