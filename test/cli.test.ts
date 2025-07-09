@@ -165,7 +165,7 @@ void describe('cli', () => {
       const originalVersion = process.version
 
       Object.defineProperty(process, 'platform', { configurable: true, value: 'darwin' })
-      Object.defineProperty(process, 'version', { configurable: true, value: 'v24.0.0' })
+      Object.defineProperty(process, 'version', { configurable: true, value: 'v20.0.0' })
 
       assert.doesNotThrow(() => {
         validateEnvironment()

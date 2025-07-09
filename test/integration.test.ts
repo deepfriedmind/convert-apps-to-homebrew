@@ -110,7 +110,7 @@ void describe('Performance Integration', () => {
 
     // Test that utility functions work efficiently with realistic data
     const testApps = [
-      '/Applications/Adobe Photoshop 2024.app',
+      '/Applications/Adobe Photoshop 2025.app',
       '/Applications/Microsoft Word.app',
       '/Applications/Visual Studio Code.app',
       '/Applications/Google Chrome.app',
@@ -128,8 +128,8 @@ void describe('Performance Integration', () => {
     const processingTime = endTime - startTime
 
     // Verify results are correct
-    assert.strictEqual(results[0]?.extracted, 'Adobe Photoshop 2024')
-    assert.strictEqual(results[0]?.normalized, 'adobe-photoshop-2024')
+    assert.strictEqual(results[0]?.extracted, 'Adobe Photoshop 2025')
+    assert.strictEqual(results[0]?.normalized, 'adobe-photoshop-2025')
     assert.strictEqual(results[1]?.extracted, 'Microsoft Word')
     assert.strictEqual(results[1]?.normalized, 'microsoft-word')
 
