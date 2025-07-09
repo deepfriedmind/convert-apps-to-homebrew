@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.0...1.2.1) (2025-07-09)
+
+### Bug Fixes
+
+* 🐛 add `devEngines` to package.json to separate Node versions ([49b4c07](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/49b4c070d011b08147bfccac035544f04c3c3ed7))
+
 ## [1.2.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.3...1.2.0) (2025-07-09)
 
 ### Features
