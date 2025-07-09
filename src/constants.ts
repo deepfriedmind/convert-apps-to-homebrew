@@ -58,11 +58,6 @@ export const DEFAULT_CONFIG = {
 } as const
 
 /**
- * Minimum required Node.js major version
- */
-export const MIN_NODE_VERSION = 20
-
-/**
  * Messages and text constants
  */
 export const MESSAGES = {

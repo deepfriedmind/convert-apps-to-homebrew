@@ -112,7 +112,7 @@ Install [Homebrew](https://brew.sh/):
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-#### "Node.js version `<version>` is not supported. Please use Node.js 20 or later."
+#### "Node.js version `<installed version>` is not supported. Please use Node.js `<required version>` or later."
 
 Install latest Node.js:
 
