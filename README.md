@@ -8,6 +8,8 @@
 
 A CLI tool for macOS that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations.
 
+![Screenshot](screenshot@2x.webp)
+
 ## Features
 
 - **Automatic Discovery**: Scans `/Applications` directory and identifies available Homebrew packages
