@@ -82,8 +82,19 @@
   },
   "packageManager": "npm@11.4.2",
   "engines": {
-    "node": ">= 24",
-    "npm": ">= 11"
+    "node": ">= 20"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">= 24",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">= 11",
+      "onFail": "warn"
+    }
   },
   "os": [
     "darwin"
