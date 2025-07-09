@@ -14,18 +14,7 @@
     "@release-it/conventional-changelog": {
       "infile": "CHANGELOG.md",
       "preset": {
-        "name": "conventionalcommits",
-        "types": [
-          {
-            "section": "Features",
-            "type": "feat"
-          },
-          {
-            "section": "Bug Fixes",
-            "type": "fix"
-          },
-          {}
-        ]
+        "name": "conventionalcommits"
       }
     }
   }
