@@ -31,7 +31,7 @@ convert-apps-to-homebrew
 ## Requirements
 
 - **macOS**: This tool is designed specifically for macOS
-- **Node.js 20+**: Required for running the application (24+ required for development)
+- **Node.js 20.18.1+**: Required for running the application (24+ required for development)
 - **Homebrew**: Must be installed and accessible in PATH
 - **[mas-cli](https://github.com/mas-cli/mas)** (optional): For Mac App Store integration - install with `brew install mas`
   - Required for detecting if apps are installed via Mac App Store.

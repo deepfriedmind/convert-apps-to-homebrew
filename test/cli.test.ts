@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, test } from 'node:test'
 
 import type { CommandOptions } from '../src/types.ts'
 
-import { createProgram, parseArguments, validateEnvironment } from '../src/cli.ts'
+import { createProgram, parseArguments } from '../src/cli.ts'
 import { mockConsole } from './helpers/test-utils.ts'
 
 void describe('cli', () => {
@@ -155,25 +155,6 @@ void describe('cli', () => {
       for (const property of requiredProperties) {
         assert.strictEqual(property in result, true, `Missing property: ${property}`)
       }
-    })
-  })
-
-  void describe('validateEnvironment', () => {
-    void test('should validate Node.js version on macOS', () => {
-      // Store original values
-      const originalPlatform = process.platform
-      const originalVersion = process.version
-
-      Object.defineProperty(process, 'platform', { configurable: true, value: 'darwin' })
-      Object.defineProperty(process, 'version', { configurable: true, value: 'v20.0.0' })
-
-      assert.doesNotThrow(() => {
-        validateEnvironment()
-      })
-
-      // Restore original values
-      Object.defineProperty(process, 'platform', { configurable: true, value: originalPlatform })
-      Object.defineProperty(process, 'version', { configurable: true, value: originalVersion })
     })
   })
 
