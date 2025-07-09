@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.1...1.2.2) (2025-07-09)
+
+### Bug Fixes
+
+* **node:** 🐛 update node.js version requirement to 20.18.1 ([4fc2b23](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/4fc2b230d9086236bf6827eb7f90f613d3fb38a3))
+
 ## [1.2.1](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.0...1.2.1) (2025-07-09)
 
 ### Bug Fixes
