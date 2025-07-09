@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.3...1.2.0) (2025-07-09)
+
+### Features
+
+* ✨ allow Node v20 for running the CLI ([c2524cf](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/c2524cfc384df5ec532991b20dfc3279d6776c89))
+
 ## [1.1.3](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.2...1.1.3) (2025-07-09)
 
 ## [1.1.2](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.1.0...1.1.2) (2025-07-09)
