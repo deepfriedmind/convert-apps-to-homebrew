@@ -1,6 +1,6 @@
 # convert-apps-to-homebrew
 
-![NPM Version](https://img.shields.io/npm/v/convert-apps-to-homebrew)
+![NPM Version](https://img.shields.io/npm/v/convert-apps-to-homebrew?label=)
 ![NPM License](https://img.shields.io/npm/l/convert-apps-to-homebrew)
 ![Node Current](https://img.shields.io/node/v/convert-apps-to-homebrew)
 ![GitHub top language](https://img.shields.io/github/languages/top/deepfriedmind/convert-apps-to-homebrew)
