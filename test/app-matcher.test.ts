@@ -2,8 +2,7 @@
  * Tests for app matcher module
  */
 
-import assert from 'node:assert'
-import { test } from 'node:test'
+import { expect, test } from 'bun:test'
 
 import type { AppInfo, HomebrewCask } from '../src/types.ts'
 
@@ -82,33 +81,33 @@ const mockApp: AppInfo = {
   status: 'unavailable',
 }
 
-void test('AppMatcher', async (testContext) => {
-  await testContext.test('should initialize correctly', () => {
+test('AppMatcher', () => {
+  test('should initialize correctly', () => {
     const matcher = new AppMatcher({})
-    assert.ok(matcher instanceof AppMatcher)
+    expect(matcher).toBeInstanceOf(AppMatcher)
   })
 
-  await testContext.test('should build index from casks', () => {
+  test('should build index from casks', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
-    assert.ok(index.byToken.has('visual-studio-code'))
-    assert.ok(index.byToken.has('google-chrome'))
-    assert.strictEqual(index.byToken.size, 4)
+    expect(index.byToken.has('visual-studio-code')).toBe(true)
+    expect(index.byToken.has('google-chrome')).toBe(true)
+    expect(index.byToken.size).toBe(4)
   })
 
-  await testContext.test('should match apps by exact bundle name', () => {
+  test('should match apps by exact bundle name', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
     const matchResult = matcher.matchApp(mockApp, index)
 
-    assert.ok(matchResult.bestMatch !== undefined)
-    assert.strictEqual(matchResult.bestMatch.cask.token, 'visual-studio-code')
-    assert.ok(matchResult.bestMatch.confidence > 0.8)
+    expect(matchResult.bestMatch).toBeDefined()
+    expect(matchResult.bestMatch?.cask.token).toBe('visual-studio-code')
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThan(0.8)
   })
 
-  await testContext.test('should match "YubiKey Manager" using normalized cask name match', () => {
+  test('should match "YubiKey Manager" using normalized cask name match', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
@@ -123,13 +122,13 @@ void test('AppMatcher', async (testContext) => {
 
     const matchResult = matcher.matchApp(yubiKeyApp, index)
 
-    assert.ok(matchResult.bestMatch !== undefined, 'YubiKey Manager should have a best match')
-    assert.strictEqual(matchResult.bestMatch.cask.token, 'yubico-yubikey-manager', 'YubiKey Manager should match yubico-yubikey-manager')
-    assert.strictEqual(matchResult.bestMatch.matchType, 'name-exact', 'YubiKey Manager should match by name-exact')
-    assert.ok(matchResult.bestMatch.confidence >= 0.98, 'YubiKey Manager confidence should be high')
+    expect(matchResult.bestMatch).toBeDefined()
+    expect(matchResult.bestMatch?.cask.token).toBe('yubico-yubikey-manager')
+    expect(matchResult.bestMatch?.matchType).toBe('name-exact')
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(0.98)
   })
 
-  await testContext.test('should match "Quit All" using hyphen-less normalized cask name match', () => {
+  test('should match "Quit All" using hyphen-less normalized cask name match', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
@@ -143,15 +142,13 @@ void test('AppMatcher', async (testContext) => {
     }
 
     const matchResult = matcher.matchApp(quitAllApp, index)
-    assert.ok(matchResult.bestMatch !== undefined, 'Quit All should have a best match')
-    assert.strictEqual(matchResult.bestMatch.cask.token, 'quit-all', 'Quit All should match quit-all cask')
-    // This will depend on the exact matching strategy that wins.
-    // If the hyphen-less name match is preferred or has higher confidence:
-    assert.strictEqual(matchResult.bestMatch.matchType, 'name-exact', 'Quit All should match by name-exact (potentially hyphen-less)')
-    assert.ok(matchResult.bestMatch.confidence >= 0.98, 'Quit All confidence should be high')
+    expect(matchResult.bestMatch).toBeDefined()
+    expect(matchResult.bestMatch?.cask.token).toBe('quit-all')
+    expect(matchResult.bestMatch?.matchType).toBe('name-exact')
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(0.98)
   })
 
-  await testContext.test('should handle apps with no matches', () => {
+  test('should handle apps with no matches', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
@@ -166,11 +163,11 @@ void test('AppMatcher', async (testContext) => {
 
     const matchResult = matcher.matchApp(unmatchableApp, index)
 
-    assert.strictEqual(matchResult.bestMatch, undefined)
-    assert.strictEqual(matchResult.matches.length, 0)
+    expect(matchResult.bestMatch).toBeUndefined()
+    expect(matchResult.matches).toHaveLength(0)
   })
 
-  await testContext.test('should match multiple apps in batch', () => {
+  test('should match multiple apps in batch', () => {
     const matcher = new AppMatcher({})
     const index = matcher.buildIndex(mockCasks)
 
@@ -188,12 +185,12 @@ void test('AppMatcher', async (testContext) => {
 
     const results = matcher.matchApps(apps, index)
 
-    assert.strictEqual(results.length, 2)
-    assert.ok(results[0]?.bestMatch !== undefined)
-    assert.ok(results[1]?.bestMatch !== undefined)
+    expect(results).toHaveLength(2)
+    expect(results[0]?.bestMatch).toBeDefined()
+    expect(results[1]?.bestMatch).toBeDefined()
   })
 
-  await testContext.test('should respect confidence threshold', () => {
+  test('should respect confidence threshold', () => {
     const matcher = new AppMatcher({ minConfidence: 0.95 })
     const index = matcher.buildIndex(mockCasks)
 
@@ -210,6 +207,6 @@ void test('AppMatcher', async (testContext) => {
     const matchResult = matcher.matchApp(lowConfidenceApp, index)
 
     // Should have fewer or no matches due to high confidence threshold
-    assert.ok(matchResult.matches.length <= 1)
+    expect(matchResult.matches.length).toBeLessThanOrEqual(1)
   })
 })

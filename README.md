@@ -3,6 +3,7 @@
 ![NPM Version](https://img.shields.io/npm/v/convert-apps-to-homebrew?label=)
 ![NPM License](https://img.shields.io/npm/l/convert-apps-to-homebrew)
 ![Node Current](https://img.shields.io/node/v/convert-apps-to-homebrew)
+![Bun version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdeepfriedmind%2Fconvert-apps-to-homebrew%2Frefs%2Fheads%2Fmain%2Fpackage.json&query=devEngines.runtime.version&logo=bun&label=bun)
 ![GitHub top language](https://img.shields.io/github/languages/top/deepfriedmind/convert-apps-to-homebrew)
 [![code style](https://antfu.me/badge-code-style.svg)](https://github.com/antfu/eslint-config)
 
@@ -33,7 +34,7 @@ convert-apps-to-homebrew
 ## Requirements
 
 - **macOS**: This tool is designed specifically for macOS
-- **Node.js 20.18.1+**: Required for running the application (24+ required for development)
+- **Node.js 20.18.1+**: Required for running the application (bun required for development)
 - **Homebrew**: Must be installed and accessible in PATH
 - **[mas-cli](https://github.com/mas-cli/mas)** (optional): For Mac App Store integration - install with `brew install mas`
   - Required for detecting if apps are installed via Mac App Store.
@@ -60,25 +61,25 @@ git clone https://github.com/deepfriedmind/convert-apps-to-homebrew.git
 cd convert-apps-to-homebrew
 
 # Install dependencies
-npm install
+bun install
 
 # Install commit hooks
-npx simple-git-hooks
+bunx simple-git-hooks
 
 # Run the project
-npm start
+bun start
 
 # Build the project
-npm run build
+bun run build
 
 # Run tests
-npm test
+bun test
 
 # Run tests with coverage
-npm run test:coverage
+bun test --coverage
 
 # Run all checks
-npm run check
+bun run check
 ```
 
 ## Contributing

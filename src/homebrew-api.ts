@@ -390,17 +390,3 @@ export async function fetchHomebrewCasks(
 
   return client.fetchAllCasks(forceRefresh, showSpinner)
 }
-
-/**
- * Get information about the Homebrew cask cache
- */
-export async function getHomebrewCacheInfo(): Promise<{
-  exists: boolean
-  isValid?: boolean
-  lastModified?: Date
-  size?: number
-}> {
-  const client = new HomebrewApiClient()
-
-  return client.getCacheInfo()
-}

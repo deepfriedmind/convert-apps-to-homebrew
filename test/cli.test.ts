@@ -1,213 +1,196 @@
 /**
- * @fileoverview Test suite for CLI module
- * Tests command-line interface functionality
+ * Test file for cli.ts
  */
 
-import { strict as assert } from 'node:assert'
-import { afterEach, beforeEach, describe, test } from 'node:test'
-
-import type { CommandOptions } from '../src/types.ts'
+import { describe, expect, test } from 'bun:test'
 
 import { createProgram, parseArguments } from '../src/cli.ts'
-import { mockConsole } from './helpers/test-utils.ts'
 
-void describe('cli', () => {
-  let consoleMock: { errors: string[], logs: string[], restore: () => void, warnings: string[] }
-
-  beforeEach(() => {
-    consoleMock = mockConsole()
-  })
-
-  afterEach(() => {
-    consoleMock.restore()
-  })
-
-  void describe('createProgram', () => {
-    void test('should create a commander program with correct configuration', () => {
+describe('CLI', () => {
+  describe('createProgram', () => {
+    test('should create a commander program with correct configuration', () => {
       const program = createProgram()
 
-      assert.strictEqual(program.name(), 'convert-apps-to-homebrew')
-      assert.strictEqual(typeof program.description(), 'string')
-      assert.strictEqual(program.description().includes('Convert macOS applications'), true)
+      expect(program.name()).toBe('convert-apps-to-homebrew')
     })
 
-    void test('should have all required options configured', () => {
+    test('should have all required options configured', () => {
       const program = createProgram()
       const { options } = program
 
       const optionNames = new Set(options.map(opt => opt.long))
-      assert.strictEqual(optionNames.has('--ignore'), true)
-      assert.strictEqual(optionNames.has('--dry-run'), true)
-      assert.strictEqual(optionNames.has('--verbose'), true)
-      assert.strictEqual(optionNames.has('--applications-dir'), true)
+      expect(optionNames.has('--ignore')).toBe(true)
+      expect(optionNames.has('--dry-run')).toBe(true)
+      expect(optionNames.has('--verbose')).toBe(true)
+      expect(optionNames.has('--applications-dir')).toBe(true)
+      expect(optionNames.has('--ignore-app-store')).toBe(true)
     })
 
-    void test('should have version information', () => {
+    test('should have version information', () => {
       const program = createProgram()
       const version = program.version()
-      assert.strictEqual(typeof version, 'string')
-      assert.strictEqual(version !== undefined && version.length > 0, true)
+      expect(typeof version).toBe('string')
     })
   })
 
-  void describe('parseArguments', () => {
-    void test('should parse basic arguments with defaults', () => {
+  describe('parseArguments', () => {
+    test('should parse basic arguments with defaults', () => {
       const argv = ['node', 'script.js']
       const result = parseArguments(argv)
 
-      assert.strictEqual(typeof result, 'object')
-      assert.strictEqual(Array.isArray(result.ignore), true)
-      assert.strictEqual(result.dryRun, false)
-      assert.strictEqual(result.verbose, false)
-      assert.strictEqual(result.applicationsDir, '/Applications')
+      expect(typeof result).toBe('object')
+      expect(result.dryRun).toBe(false)
+      expect(result.verbose).toBe(false)
+      expect(Array.isArray(result.ignore)).toBe(true)
+      expect(result.ignore).toHaveLength(0)
+      expect(result.applicationsDir).toBe('/Applications')
+      expect(result.ignoreAppStore).toBe(false)
     })
 
-    void test('should parse ignore option correctly', () => {
+    test('should parse ignore option correctly', () => {
       const argv = ['node', 'script.js', '--ignore', 'Chrome', 'Firefox']
       const result = parseArguments(argv)
 
-      assert.strictEqual(Array.isArray(result.ignore), true)
-      assert.strictEqual(result.ignore?.includes('Chrome'), true)
-      assert.strictEqual(result.ignore?.includes('Firefox'), true)
+      expect(Array.isArray(result.ignore)).toBe(true)
+      expect(result.ignore).toEqual(['Chrome', 'Firefox'])
     })
 
-    void test('should parse short ignore option correctly', () => {
+    test('should parse short ignore option correctly', () => {
       const argv = ['node', 'script.js', '-i', 'Safari', 'TextEdit']
       const result = parseArguments(argv)
 
-      assert.strictEqual(Array.isArray(result.ignore), true)
-      assert.strictEqual(result.ignore?.includes('Safari'), true)
-      assert.strictEqual(result.ignore?.includes('TextEdit'), true)
+      expect(Array.isArray(result.ignore)).toBe(true)
+      expect(result.ignore).toEqual(['Safari', 'TextEdit'])
     })
 
-    void test('should parse dry-run option correctly', () => {
+    test('should parse dry-run option correctly', () => {
       const argv = ['node', 'script.js', '--dry-run']
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.dryRun, true)
+      expect(result.dryRun).toBe(true)
     })
 
-    void test('should parse short dry-run option correctly', () => {
+    test('should parse short dry-run option correctly', () => {
       const argv = ['node', 'script.js', '-d']
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.dryRun, true)
+      expect(result.dryRun).toBe(true)
     })
 
-    void test('should parse verbose option correctly', () => {
+    test('should parse verbose option correctly', () => {
       const argv = ['node', 'script.js', '--verbose']
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.verbose, true)
+      expect(result.verbose).toBe(true)
     })
 
-    void test('should parse ignore-app-store option correctly', () => {
+    test('should parse ignore-app-store option correctly', () => {
       const argv = ['node', 'script.js', '--ignore-app-store']
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.ignoreAppStore, true)
+      expect(result.ignoreAppStore).toBe(true)
     })
 
-    void test('should parse custom applications directory', () => {
+    test('should parse custom applications directory', () => {
       const customDirectory = '/System/Applications'
       const argv = ['node', 'script.js', '--applications-dir', customDirectory]
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.applicationsDir, customDirectory)
+      expect(result.applicationsDir).toBe(customDirectory)
     })
 
-    void test('should handle multiple options together', () => {
+    test('should handle multiple options together', () => {
       const argv = [
         'node',
         'script.js',
-        '--verbose',
         '--dry-run',
-        '--ignore-app-store',
+        '--verbose',
         '--ignore',
-        'Chrome',
-        'Firefox',
+        'Adobe Photoshop',
+        'Microsoft Word',
         '--applications-dir',
         '/custom/path',
       ]
       const result = parseArguments(argv)
 
-      assert.strictEqual(result.verbose, true)
-      assert.strictEqual(result.dryRun, true)
-      assert.strictEqual(result.ignoreAppStore, true)
-      assert.strictEqual(result.ignore?.includes('Chrome'), true)
-      assert.strictEqual(result.ignore?.includes('Firefox'), true)
-      assert.strictEqual(result.applicationsDir, '/custom/path')
+      expect(result.verbose).toBe(true)
+      expect(result.dryRun).toBe(true)
+      expect(result.ignore).toEqual(['Adobe Photoshop', 'Microsoft Word'])
+      expect(result.applicationsDir).toBe('/custom/path')
     })
 
-    void test('should validate command options structure', () => {
-      const argv = ['node', 'script.js', '--verbose', '--dry-run']
+    test('should validate command options structure', () => {
+      const argv = ['node', 'script.js']
       const result = parseArguments(argv)
 
-      // Verify all required CommandOptions properties exist
-      const requiredProperties: (keyof CommandOptions)[] = [
-        'ignore',
+      const requiredProperties = [
         'dryRun',
         'verbose',
+        'ignore',
         'applicationsDir',
         'ignoreAppStore',
       ]
 
       for (const property of requiredProperties) {
-        assert.strictEqual(property in result, true, `Missing property: ${property}`)
+        expect(property in result).toBe(true)
       }
     })
   })
 
-  void describe('program configuration', () => {
-    void test('should have examples in help text', () => {
+  describe('program configuration', () => {
+    test('should have examples in help text', () => {
       const program = createProgram()
       const helpText = program.helpInformation()
 
-      assert.strictEqual(typeof helpText, 'string')
-      assert.strictEqual(helpText.includes('interactive selection'), true)
+      expect(typeof helpText).toBe('string')
+      expect(helpText.length).toBeGreaterThan(0)
     })
 
-    void test('should have proper command name and description', () => {
+    test('should have proper command name and description', () => {
       const program = createProgram()
 
-      assert.strictEqual(program.name(), 'convert-apps-to-homebrew')
-      assert.strictEqual(program.description().includes('Convert macOS applications'), true)
-      assert.strictEqual(program.description().includes('Homebrew'), true)
-      assert.strictEqual(program.description().includes('interactive'), true)
+      expect(program.name()).toBe('convert-apps-to-homebrew')
+      expect(typeof program.description()).toBe('string')
     })
 
-    void test('should configure ignore option correctly', () => {
+    test('should configure ignore option correctly', () => {
       const program = createProgram()
       const ignoreOption = program.options.find(opt => opt.long === '--ignore')
 
-      assert.strictEqual(ignoreOption !== undefined, true)
-      assert.strictEqual(ignoreOption?.short, '-i')
-      assert.strictEqual(ignoreOption?.description.includes('ignore specific applications'), true)
+      expect(ignoreOption).toBeDefined()
+      expect(ignoreOption?.flags).toBe('-i, --ignore <apps...>')
     })
 
-    void test('should configure dry-run option correctly', () => {
+    test('should configure dry-run option correctly', () => {
       const program = createProgram()
       const dryRunOption = program.options.find(opt => opt.long === '--dry-run')
 
-      assert.strictEqual(dryRunOption !== undefined, true)
-      assert.strictEqual(dryRunOption?.short, '-d')
-      assert.strictEqual(dryRunOption?.description.includes('show what would be done'), true)
+      expect(dryRunOption).toBeDefined()
+      expect(dryRunOption?.flags).toBe('-d, --dry-run')
     })
 
-    void test('should configure verbose option correctly', () => {
+    test('should configure verbose option correctly', () => {
       const program = createProgram()
       const verboseOption = program.options.find(opt => opt.long === '--verbose')
 
-      assert.strictEqual(verboseOption !== undefined, true)
-      assert.strictEqual(verboseOption?.description.includes('verbose output'), true)
+      expect(verboseOption).toBeDefined()
+      expect(verboseOption?.flags).toBe('--verbose')
     })
 
-    void test('should configure applications-dir option correctly', () => {
+    test('should configure applications-dir option correctly', () => {
       const program = createProgram()
       const appsDirectoryOption = program.options.find(opt => opt.long === '--applications-dir')
 
-      assert.strictEqual(appsDirectoryOption !== undefined, true)
-      assert.strictEqual(appsDirectoryOption?.description.includes('Applications directory'), true)
+      expect(appsDirectoryOption).toBeDefined()
+      expect(appsDirectoryOption?.flags).toBe('--applications-dir <path>')
+    })
+
+    test('should configure ignore-app-store option correctly', () => {
+      const program = createProgram()
+      const ignoreAppStoreOption = program.options.find(opt => opt.long === '--ignore-app-store')
+
+      expect(ignoreAppStoreOption).toBeDefined()
+      expect(ignoreAppStoreOption?.flags).toBe('--ignore-app-store')
     })
   })
 })

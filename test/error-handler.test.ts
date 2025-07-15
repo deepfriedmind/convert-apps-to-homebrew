@@ -2,8 +2,7 @@
  * Test file for error-handler.ts
  */
 
-import assert from 'node:assert'
-import { describe, mock, test } from 'node:test'
+import { describe, expect, test } from 'bun:test'
 
 import { EXIT_CODES } from '../src/constants.ts'
 import {
@@ -14,137 +13,120 @@ import {
 import { ConvertAppsError, ErrorType } from '../src/types.ts'
 
 describe('ErrorHandler', () => {
-  void test('should create error handler with default verbose false', () => {
+  test('should create error handler with default verbose false', () => {
     const handler = new ErrorHandler()
-    assert.strictEqual(typeof handler, 'object')
+    expect(typeof handler).toBe('object')
   })
 
-  void test('should create error handler with verbose true', () => {
+  test('should create error handler with verbose true', () => {
     const handler = new ErrorHandler(true)
-    assert.strictEqual(typeof handler, 'object')
+    expect(typeof handler).toBe('object')
   })
 
-  void test('should handle ConvertAppsError types', () => {
+  test('should handle ConvertAppsError types', () => {
     const handler = new ErrorHandler()
-    const originalExit = process.exit.bind(process)
-    let exitCode: number | undefined
-
-    // Mock process.exit to prevent test termination and stop execution
-    process.exit = mock.fn((code?: number) => {
-      exitCode = code
-      // Throw an error to prevent fallthrough in switch statement
-      throw new Error(`process.exit called with code ${code}`)
-    }) as typeof process.exit
-
-    try {
-      const error = new ConvertAppsError('Test error', ErrorType.INVALID_INPUT)
-      try {
-        void handler.handleError(error)
-      }
-      catch (error) {
-        // Expected to throw when process.exit is called
-        if (error instanceof Error && error.message.includes('process.exit called')) {
-          // This is expected behavior
-        }
-        else {
-          throw error
-        }
-      }
-
-      assert.strictEqual(exitCode, EXIT_CODES.INVALID_INPUT)
-    }
-    finally {
-      process.exit = originalExit
-    }
-  })
-
-  void test('should handle generic errors', () => {
-    const handler = new ErrorHandler()
-    const originalExit = process.exit.bind(process)
-    let exitCode: number | undefined
+    const error = new ConvertAppsError('Test error', ErrorType.INVALID_INPUT)
 
     // Mock process.exit to prevent test termination
-    process.exit = mock.fn((code?: number) => {
-      exitCode = code
+    const originalExit = process.exit.bind(process)
+    let exitCode: number | undefined
 
-      return undefined as never
-    }) as typeof process.exit
+    const mockExit = (code?: number): never => {
+      exitCode = code
+      throw new Error(`process.exit called with code ${code}`)
+    }
+
+    process.exit = mockExit as typeof process.exit
 
     try {
-      const error = new Error('Generic error')
-      try {
-        void handler.handleError(error)
-      }
-      catch {
-        // Expected to not actually exit in test
-      }
-
-      assert.strictEqual(exitCode, EXIT_CODES.GENERAL_ERROR)
+      handler.handleError(error)
+    }
+    catch {
+      // Expected to throw in test environment
     }
     finally {
       process.exit = originalExit
     }
+
+    expect(exitCode).toBe(EXIT_CODES.INVALID_INPUT)
+  })
+
+  test('should handle generic errors', () => {
+    const handler = new ErrorHandler()
+    const error = new Error('Generic error')
+
+    // Mock process.exit to prevent test termination
+    const originalExit = process.exit.bind(process)
+    let exitCode: number | undefined
+
+    const mockExit = (code?: number): never => {
+      exitCode = code
+      throw new Error(`process.exit called with code ${code}`)
+    }
+
+    process.exit = mockExit as typeof process.exit
+
+    try {
+      handler.handleError(error)
+    }
+    catch {
+      // Expected to throw in test environment
+    }
+    finally {
+      process.exit = originalExit
+    }
+
+    expect(exitCode).toBe(EXIT_CODES.GENERAL_ERROR)
   })
 })
 
 describe('ProgressTracker', () => {
-  void test('should create progress tracker with default verbose false', () => {
+  test('should create progress tracker', () => {
     const tracker = new ProgressTracker()
-    assert.strictEqual(typeof tracker, 'object')
+    expect(typeof tracker).toBe('object')
   })
 
-  void test('should create progress tracker with verbose true', () => {
+  test('should start operation without total', () => {
     const tracker = new ProgressTracker()
-    assert.strictEqual(typeof tracker, 'object')
+    expect(() => tracker.startOperation('test operation')).not.toThrow()
   })
 
-  void test('should start operation without total', () => {
+  test('should start operation with total', () => {
     const tracker = new ProgressTracker()
-    tracker.startOperation('test operation')
-    // No assertion needed, just ensure it doesn't throw
+    expect(() => tracker.startOperation('test operation', 100)).not.toThrow()
   })
 
-  void test('should start operation with total', () => {
+  test('should update progress without numbers', () => {
     const tracker = new ProgressTracker()
-    tracker.startOperation('test operation', 100)
-    // No assertion needed, just ensure it doesn't throw
+    expect(() => tracker.updateProgress('test message')).not.toThrow()
   })
 
-  void test('should update progress without numbers', () => {
+  test('should update progress with current and total', () => {
     const tracker = new ProgressTracker()
-    tracker.updateProgress('test message')
-    // No assertion needed, just ensure it doesn't throw
+    expect(() => tracker.updateProgress('test message', 50, 100)).not.toThrow()
   })
 
-  void test('should update progress with current and total', () => {
+  test('should complete operation successfully', () => {
     const tracker = new ProgressTracker()
-    tracker.updateProgress('test message', 50, 100)
-    // No assertion needed, just ensure it doesn't throw
+    expect(() => tracker.completeOperation('test operation', true)).not.toThrow()
   })
 
-  void test('should complete operation successfully', () => {
+  test('should complete operation with errors', () => {
     const tracker = new ProgressTracker()
-    tracker.completeOperation('test operation', true)
-    // No assertion needed, just ensure it doesn't throw
-  })
-
-  void test('should complete operation with errors', () => {
-    const tracker = new ProgressTracker()
-    tracker.completeOperation('test operation', false)
-    // No assertion needed, just ensure it doesn't throw
+    expect(() => tracker.completeOperation('test operation', false)).not.toThrow()
   })
 })
 
 describe('module functions', () => {
-  void test('should return ErrorHandler instance', () => {
+  test('should return ErrorHandler instance', () => {
     const handler = getErrorHandler()
-    assert.strictEqual(typeof handler, 'object')
-    assert.strictEqual(handler.constructor.name, 'ErrorHandler')
+    expect(typeof handler).toBe('object')
+    expect(handler.constructor.name).toBe('ErrorHandler')
   })
 
-  void test('should return same instance on multiple calls', () => {
+  test('should return same instance on multiple calls', () => {
     const handler1 = getErrorHandler()
     const handler2 = getErrorHandler()
-    assert.strictEqual(handler1, handler2)
+    expect(handler1).toBe(handler2)
   })
 })

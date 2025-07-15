@@ -1,6 +1,8 @@
 {
   "recommendations": [
     "connor4312.nodejs-testing",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "oven.bun-vscode",
+    "wzulfikar.vscode-bun-test-explorer"
   ]
 }

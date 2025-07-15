@@ -2,8 +2,7 @@
  * Tests for constants module
  */
 
-import assert from 'node:assert'
-import { describe, test } from 'node:test'
+import { describe, expect, test } from 'bun:test'
 
 import {
   BREW_COMMANDS,
@@ -14,164 +13,162 @@ import {
   MESSAGES,
 } from '../src/constants.ts'
 
-void describe('constants', () => {
-  void describe('DEFAULT_APPLICATIONS_DIR', () => {
-    void test('should be the standard macOS Applications directory', () => {
-      assert.strictEqual(DEFAULT_APPLICATIONS_DIR, '/Applications')
+describe('constants', () => {
+  describe('DEFAULT_APPLICATIONS_DIR', () => {
+    test('should be the standard macOS Applications directory', () => {
+      expect(DEFAULT_APPLICATIONS_DIR).toBe('/Applications')
     })
   })
 
-  void describe('BREW_COMMANDS', () => {
-    void test('INFO_CASK should generate correct command', () => {
+  describe('BREW_COMMANDS', () => {
+    test('INFO_CASK should generate correct command', () => {
       const result = BREW_COMMANDS.INFO_CASK('test-app')
-      assert.strictEqual(result, 'brew info --cask "test-app"')
+      expect(result).toBe('brew info --cask "test-app"')
     })
 
-    void test('INFO_CASK should handle names with spaces', () => {
+    test('INFO_CASK should handle names with spaces', () => {
       const result = BREW_COMMANDS.INFO_CASK('Test App')
-      assert.strictEqual(result, 'brew info --cask "Test App"')
+      expect(result).toBe('brew info --cask "Test App"')
     })
 
-    void test('INSTALL_CASK should generate correct command for single cask', () => {
+    test('INSTALL_CASK should generate correct command for single cask', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['test-app'])
-      assert.strictEqual(result, 'brew install --cask --force "test-app"')
+      expect(result).toBe('brew install --cask --force "test-app"')
     })
 
-    void test('INSTALL_CASK should generate correct command for multiple casks', () => {
+    test('INSTALL_CASK should generate correct command for multiple casks', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['app1', 'app2', 'app3'])
-      assert.strictEqual(result, 'brew install --cask --force "app1" "app2" "app3"')
+      expect(result).toBe('brew install --cask --force "app1" "app2" "app3"')
     })
 
-    void test('INSTALL_CASK should handle empty array', () => {
+    test('INSTALL_CASK should handle empty array', () => {
       const result = BREW_COMMANDS.INSTALL_CASK([])
-      assert.strictEqual(result, 'brew install --cask --force ')
+      expect(result).toBe('brew install --cask --force ')
     })
 
-    void test('INSTALL_CASK should quote names with spaces', () => {
+    test('INSTALL_CASK should quote names with spaces', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['Test App', 'another-app'])
-      assert.strictEqual(result, 'brew install --cask --force "Test App" "another-app"')
+      expect(result).toBe('brew install --cask --force "Test App" "another-app"')
     })
 
-    void test('LIST_CASKS should be correct command', () => {
-      assert.strictEqual(BREW_COMMANDS.LIST_CASKS, 'brew ls -1 --cask')
+    test('LIST_CASKS should be correct command', () => {
+      expect(BREW_COMMANDS.LIST_CASKS).toBe('brew ls -1 --cask')
     })
 
-    void test('VERSION should be correct command', () => {
-      assert.strictEqual(BREW_COMMANDS.VERSION, 'brew --version')
-    })
-  })
-
-  void describe('FILE_PATTERNS', () => {
-    void test('should have correct app extension', () => {
-      assert.strictEqual(FILE_PATTERNS.APP_EXTENSION, '.app')
-    })
-
-    void test('should have correct app pattern regex', () => {
-      assert.ok(FILE_PATTERNS.APP_PATTERN instanceof RegExp)
-      assert.strictEqual(FILE_PATTERNS.APP_PATTERN.source, String.raw`\.app$`)
-      assert.strictEqual(FILE_PATTERNS.APP_PATTERN.flags, 'i')
-    })
-
-    void test('APP_PATTERN should match .app files', () => {
-      assert.ok(FILE_PATTERNS.APP_PATTERN.test('TestApp.app'))
-      assert.ok(FILE_PATTERNS.APP_PATTERN.test('test.APP'))
-      assert.ok(FILE_PATTERNS.APP_PATTERN.test('my-app.App'))
-    })
-
-    void test('APP_PATTERN should not match non-.app files', () => {
-      assert.ok(!FILE_PATTERNS.APP_PATTERN.test('test.dmg'))
-      assert.ok(!FILE_PATTERNS.APP_PATTERN.test('app.txt'))
-      assert.ok(!FILE_PATTERNS.APP_PATTERN.test('test'))
+    test('VERSION should be correct command', () => {
+      expect(BREW_COMMANDS.VERSION).toBe('brew --version')
     })
   })
 
-  void describe('EXIT_CODES', () => {
-    void test('should have all required exit codes', () => {
-      assert.strictEqual(typeof EXIT_CODES.SUCCESS, 'number')
-      assert.strictEqual(typeof EXIT_CODES.GENERAL_ERROR, 'number')
-      assert.strictEqual(typeof EXIT_CODES.HOMEBREW_NOT_INSTALLED, 'number')
-      assert.strictEqual(typeof EXIT_CODES.PERMISSION_DENIED, 'number')
-      assert.strictEqual(typeof EXIT_CODES.INVALID_INPUT, 'number')
-      assert.strictEqual(typeof EXIT_CODES.NETWORK_ERROR, 'number')
+  describe('FILE_PATTERNS', () => {
+    test('should have correct app extension', () => {
+      expect(FILE_PATTERNS.APP_EXTENSION).toBe('.app')
     })
 
-    void test('should have correct exit code values', () => {
-      assert.strictEqual(EXIT_CODES.SUCCESS, 0)
-      assert.strictEqual(EXIT_CODES.GENERAL_ERROR, 1)
-      assert.strictEqual(EXIT_CODES.HOMEBREW_NOT_INSTALLED, 2)
-      assert.strictEqual(EXIT_CODES.PERMISSION_DENIED, 3)
-      assert.strictEqual(EXIT_CODES.INVALID_INPUT, 4)
-      assert.strictEqual(EXIT_CODES.NETWORK_ERROR, 5)
+    test('should have correct app pattern regex', () => {
+      expect(FILE_PATTERNS.APP_PATTERN).toBeInstanceOf(RegExp)
+      expect(FILE_PATTERNS.APP_PATTERN.source).toBe(String.raw`\.app$`)
+      expect(FILE_PATTERNS.APP_PATTERN.flags).toBe('i')
     })
 
-    void test('should have unique exit code values', () => {
+    test('APP_PATTERN should match .app files', () => {
+      expect(FILE_PATTERNS.APP_PATTERN.test('TestApp.app')).toBe(true)
+      expect(FILE_PATTERNS.APP_PATTERN.test('test.APP')).toBe(true)
+      expect(FILE_PATTERNS.APP_PATTERN.test('my-app.App')).toBe(true)
+    })
+
+    test('APP_PATTERN should not match non-.app files', () => {
+      expect(FILE_PATTERNS.APP_PATTERN.test('test.dmg')).toBe(false)
+      expect(FILE_PATTERNS.APP_PATTERN.test('app.txt')).toBe(false)
+      expect(FILE_PATTERNS.APP_PATTERN.test('test')).toBe(false)
+    })
+  })
+
+  describe('EXIT_CODES', () => {
+    test('should have all required exit codes', () => {
+      expect(typeof EXIT_CODES.SUCCESS).toBe('number')
+      expect(typeof EXIT_CODES.GENERAL_ERROR).toBe('number')
+      expect(typeof EXIT_CODES.HOMEBREW_NOT_INSTALLED).toBe('number')
+      expect(typeof EXIT_CODES.PERMISSION_DENIED).toBe('number')
+      expect(typeof EXIT_CODES.INVALID_INPUT).toBe('number')
+      expect(typeof EXIT_CODES.NETWORK_ERROR).toBe('number')
+    })
+
+    test('should have correct exit code values', () => {
+      expect(EXIT_CODES.SUCCESS).toBe(0)
+      expect(EXIT_CODES.GENERAL_ERROR).toBe(1)
+      expect(EXIT_CODES.HOMEBREW_NOT_INSTALLED).toBe(2)
+      expect(EXIT_CODES.PERMISSION_DENIED).toBe(3)
+      expect(EXIT_CODES.INVALID_INPUT).toBe(4)
+      expect(EXIT_CODES.NETWORK_ERROR).toBe(5)
+    })
+
+    test('should have unique exit code values', () => {
       const values = Object.values(EXIT_CODES)
       const uniqueValues = [...new Set(values)]
-      assert.strictEqual(values.length, uniqueValues.length)
+      expect(values.length).toBe(uniqueValues.length)
     })
   })
 
-  void describe('DEFAULT_CONFIG', () => {
-    void test('should have all required configuration properties', () => {
-      assert.strictEqual(typeof DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, 'number')
-      assert.strictEqual(typeof DEFAULT_CONFIG.DRY_RUN, 'boolean')
-      assert.strictEqual(typeof DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS, 'number')
-      assert.strictEqual(typeof DEFAULT_CONFIG.VERBOSE, 'boolean')
+  describe('DEFAULT_CONFIG', () => {
+    test('should have all required configuration properties', () => {
+      expect(typeof DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT).toBe('number')
+      expect(typeof DEFAULT_CONFIG.DRY_RUN).toBe('boolean')
+      expect(typeof DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS).toBe('number')
+      expect(typeof DEFAULT_CONFIG.VERBOSE).toBe('boolean')
     })
 
-    void test('should have correct default values', () => {
-      assert.strictEqual(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, 30_000)
-      assert.strictEqual(DEFAULT_CONFIG.DRY_RUN, false)
-      assert.strictEqual(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS, 5)
-      assert.strictEqual(DEFAULT_CONFIG.VERBOSE, false)
+    test('should have correct default values', () => {
+      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT).toBe(30_000)
+      expect(DEFAULT_CONFIG.DRY_RUN).toBe(false)
+      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS).toBe(5)
+      expect(DEFAULT_CONFIG.VERBOSE).toBe(false)
     })
 
-    void test('timeout should be reasonable', () => {
-      assert.ok(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT > 0)
-      assert.ok(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT <= 60_000) // Max 1 minute
+    test('timeout should be reasonable', () => {
+      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT > 0).toBe(true)
+      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT <= 60_000).toBe(true) // Max 1 minute
     })
 
-    void test('max concurrent operations should be reasonable', () => {
-      assert.ok(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS > 0)
-      assert.ok(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS <= 20) // Reasonable max
+    test('max concurrent operations should be reasonable', () => {
+      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS > 0).toBe(true)
+      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS <= 20).toBe(true) // Reasonable max
     })
   })
 
-  void describe('MESSAGES', () => {
-    void test('should have all required message strings', () => {
-      assert.strictEqual(typeof MESSAGES.CHECKING_HOMEBREW, 'string')
-      assert.strictEqual(typeof MESSAGES.DELETING_APPS, 'string')
-      assert.strictEqual(typeof MESSAGES.DRY_RUN_MODE, 'string')
-      assert.strictEqual(typeof MESSAGES.HOMEBREW_NOT_INSTALLED, 'string')
-      assert.strictEqual(typeof MESSAGES.INSTALLING_PACKAGES, 'string')
-      assert.strictEqual(typeof MESSAGES.NO_APPS_FOUND, 'string')
-      assert.strictEqual(typeof MESSAGES.NO_APPS_SELECTED, 'string')
-      assert.strictEqual(typeof MESSAGES.OPERATION_CANCELLED, 'string')
-      assert.strictEqual(typeof MESSAGES.OPERATION_COMPLETE, 'string')
-      assert.strictEqual(typeof MESSAGES.PERMISSION_DENIED, 'string')
-      assert.strictEqual(typeof MESSAGES.SCANNING_APPS, 'string')
+  describe('MESSAGES', () => {
+    test('should have all required message strings', () => {
+      expect(typeof MESSAGES.CHECKING_HOMEBREW).toBe('string')
+      expect(typeof MESSAGES.DELETING_APPS).toBe('string')
+      expect(typeof MESSAGES.DRY_RUN_MODE).toBe('string')
+      expect(typeof MESSAGES.HOMEBREW_NOT_INSTALLED).toBe('string')
+      expect(typeof MESSAGES.INSTALLING_PACKAGES).toBe('string')
+      expect(typeof MESSAGES.NO_APPS_FOUND).toBe('string')
+      expect(typeof MESSAGES.NO_APPS_SELECTED).toBe('string')
+      expect(typeof MESSAGES.OPERATION_CANCELLED).toBe('string')
+      expect(typeof MESSAGES.OPERATION_COMPLETE).toBe('string')
+      expect(typeof MESSAGES.PERMISSION_DENIED).toBe('string')
+      expect(typeof MESSAGES.SCANNING_APPS).toBe('string')
     })
 
-    void test('messages should not be empty', () => {
+    test('messages should not be empty', () => {
       for (const message of Object.values(MESSAGES)) {
-        assert.ok(message.length > 0, `Message should not be empty: "${message}"`)
+        expect(message.length > 0).toBe(true)
       }
     })
 
-    void test('should have specific expected messages', () => {
-      assert.strictEqual(MESSAGES.CHECKING_HOMEBREW, 'Checking Homebrew availability...')
-      assert.strictEqual(MESSAGES.DELETING_APPS, 'Deleting original applications...')
-      assert.strictEqual(MESSAGES.DRY_RUN_MODE, 'Running in dry-run mode. No actual changes will be made.')
-      assert.strictEqual(MESSAGES.HOMEBREW_NOT_INSTALLED, 'Homebrew is not installed. Please install it before continuing.')
-      assert.strictEqual(MESSAGES.INSTALLING_PACKAGES, 'Installing packages...')
-      assert.strictEqual(MESSAGES.NO_APPS_FOUND, 'No applications found in the Applications directory.')
-      assert.strictEqual(MESSAGES.NO_APPS_SELECTED, 'No applications selected for installation.')
-      assert.strictEqual(MESSAGES.OPERATION_CANCELLED, 'Operation cancelled by user.')
-      assert.strictEqual(MESSAGES.OPERATION_COMPLETE, 'Operation completed successfully.')
-      assert.strictEqual(MESSAGES.PERMISSION_DENIED, 'Permission denied. You may need to run with appropriate permissions.')
-      assert.strictEqual(MESSAGES.SCANNING_APPS, 'Scanning applications...')
+    test('should have specific expected messages', () => {
+      expect(MESSAGES.CHECKING_HOMEBREW).toBe('Checking Homebrew availability...')
+      expect(MESSAGES.DELETING_APPS).toBe('Deleting original applications...')
+      expect(MESSAGES.DRY_RUN_MODE).toBe('Running in dry-run mode. No actual changes will be made.')
+      expect(MESSAGES.HOMEBREW_NOT_INSTALLED).toBe('Homebrew is not installed. Please install it before continuing.')
+      expect(MESSAGES.INSTALLING_PACKAGES).toBe('Installing packages...')
+      expect(MESSAGES.NO_APPS_FOUND).toBe('No applications found in the Applications directory.')
+      expect(MESSAGES.NO_APPS_SELECTED).toBe('No applications selected for installation.')
+      expect(MESSAGES.OPERATION_CANCELLED).toBe('Operation cancelled by user.')
+      expect(MESSAGES.OPERATION_COMPLETE).toBe('Operation completed successfully.')
+      expect(MESSAGES.PERMISSION_DENIED).toBe('Permission denied. You may need to run with appropriate permissions.')
+      expect(MESSAGES.SCANNING_APPS).toBe('Scanning applications...')
     })
   })
-
-/* Removed REGEX_PATTERNS tests as it is no longer in source code */
 })

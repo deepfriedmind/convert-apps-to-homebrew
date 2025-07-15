@@ -245,7 +245,7 @@ export function setupSignalHandlers(): void {
   process.on('uncaughtException', (error) => {
     consola.error(`Uncaught exception: ${error.message}`)
 
-    if (process.env['NODE_ENV'] === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       consola.error(error.stack)
     }
 

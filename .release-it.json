@@ -7,8 +7,7 @@
     "release": true
   },
   "hooks": {
-    "after:bump": "npm run build",
-    "before:init": "npm run check"
+    "before:init": "bun check"
   },
   "plugins": {
     "@release-it/conventional-changelog": {

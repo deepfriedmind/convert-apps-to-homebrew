@@ -2,15 +2,14 @@
  * Test file for installer.ts
  */
 
-import assert from 'node:assert'
-import { describe, test } from 'node:test'
+import { describe, expect, test } from 'bun:test'
 
 import type { AppInfo, InstallationResult, PackageInstallResult } from '../src/types.ts'
 
 import { getInstallationSummary } from '../src/installer.ts'
 
-void describe('getInstallationSummary', () => {
-  void test('should create dry run summary with no apps', () => {
+describe('getInstallationSummary', () => {
+  test('should create dry run summary with no apps', () => {
     const result: InstallationResult = {
       alreadyInstalled: [],
       dryRun: true,
@@ -21,11 +20,11 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('DRY RUN SUMMARY'))
-    assert.ok(summary.includes('═'.repeat(50)))
+    expect(summary).toContain('DRY RUN SUMMARY')
+    expect(summary).toContain('═'.repeat(50))
   })
 
-  void test('should create installation summary with successful installs', () => {
+  test('should create installation summary with successful installs', () => {
     const installedApp: PackageInstallResult = {
       appName: 'Test App',
       dryRun: false,
@@ -43,13 +42,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
-    assert.ok(summary.includes('Successfully installed: 1'))
-    assert.ok(summary.includes('Test App'))
-    assert.ok(summary.includes('test-app'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
+    expect(summary).toContain('Successfully installed: 1')
+    expect(summary).toContain('Test App')
+    expect(summary).toContain('test-app')
   })
 
-  void test('should create installation summary with failed installs', () => {
+  test('should create installation summary with failed installs', () => {
     const failedApp: PackageInstallResult = {
       appName: 'Failed App',
       dryRun: false,
@@ -68,13 +67,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
-    assert.ok(summary.includes('Failed to install: 1'))
-    assert.ok(summary.includes('Failed App'))
-    assert.ok(summary.includes('Installation failed'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
+    expect(summary).toContain('Failed to install: 1')
+    expect(summary).toContain('Failed App')
+    expect(summary).toContain('Installation failed')
   })
 
-  void test('should create summary with both successful and failed installs', () => {
+  test('should create summary with both successful and failed installs', () => {
     const installedApp: PackageInstallResult = {
       appName: 'Success App',
       dryRun: false,
@@ -100,14 +99,14 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
-    assert.ok(summary.includes('Successfully installed: 1'))
-    assert.ok(summary.includes('Failed to install: 1'))
-    assert.ok(summary.includes('Success App'))
-    assert.ok(summary.includes('Failed App'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
+    expect(summary).toContain('Successfully installed: 1')
+    expect(summary).toContain('Failed to install: 1')
+    expect(summary).toContain('Success App')
+    expect(summary).toContain('Failed App')
   })
 
-  void test('should handle failed install without error message', () => {
+  test('should handle failed install without error message', () => {
     const failedApp: PackageInstallResult = {
       appName: 'Failed App',
       dryRun: false,
@@ -125,12 +124,12 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('Failed to install: 1'))
-    assert.ok(summary.includes('Failed App'))
-    assert.ok(summary.includes('Unknown error'))
+    expect(summary).toContain('Failed to install: 1')
+    expect(summary).toContain('Failed App')
+    expect(summary).toContain('Unknown error')
   })
 
-  void test('should handle already installed apps', () => {
+  test('should handle already installed apps', () => {
     const alreadyInstalledApp: AppInfo = {
       alreadyInstalled: true,
       appPath: '/Applications/Test App.app',
@@ -150,13 +149,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
     // Currently getInstallationSummary doesn't handle alreadyInstalled,
     // so it should show "No packages were processed"
-    assert.ok(summary.includes('No packages were processed'))
+    expect(summary).toContain('No packages were processed')
   })
 
-  void test('should handle ignored apps', () => {
+  test('should handle ignored apps', () => {
     const ignoredApp: AppInfo = {
       alreadyInstalled: false,
       appPath: '/Applications/Ignored App.app',
@@ -176,13 +175,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
     // Currently getInstallationSummary doesn't handle ignored,
     // so it should show "No packages were processed"
-    assert.ok(summary.includes('No packages were processed'))
+    expect(summary).toContain('No packages were processed')
   })
 
-  void test('should handle unavailable apps', () => {
+  test('should handle unavailable apps', () => {
     const unavailableApp: AppInfo = {
       alreadyInstalled: false,
       appPath: '/Applications/Unavailable App.app',
@@ -202,13 +201,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
     // Currently getInstallationSummary doesn't handle unavailable,
     // so it should show "No packages were processed"
-    assert.ok(summary.includes('No packages were processed'))
+    expect(summary).toContain('No packages were processed')
   })
 
-  void test('should handle comprehensive summary with all types', () => {
+  test('should handle comprehensive summary with all types', () => {
     const installedApp: PackageInstallResult = {
       appName: 'Installed App',
       dryRun: false,
@@ -261,13 +260,13 @@ void describe('getInstallationSummary', () => {
     }
 
     const summary = getInstallationSummary(result)
-    assert.ok(summary.includes('INSTALLATION SUMMARY'))
-    assert.ok(summary.includes('Successfully installed: 1'))
-    assert.ok(summary.includes('Failed to install: 1'))
-    assert.ok(summary.includes('Installed App'))
-    assert.ok(summary.includes('Failed App'))
+    expect(summary).toContain('INSTALLATION SUMMARY')
+    expect(summary).toContain('Successfully installed: 1')
+    expect(summary).toContain('Failed to install: 1')
+    expect(summary).toContain('Installed App')
+    expect(summary).toContain('Failed App')
     // Currently getInstallationSummary doesn't include alreadyInstalled, ignored, unavailable
     // but since we have installed and failed, it won't show "No packages were processed"
-    assert.ok(!summary.includes('No packages were processed'))
+    expect(summary).not.toContain('No packages were processed')
   })
 })

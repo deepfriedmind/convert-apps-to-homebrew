@@ -2,21 +2,20 @@
  * Test file for index.ts
  */
 
-import assert from 'node:assert'
-import { describe, test } from 'node:test'
+import { describe, expect, test } from 'bun:test'
 
 import type { AppInfo, InstallationResult } from '../src/types.ts'
 
-void describe('main entry point', () => {
-  void test('should handle direct execution check', () => {
+describe('main entry point', () => {
+  test('should handle direct execution check', () => {
     // Test that the module checks import.meta.url for direct execution
     // This is tested implicitly by the fact that the module loads without error
-    assert.ok(import.meta.url.startsWith('file://'))
+    expect(import.meta.url.startsWith('file://')).toBe(true)
   })
 })
 
-void describe('data structure validation', () => {
-  void test('should validate operation summary calculation logic', () => {
+describe('data structure validation', () => {
+  test('should validate operation summary calculation logic', () => {
     // Test the logic that would be used by generateOperationSummary
     const allApps: AppInfo[] = [
       {
@@ -67,14 +66,14 @@ void describe('data structure validation', () => {
     const ignored = allApps.filter(app => app.status === 'ignored')
     const unavailable = allApps.filter(app => app.status === 'unavailable')
 
-    assert.strictEqual(available.length, 2, 'Should have 2 available apps')
-    assert.strictEqual(alreadyInstalled.length, 1, 'Should have 1 already installed app')
-    assert.strictEqual(ignored.length, 1, 'Should have 1 ignored app')
-    assert.strictEqual(unavailable.length, 1, 'Should have 1 unavailable app')
-    assert.strictEqual(allApps.length, 5, 'Should have 5 total apps')
+    expect(available).toHaveLength(2)
+    expect(alreadyInstalled).toHaveLength(1)
+    expect(ignored).toHaveLength(1)
+    expect(unavailable).toHaveLength(1)
+    expect(allApps).toHaveLength(5)
   })
 
-  void test('should validate installation result filtering logic', () => {
+  test('should validate installation result filtering logic', () => {
     const selectedApps: AppInfo[] = [
       {
         alreadyInstalled: false,
@@ -127,15 +126,15 @@ void describe('data structure validation', () => {
       installationResult.failed.some(result => result.packageName === app.brewName),
     )
 
-    assert.strictEqual(installedApps.length, 1, 'Should have 1 successfully installed app')
-    assert.strictEqual(failedApps.length, 1, 'Should have 1 failed installation')
-    assert.strictEqual(installedApps[0]?.brewName, 'selected1', 'Installed app should be selected1')
-    assert.strictEqual(failedApps[0]?.brewName, 'selected2', 'Failed app should be selected2')
+    expect(installedApps).toHaveLength(1)
+    expect(failedApps).toHaveLength(1)
+    expect(installedApps[0]?.brewName).toBe('selected1')
+    expect(failedApps[0]?.brewName).toBe('selected2')
   })
 })
 
-void describe('error handling validation', () => {
-  void test('should validate error type handling logic', () => {
+describe('error handling validation', () => {
+  test('should validate error type handling logic', () => {
     // Test error scenarios that the handleError function would handle
     const testErrors = [
       { message: 'Test error', name: 'ConvertAppsError' },
@@ -147,23 +146,23 @@ void describe('error handling validation', () => {
       const error = new Error(errorData.message)
       error.name = errorData.name
 
-      assert.ok(error instanceof Error, `${errorData.name} should be an Error instance`)
-      assert.strictEqual(error.message, errorData.message, `${errorData.name} should have correct message`)
-      assert.strictEqual(error.name, errorData.name, `${errorData.name} should have correct name`)
+      expect(error).toBeInstanceOf(Error)
+      expect(error.message).toBe(errorData.message)
+      expect(error.name).toBe(errorData.name)
     }
   })
 
-  void test('should validate user cancellation detection', () => {
+  test('should validate user cancellation detection', () => {
     const userCancelError = new Error('User cancelled operation')
     userCancelError.name = 'ExitPromptError'
 
     // Test the logic used in main() to detect user cancellation
     const isUserCancellation = userCancelError.name === 'ExitPromptError'
 
-    assert.ok(isUserCancellation, 'Should detect user cancellation correctly')
+    expect(isUserCancellation).toBe(true)
   })
 
-  void test('should validate error message extraction', () => {
+  test('should validate error message extraction', () => {
     // Test the error message extraction logic used in main()
     const testCases = [
       { expected: 'Test message', input: new Error('Test message') },
@@ -174,13 +173,13 @@ void describe('error handling validation', () => {
 
     for (const { expected, input } of testCases) {
       const errorMessage = input instanceof Error ? input.message : String(input)
-      assert.strictEqual(errorMessage, expected, 'Should extract error message correctly')
+      expect(errorMessage).toBe(expected)
     }
   })
 })
 
-void describe('application flow validation', () => {
-  void test('should validate configuration creation logic', () => {
+describe('application flow validation', () => {
+  test('should validate configuration creation logic', () => {
     // Test the logic used by createInstallerConfig and createScannerConfig
     const mockOptions = {
       applicationsDir: '/custom/apps',
@@ -195,8 +194,8 @@ void describe('application flow validation', () => {
       verbose: mockOptions.verbose,
     }
 
-    assert.strictEqual(installerConfig.dryRun, true, 'Should set dry run correctly')
-    assert.strictEqual(installerConfig.verbose, true, 'Should set verbose correctly')
+    expect(installerConfig.dryRun).toBe(true)
+    expect(installerConfig.verbose).toBe(true)
 
     // Test scanner config logic
     const scannerConfig = {
@@ -205,41 +204,41 @@ void describe('application flow validation', () => {
       verbose: mockOptions.verbose,
     }
 
-    assert.strictEqual(scannerConfig.applicationsDir, '/custom/apps', 'Should use custom applications directory')
-    assert.deepStrictEqual(scannerConfig.ignoredApps, ['app1', 'app2'], 'Should use ignored apps list')
-    assert.strictEqual(scannerConfig.verbose, true, 'Should set verbose correctly')
+    expect(scannerConfig.applicationsDir).toBe('/custom/apps')
+    expect(scannerConfig.ignoredApps).toEqual(['app1', 'app2'])
+    expect(scannerConfig.verbose).toBe(true)
   })
 
-  void test('should validate empty collections handling', () => {
+  test('should validate empty collections handling', () => {
     // Test logic for handling empty arrays and no selection scenarios
     const emptyApps: AppInfo[] = []
     const noSelection: AppInfo[] = []
 
-    assert.strictEqual(emptyApps.length, 0, 'Should handle empty app discovery')
-    assert.strictEqual(noSelection.length, 0, 'Should handle no app selection')
+    expect(emptyApps).toHaveLength(0)
+    expect(noSelection).toHaveLength(0)
 
     // Test early exit conditions
     const shouldExitEarly = emptyApps.length === 0 || noSelection.length === 0
-    assert.ok(shouldExitEarly, 'Should exit early when no apps are available or selected')
+    expect(shouldExitEarly).toBe(true)
   })
 
-  void test('should validate confirmation flow logic', () => {
+  test('should validate confirmation flow logic', () => {
     // Test the confirmation and cancellation logic
     const testConfirmations = [true, false]
 
     for (const confirmed of testConfirmations) {
       if (confirmed) {
         // This simulates the proceed path in main()
-        assert.ok(confirmed, 'Should handle user confirming to proceed')
+        expect(confirmed).toBe(true)
       }
       else {
         // This simulates the cancellation path in main()
-        assert.ok(!confirmed, 'Should handle user declining confirmation')
+        expect(confirmed).toBe(false)
       }
     }
   })
 
-  void test('should validate operation type selection', () => {
+  test('should validate operation type selection', () => {
     // Test dry run vs real installation logic
     const dryRunOptions = { dryRun: true }
     const realRunOptions = { dryRun: false }
@@ -247,13 +246,13 @@ void describe('application flow validation', () => {
     const dryRunOperationType = dryRunOptions.dryRun ? 'dry run' : 'installation'
     const realRunOperationType = realRunOptions.dryRun ? 'dry run' : 'installation'
 
-    assert.strictEqual(dryRunOperationType, 'dry run', 'Should identify dry run operation')
-    assert.strictEqual(realRunOperationType, 'installation', 'Should identify real installation operation')
+    expect(dryRunOperationType).toBe('dry run')
+    expect(realRunOperationType).toBe('installation')
   })
 })
 
-void describe('exit code validation', () => {
-  void test('should validate success exit logic', () => {
+describe('exit code validation', () => {
+  test('should validate success exit logic', () => {
     // Test successful operation scenarios
     const successfulInstallation: InstallationResult = {
       alreadyInstalled: [],
@@ -267,10 +266,10 @@ void describe('exit code validation', () => {
     }
 
     const shouldExitWithSuccess = successfulInstallation.failed.length === 0
-    assert.ok(shouldExitWithSuccess, 'Should exit with success when no failures occur')
+    expect(shouldExitWithSuccess).toBe(true)
   })
 
-  void test('should validate error exit logic', () => {
+  test('should validate error exit logic', () => {
     // Test failed operation scenarios
     const failedInstallation: InstallationResult = {
       alreadyInstalled: [],
@@ -284,11 +283,11 @@ void describe('exit code validation', () => {
     }
 
     const shouldExitWithError = failedInstallation.failed.length > 0
-    assert.ok(shouldExitWithError, 'Should exit with error when installations fail')
-    assert.strictEqual(failedInstallation.failed.length, 1, 'Should count failed installations correctly')
+    expect(shouldExitWithError).toBe(true)
+    expect(failedInstallation.failed).toHaveLength(1)
   })
 
-  void test('should validate mixed results logic', () => {
+  test('should validate mixed results logic', () => {
     // Test scenarios with both successes and failures
     const mixedInstallation: InstallationResult = {
       alreadyInstalled: [],
@@ -306,23 +305,23 @@ void describe('exit code validation', () => {
     const hasFailures = mixedInstallation.failed.length > 0
     const hasSuccesses = mixedInstallation.installed.length > 0
 
-    assert.ok(hasFailures, 'Should detect failures in mixed results')
-    assert.ok(hasSuccesses, 'Should detect successes in mixed results')
-    assert.ok(hasFailures, 'Should exit with error when any installations fail')
+    expect(hasFailures).toBe(true)
+    expect(hasSuccesses).toBe(true)
+    expect(hasFailures).toBe(true)
   })
 })
 
-void describe('module execution validation', () => {
-  void test('should validate import.meta.url format', () => {
+describe('module execution validation', () => {
+  test('should validate import.meta.url format', () => {
     // Test the import.meta.url check used for direct execution detection
-    assert.ok(import.meta.url.startsWith('file://'), 'import.meta.url should have file:// protocol')
-    assert.ok(typeof import.meta.url === 'string', 'import.meta.url should be a string')
+    expect(import.meta.url.startsWith('file://')).toBe(true)
+    expect(typeof import.meta.url).toBe('string')
   })
 
-  void test('should validate process.argv structure', () => {
+  test('should validate process.argv structure', () => {
     // Test process.argv access used in direct execution check
-    assert.ok(Array.isArray(process.argv), 'process.argv should be an array')
-    assert.ok(process.argv.length >= 2, 'process.argv should have at least 2 elements')
-    assert.ok(typeof process.argv[1] === 'string', 'process.argv[1] should be a string')
+    expect(Array.isArray(process.argv)).toBe(true)
+    expect(process.argv.length).toBeGreaterThanOrEqual(2)
+    expect(typeof process.argv[1]).toBe('string')
   })
 })
