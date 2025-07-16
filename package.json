@@ -80,7 +80,7 @@
   },
   "packageManager": "bun@1.2.18",
   "engines": {
-    "node": ">= 20.18.1"
+    "node": ">= 16"
   },
   "os": [
     "darwin"
