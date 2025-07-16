@@ -9,10 +9,7 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "args": ["--verbose", "--dry-run"],
-      "skipFiles": [
-        "<node_internals>/**",
-        "${workspaceFolder}/node_modules/**"
-      ]
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
     }
   ]
 }

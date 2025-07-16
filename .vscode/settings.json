@@ -1,6 +1,9 @@
 {
+  "[javascript][typescript][javascriptreact][typescriptreact][json][jsonc][css][graphql]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "cSpell.ignorePaths": [
-    "package-lock.json",
+    "bun.lock",
     "node_modules",
     "vscode-extension",
     ".git/{info,lfs,logs,refs,objects}/**",
@@ -10,67 +13,31 @@
     "CHANGELOG.md"
   ],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "never",
-    "source.sortImports": "never"
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
   },
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
   "editor.formatOnType": false,
   "editor.quickSuggestions": {
     "strings": true
   },
-  "eslint.rules.customizations": [{ "fixable": true, "rule": "*", "severity": "off" }],
-  "eslint.runtime": "node",
-  "eslint.validate": [
-    "astro",
-    "css",
-    "gql",
-    "graphql",
-    "html",
-    "javascript",
-    "javascriptreact",
-    "json",
-    "json5",
-    "jsonc",
-    "less",
-    "markdown",
-    "pcss",
-    "postcss",
-    "scss",
-    "svelte",
-    "toml",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "xml",
-    "yaml"
-  ],
+  "emmet.showExpandedAbbreviation": "never",
   "explorer.excludeGitIgnore": true,
   "explorerExclude.backup": {},
   "files.readonlyInclude": {
     "CHANGELOG.md": true,
+    "bun.lock": true,
     "coverage/**/*": true,
     "dist/**/*": true,
-    "node_modules/**/*": true,
-    "package-lock.json": true
+    "node_modules/**/*": true
   },
   "git.inputValidationSubjectLength": 72,
-  "nodejs-testing.extensions": [
-    {
-      "extensions": [
-        "mjs",
-        "cjs",
-        "js",
-        "ts"
-      ],
-      "parameters": []
-    }
-  ],
+  "npm.packageManager": "bun",
   "peacock.color": "#f9d094",
-  "prettier.enable": false,
   "search.exclude": {
-    "package-lock.json": true
+    "bun.lock": true
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "workbench.colorCustomizations": {

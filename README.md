@@ -2,10 +2,10 @@
 
 ![NPM Version](https://img.shields.io/npm/v/convert-apps-to-homebrew?label=)
 ![NPM License](https://img.shields.io/npm/l/convert-apps-to-homebrew)
-![Node Current](https://img.shields.io/node/v/convert-apps-to-homebrew)
-![Bun version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdeepfriedmind%2Fconvert-apps-to-homebrew%2Frefs%2Fheads%2Fmain%2Fpackage.json&query=devEngines.runtime.version&logo=bun&label=bun)
+![Node Current](https://img.shields.io/node/v/convert-apps-to-homebrew?label=Runs+in+Node)
+![Bun version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdeepfriedmind%2Fconvert-apps-to-homebrew%2Frefs%2Fheads%2Fmain%2Fpackage.json&query=devEngines.runtime.version&logo=bun&label=Developed+with+bun)
 ![GitHub top language](https://img.shields.io/github/languages/top/deepfriedmind/convert-apps-to-homebrew)
-[![code style](https://antfu.me/badge-code-style.svg)](https://github.com/antfu/eslint-config)
+[![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?logo=biome)](https://biomejs.dev)
 
 A CLI tool for macOS that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations.
 

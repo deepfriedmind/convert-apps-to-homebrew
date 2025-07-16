@@ -1,7 +1,7 @@
 {
   "recommendations": [
-    "connor4312.nodejs-testing",
-    "dbaeumer.vscode-eslint",
+    "biomejs.biome",
+    "esbenp.prettier-vscode",
     "oven.bun-vscode",
     "wzulfikar.vscode-bun-test-explorer"
   ]
