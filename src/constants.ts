@@ -14,7 +14,8 @@ export const BREW_COMMANDS = {
   /** Check if a cask exists */
   INFO_CASK: (name: string): string => `brew info --cask "${name}"`,
   /** Install casks with force flag to overwrite existing applications */
-  INSTALL_CASK: (names: string[]): string => `brew install --cask --force ${names.map(name => `"${name}"`).join(' ')}`,
+  INSTALL_CASK: (names: string[]): string =>
+    `brew install --cask --force ${names.map((name) => `"${name}"`).join(' ')}`,
   /** List installed casks (one per line) */
   LIST_CASKS: 'brew ls -1 --cask',
   /** Check if Homebrew is installed */
@@ -64,12 +65,14 @@ export const MESSAGES = {
   CHECKING_HOMEBREW: 'Checking Homebrew availability...',
   DELETING_APPS: 'Deleting original applications...',
   DRY_RUN_MODE: 'Running in dry-run mode. No actual changes will be made.',
-  HOMEBREW_NOT_INSTALLED: 'Homebrew is not installed. Please install it before continuing.',
+  HOMEBREW_NOT_INSTALLED:
+    'Homebrew is not installed. Please install it before continuing.',
   INSTALLING_PACKAGES: 'Installing packages...',
   NO_APPS_FOUND: 'No applications found in the Applications directory.',
   NO_APPS_SELECTED: 'No applications selected for installation.',
   OPERATION_CANCELLED: 'Operation cancelled by user.',
   OPERATION_COMPLETE: 'Operation completed successfully.',
-  PERMISSION_DENIED: 'Permission denied. You may need to run with appropriate permissions.',
+  PERMISSION_DENIED:
+    'Permission denied. You may need to run with appropriate permissions.',
   SCANNING_APPS: 'Scanning applications...',
 } as const

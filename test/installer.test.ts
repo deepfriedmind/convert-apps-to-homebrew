@@ -3,10 +3,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
-import type { AppInfo, InstallationResult, PackageInstallResult } from '../src/types.ts'
-
 import { getInstallationSummary } from '../src/installer.ts'
+import type {
+  AppInfo,
+  InstallationResult,
+  PackageInstallResult,
+} from '../src/types.ts'
 
 describe('getInstallationSummary', () => {
   test('should create dry run summary with no apps', () => {

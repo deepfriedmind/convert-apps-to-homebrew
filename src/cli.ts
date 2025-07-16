@@ -5,11 +5,9 @@
 import { Command } from 'commander'
 import { consola } from 'consola'
 import { box, colors } from 'consola/utils'
-
-import type { CommandOptions } from './types.ts'
-
 import packageJson from '../package.json' with { type: 'json' }
 import { MESSAGES } from './constants.ts'
+import type { CommandOptions } from './types.ts'
 
 /**
  * Create and configure the Commander.js program
@@ -19,7 +17,9 @@ export function createProgram(): Command {
 
   program
     .name('convert-apps-to-homebrew')
-    .description('Convert macOS applications to Homebrew installations with interactive selection')
+    .description(
+      'Convert macOS applications to Homebrew installations with interactive selection',
+    )
     .version(getPackageVersion(), '-v, --version', 'display version number')
     .helpOption('-h, --help', 'display help for command')
 
@@ -34,11 +34,7 @@ export function createProgram(): Command {
       'show what would be done without making any changes',
       false,
     )
-    .option(
-      '--verbose',
-      'enable verbose output for debugging',
-      false,
-    )
+    .option('--verbose', 'enable verbose output for debugging', false)
     .option(
       '--applications-dir <path>',
       'specify custom Applications directory path',
@@ -74,7 +70,9 @@ export function createProgram(): Command {
       false,
     )
 
-  program.addHelpText('after', `
+  program.addHelpText(
+    'after',
+    `
 Examples:
   $ npx convert-apps-to-homebrew@latest
   $ npx convert-apps-to-homebrew@latest --dry-run
@@ -101,7 +99,8 @@ Notes:
 Requirements:
   • Mac App Store detection requires 'mas' CLI tool: https://github.com/mas-cli/mas
   • Install with: brew install mas
-`)
+`,
+  )
 
   return program
 }
@@ -110,8 +109,9 @@ Requirements:
  * Display help information for common issues
  */
 export function displayTroubleshooting(): void {
-  consola.log(box(
-    `Common Issues:
+  consola.log(
+    box(
+      `Common Issues:
 
 1. Homebrew not installed:
   Install Homebrew first:
@@ -132,18 +132,24 @@ export function displayTroubleshooting(): void {
 For more help:
   • Visit: ${colors.blue('https://brew.sh')}
   ${packageJson.bugs?.url && `• Report issues: ${colors.blue(packageJson.bugs.url)}`}`,
-    { style: { borderColor: 'yellow' }, title: '🔧 Troubleshooting' },
-  ))
+      { style: { borderColor: 'yellow' }, title: '🔧 Troubleshooting' },
+    ),
+  )
 }
 
 /**
  * Display welcome message with current configuration
  */
 export function displayWelcome(options: CommandOptions): void {
-  consola.log(box(`${colors.magentaBright('    ▄▖          ▗   ▄▖        ▗     ▖▖       ▌')}
+  consola.log(
+    box(
+      `${colors.magentaBright('    ▄▖          ▗   ▄▖        ▗     ▖▖       ▌')}
     ${colors.magentaBright('▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌')}
     ${colors.magenta('▙▖▙▌▌▌▚▘▙▖▌ ▐▖  ▛▌▙▌▙▌▄▌  ▐▖▙▌  ▌▌▙▌▌▌▌▙▖▙▌▌ ▙▖▚▚▘   ')}
-    ${colors.magenta('                  ▌ ▌')}`, { style: { borderColor: 'magentaBright' }, title: '🍺' }))
+    ${colors.magenta('                  ▌ ▌')}`,
+      { style: { borderColor: 'magentaBright' }, title: '🍺' },
+    ),
+  )
 
   // ▄▖          ▗   ▄▖        ▗     ▖▖       ▌
   // ▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌
@@ -174,14 +180,21 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     const options = program.opts()
 
     // Validate applications directory
-    if (options['applicationsDir'] !== undefined && typeof options['applicationsDir'] !== 'string') {
+    if (
+      options['applicationsDir'] !== undefined &&
+      typeof options['applicationsDir'] !== 'string'
+    ) {
       throw new Error('Applications directory must be a valid path')
     }
 
     // Ensure ignore is always an array
-    const ignore: string[] = Array.isArray(options['ignore']) ?
-        (options['ignore'] as unknown[]).filter((item): item is string => typeof item === 'string')
-      : (typeof options['ignore'] === 'string' ? [options['ignore']] : [])
+    const ignore: string[] = Array.isArray(options['ignore'])
+      ? (options['ignore'] as unknown[]).filter(
+          (item): item is string => typeof item === 'string',
+        )
+      : typeof options['ignore'] === 'string'
+        ? [options['ignore']]
+        : []
 
     // Validate ignore list
     for (const app of ignore) {
@@ -191,7 +204,10 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     }
 
     const parsedOptions: CommandOptions = {
-      applicationsDir: typeof options['applicationsDir'] === 'string' ? options['applicationsDir'] : '/Applications',
+      applicationsDir:
+        typeof options['applicationsDir'] === 'string'
+          ? options['applicationsDir']
+          : '/Applications',
       dryRun: Boolean(options['dryRun']),
       fallbackToCli: Boolean(options['fallbackToCli']),
       forceRefreshCache: Boolean(options['forceRefreshCache']),
@@ -206,9 +222,8 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     }
 
     return parsedOptions
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: string, message?: string }
+  } catch (error: unknown) {
+    const typedError = error as { code?: string; message?: string }
 
     if (typedError.code === 'commander.helpDisplayed') {
       // Help was displayed, exit gracefully
@@ -253,7 +268,9 @@ export function setupSignalHandlers(): void {
   })
 
   process.on('unhandledRejection', (reason, promise) => {
-    consola.error(`Unhandled rejection at: ${String(promise)}, reason: ${String(reason)}`)
+    consola.error(
+      `Unhandled rejection at: ${String(promise)}, reason: ${String(reason)}`,
+    )
     process.exit(1)
   })
 }
@@ -278,7 +295,9 @@ export function validateEnvironment(): void {
       const minimumNodeVersion = Number.parseInt(versionString, 10)
 
       if (majorVersion < minimumNodeVersion) {
-        consola.error(`Node.js version ${nodeVersion} is not supported. Please use Node.js ${minimumNodeVersion} or later.`)
+        consola.error(
+          `Node.js version ${nodeVersion} is not supported. Please use Node.js ${minimumNodeVersion} or later.`,
+        )
         process.exit(1)
       }
     }
@@ -290,7 +309,9 @@ export function validateEnvironment(): void {
     process.exit(1)
   }
 
-  consola.debug(`Runtime environment validated: Node.js ${nodeVersion} on ${process.platform}`)
+  consola.debug(
+    `Runtime environment validated: Node.js ${nodeVersion} on ${process.platform}`,
+  )
 }
 
 /**
@@ -299,8 +320,7 @@ export function validateEnvironment(): void {
 function getPackageVersion(): string {
   try {
     return packageJson.version
-  }
-  catch {
+  } catch {
     return '1.0.0'
   }
 }

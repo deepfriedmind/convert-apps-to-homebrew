@@ -18,7 +18,7 @@ describe('CLI', () => {
       const program = createProgram()
       const { options } = program
 
-      const optionNames = new Set(options.map(opt => opt.long))
+      const optionNames = new Set(options.map((opt) => opt.long))
       expect(optionNames.has('--ignore')).toBe(true)
       expect(optionNames.has('--dry-run')).toBe(true)
       expect(optionNames.has('--verbose')).toBe(true)
@@ -155,7 +155,9 @@ describe('CLI', () => {
 
     test('should configure ignore option correctly', () => {
       const program = createProgram()
-      const ignoreOption = program.options.find(opt => opt.long === '--ignore')
+      const ignoreOption = program.options.find(
+        (opt) => opt.long === '--ignore',
+      )
 
       expect(ignoreOption).toBeDefined()
       expect(ignoreOption?.flags).toBe('-i, --ignore <apps...>')
@@ -163,7 +165,9 @@ describe('CLI', () => {
 
     test('should configure dry-run option correctly', () => {
       const program = createProgram()
-      const dryRunOption = program.options.find(opt => opt.long === '--dry-run')
+      const dryRunOption = program.options.find(
+        (opt) => opt.long === '--dry-run',
+      )
 
       expect(dryRunOption).toBeDefined()
       expect(dryRunOption?.flags).toBe('-d, --dry-run')
@@ -171,7 +175,9 @@ describe('CLI', () => {
 
     test('should configure verbose option correctly', () => {
       const program = createProgram()
-      const verboseOption = program.options.find(opt => opt.long === '--verbose')
+      const verboseOption = program.options.find(
+        (opt) => opt.long === '--verbose',
+      )
 
       expect(verboseOption).toBeDefined()
       expect(verboseOption?.flags).toBe('--verbose')
@@ -179,7 +185,9 @@ describe('CLI', () => {
 
     test('should configure applications-dir option correctly', () => {
       const program = createProgram()
-      const appsDirectoryOption = program.options.find(opt => opt.long === '--applications-dir')
+      const appsDirectoryOption = program.options.find(
+        (opt) => opt.long === '--applications-dir',
+      )
 
       expect(appsDirectoryOption).toBeDefined()
       expect(appsDirectoryOption?.flags).toBe('--applications-dir <path>')
@@ -187,7 +195,9 @@ describe('CLI', () => {
 
     test('should configure ignore-app-store option correctly', () => {
       const program = createProgram()
-      const ignoreAppStoreOption = program.options.find(opt => opt.long === '--ignore-app-store')
+      const ignoreAppStoreOption = program.options.find(
+        (opt) => opt.long === '--ignore-app-store',
+      )
 
       expect(ignoreAppStoreOption).toBeDefined()
       expect(ignoreAppStoreOption?.flags).toBe('--ignore-app-store')

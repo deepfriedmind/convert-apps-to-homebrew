@@ -48,7 +48,9 @@ describe('constants', () => {
 
     test('INSTALL_CASK should quote names with spaces', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['Test App', 'another-app'])
-      expect(result).toBe('brew install --cask --force "Test App" "another-app"')
+      expect(result).toBe(
+        'brew install --cask --force "Test App" "another-app"',
+      )
     })
 
     test('LIST_CASKS should be correct command', () => {
@@ -158,16 +160,30 @@ describe('constants', () => {
     })
 
     test('should have specific expected messages', () => {
-      expect(MESSAGES.CHECKING_HOMEBREW).toBe('Checking Homebrew availability...')
+      expect(MESSAGES.CHECKING_HOMEBREW).toBe(
+        'Checking Homebrew availability...',
+      )
       expect(MESSAGES.DELETING_APPS).toBe('Deleting original applications...')
-      expect(MESSAGES.DRY_RUN_MODE).toBe('Running in dry-run mode. No actual changes will be made.')
-      expect(MESSAGES.HOMEBREW_NOT_INSTALLED).toBe('Homebrew is not installed. Please install it before continuing.')
+      expect(MESSAGES.DRY_RUN_MODE).toBe(
+        'Running in dry-run mode. No actual changes will be made.',
+      )
+      expect(MESSAGES.HOMEBREW_NOT_INSTALLED).toBe(
+        'Homebrew is not installed. Please install it before continuing.',
+      )
       expect(MESSAGES.INSTALLING_PACKAGES).toBe('Installing packages...')
-      expect(MESSAGES.NO_APPS_FOUND).toBe('No applications found in the Applications directory.')
-      expect(MESSAGES.NO_APPS_SELECTED).toBe('No applications selected for installation.')
+      expect(MESSAGES.NO_APPS_FOUND).toBe(
+        'No applications found in the Applications directory.',
+      )
+      expect(MESSAGES.NO_APPS_SELECTED).toBe(
+        'No applications selected for installation.',
+      )
       expect(MESSAGES.OPERATION_CANCELLED).toBe('Operation cancelled by user.')
-      expect(MESSAGES.OPERATION_COMPLETE).toBe('Operation completed successfully.')
-      expect(MESSAGES.PERMISSION_DENIED).toBe('Permission denied. You may need to run with appropriate permissions.')
+      expect(MESSAGES.OPERATION_COMPLETE).toBe(
+        'Operation completed successfully.',
+      )
+      expect(MESSAGES.PERMISSION_DENIED).toBe(
+        'Permission denied. You may need to run with appropriate permissions.',
+      )
       expect(MESSAGES.SCANNING_APPS).toBe('Scanning applications...')
     })
   })

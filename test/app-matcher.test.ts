@@ -3,10 +3,8 @@
  */
 
 import { expect, test } from 'bun:test'
-
-import type { AppInfo, HomebrewCask } from '../src/types.ts'
-
 import { AppMatcher } from '../src/app-matcher.ts'
+import type { AppInfo, HomebrewCask } from '../src/types.ts'
 
 // Mock data for testing
 const mockCasks: HomebrewCask[] = [
@@ -59,9 +57,7 @@ const mockCasks: HomebrewCask[] = [
     token: 'quit-all',
   },
   {
-    artifacts: [
-      { uninstall: [{ quit: 'com.yubico.ykman' }] },
-    ],
+    artifacts: [{ uninstall: [{ quit: 'com.yubico.ykman' }] }],
     desc: 'Application for configuring any YubiKey',
     full_token: 'homebrew/cask/yubico-yubikey-manager',
     homepage: 'https://developers.yubico.com/yubikey-manager-qt/',

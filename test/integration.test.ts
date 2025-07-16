@@ -41,7 +41,10 @@ describe('Integration Tests', () => {
       const { ConvertAppsError, ErrorType } = await import('../src/types.ts')
 
       // Test that types work together in realistic scenarios
-      const error = new ConvertAppsError('Test integration error', ErrorType.INVALID_INPUT)
+      const error = new ConvertAppsError(
+        'Test integration error',
+        ErrorType.INVALID_INPUT,
+      )
 
       expect(error).toBeInstanceOf(Error)
       expect(error).toBeInstanceOf(ConvertAppsError)
@@ -117,7 +120,7 @@ describe('Performance Integration', () => {
 
     const startTime = Date.now()
 
-    const results = testApps.map(appPath => ({
+    const results = testApps.map((appPath) => ({
       extracted: extractAppName(appPath),
       normalized: normalizeAppName(extractAppName(appPath)),
       original: appPath,

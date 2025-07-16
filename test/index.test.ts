@@ -61,10 +61,12 @@ describe('data structure validation', () => {
     ]
 
     // Verify app status counts
-    const available = allApps.filter(app => app.status === 'available')
-    const alreadyInstalled = allApps.filter(app => app.status === 'already-installed')
-    const ignored = allApps.filter(app => app.status === 'ignored')
-    const unavailable = allApps.filter(app => app.status === 'unavailable')
+    const available = allApps.filter((app) => app.status === 'available')
+    const alreadyInstalled = allApps.filter(
+      (app) => app.status === 'already-installed',
+    )
+    const ignored = allApps.filter((app) => app.status === 'ignored')
+    const unavailable = allApps.filter((app) => app.status === 'unavailable')
 
     expect(available).toHaveLength(2)
     expect(alreadyInstalled).toHaveLength(1)
@@ -118,12 +120,16 @@ describe('data structure validation', () => {
     }
 
     // Test the filtering logic used in main()
-    const installedApps = selectedApps.filter(app =>
-      installationResult.installed.some(result => result.packageName === app.brewName),
+    const installedApps = selectedApps.filter((app) =>
+      installationResult.installed.some(
+        (result) => result.packageName === app.brewName,
+      ),
     )
 
-    const failedApps = selectedApps.filter(app =>
-      installationResult.failed.some(result => result.packageName === app.brewName),
+    const failedApps = selectedApps.filter((app) =>
+      installationResult.failed.some(
+        (result) => result.packageName === app.brewName,
+      ),
     )
 
     expect(installedApps).toHaveLength(1)
@@ -172,7 +178,8 @@ describe('error handling validation', () => {
     ]
 
     for (const { expected, input } of testCases) {
-      const errorMessage = input instanceof Error ? input.message : String(input)
+      const errorMessage =
+        input instanceof Error ? input.message : String(input)
       expect(errorMessage).toBe(expected)
     }
   })
@@ -230,8 +237,7 @@ describe('application flow validation', () => {
       if (confirmed) {
         // This simulates the proceed path in main()
         expect(confirmed).toBe(true)
-      }
-      else {
+      } else {
         // This simulates the cancellation path in main()
         expect(confirmed).toBe(false)
       }
@@ -243,8 +249,12 @@ describe('application flow validation', () => {
     const dryRunOptions = { dryRun: true }
     const realRunOptions = { dryRun: false }
 
-    const dryRunOperationType = dryRunOptions.dryRun ? 'dry run' : 'installation'
-    const realRunOperationType = realRunOptions.dryRun ? 'dry run' : 'installation'
+    const dryRunOperationType = dryRunOptions.dryRun
+      ? 'dry run'
+      : 'installation'
+    const realRunOperationType = realRunOptions.dryRun
+      ? 'dry run'
+      : 'installation'
 
     expect(dryRunOperationType).toBe('dry run')
     expect(realRunOperationType).toBe('installation')
@@ -275,7 +285,13 @@ describe('exit code validation', () => {
       alreadyInstalled: [],
       dryRun: false,
       failed: [
-        { appName: 'App1', dryRun: false, error: 'Failed to install', packageName: 'app1', success: false },
+        {
+          appName: 'App1',
+          dryRun: false,
+          error: 'Failed to install',
+          packageName: 'app1',
+          success: false,
+        },
       ],
       ignored: [],
       installed: [],
@@ -293,7 +309,13 @@ describe('exit code validation', () => {
       alreadyInstalled: [],
       dryRun: false,
       failed: [
-        { appName: 'App2', dryRun: false, error: 'Failed to install', packageName: 'app2', success: false },
+        {
+          appName: 'App2',
+          dryRun: false,
+          error: 'Failed to install',
+          packageName: 'app2',
+          success: false,
+        },
       ],
       ignored: [],
       installed: [

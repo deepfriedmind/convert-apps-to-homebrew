@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 
 import { consola } from 'consola'
-
-import type {
-  AppInfo,
-  CommandOptions,
-  InstallationResult,
-  InstallerConfig,
-  OperationSummary,
-  ScannerConfig,
-} from './types.ts'
-
 import { discoverApps } from './app-scanner.ts'
 import {
   displayTroubleshooting,
@@ -31,6 +21,14 @@ import {
   displayInstallationPlan,
   promptAppSelection,
 } from './prompts.ts'
+import type {
+  AppInfo,
+  CommandOptions,
+  InstallationResult,
+  InstallerConfig,
+  OperationSummary,
+  ScannerConfig,
+} from './types.ts'
 
 /**
  * Create installer configuration from command options
@@ -48,11 +46,19 @@ function createInstallerConfig(options: CommandOptions): InstallerConfig {
 function createScannerConfig(options: CommandOptions): ScannerConfig {
   return {
     applicationsDir: options.applicationsDir,
-    ...(options.fallbackToCli !== undefined && { fallbackToCli: options.fallbackToCli }),
-    ...(options.forceRefreshCache !== undefined && { forceRefreshCache: options.forceRefreshCache }),
-    ...(options.ignoreAppStore !== undefined && { ignoreAppStore: options.ignoreAppStore }),
+    ...(options.fallbackToCli !== undefined && {
+      fallbackToCli: options.fallbackToCli,
+    }),
+    ...(options.forceRefreshCache !== undefined && {
+      forceRefreshCache: options.forceRefreshCache,
+    }),
+    ...(options.ignoreAppStore !== undefined && {
+      ignoreAppStore: options.ignoreAppStore,
+    }),
     ignoredApps: options.ignore,
-    ...(options.matchingThreshold !== undefined && { matchingThreshold: options.matchingThreshold }),
+    ...(options.matchingThreshold !== undefined && {
+      matchingThreshold: options.matchingThreshold,
+    }),
     verbose: options.verbose,
   }
 }
@@ -66,10 +72,12 @@ function generateOperationSummary(
   installationResult: InstallationResult,
   dryRun: boolean,
 ): OperationSummary {
-  const available = allApps.filter(app => app.status === 'available')
-  const alreadyInstalled = allApps.filter(app => app.status === 'already-installed')
-  const ignored = allApps.filter(app => app.status === 'ignored')
-  const unavailable = allApps.filter(app => app.status === 'unavailable')
+  const available = allApps.filter((app) => app.status === 'available')
+  const alreadyInstalled = allApps.filter(
+    (app) => app.status === 'already-installed',
+  )
+  const ignored = allApps.filter((app) => app.status === 'ignored')
+  const unavailable = allApps.filter((app) => app.status === 'unavailable')
 
   return {
     alreadyInstalled: alreadyInstalled.length,
@@ -136,18 +144,28 @@ async function main(): Promise<void> {
 
     // Perform installation
     const operationType = options.dryRun ? 'dry run' : 'installation'
-    progressTracker.startOperation(`package ${operationType}`, selectedApps.length)
+    progressTracker.startOperation(
+      `package ${operationType}`,
+      selectedApps.length,
+    )
     const installerConfig = createInstallerConfig(options)
     const installationResult = await installApps(selectedApps, installerConfig)
-    progressTracker.completeOperation(`Package ${operationType}`, installationResult.failed.length === 0)
-
-    // Display final summary
-    const installedApps = selectedApps.filter(app =>
-      installationResult.installed.some(result => result.packageName === app.brewName),
+    progressTracker.completeOperation(
+      `Package ${operationType}`,
+      installationResult.failed.length === 0,
     )
 
-    const failedApps = selectedApps.filter(app =>
-      installationResult.failed.some(result => result.packageName === app.brewName),
+    // Display final summary
+    const installedApps = selectedApps.filter((app) =>
+      installationResult.installed.some(
+        (result) => result.packageName === app.brewName,
+      ),
+    )
+
+    const failedApps = selectedApps.filter((app) =>
+      installationResult.failed.some(
+        (result) => result.packageName === app.brewName,
+      ),
     )
 
     displayFinalSummary(selectedApps, installedApps, failedApps, options.dryRun)
@@ -166,12 +184,10 @@ async function main(): Promise<void> {
     if (installationResult.failed.length > 0) {
       consola.warn(`${installationResult.failed.length} installations failed.`)
       process.exit(EXIT_CODES.GENERAL_ERROR)
-    }
-    else {
+    } else {
       process.exit(EXIT_CODES.SUCCESS)
     }
-  }
-  catch (error: unknown) {
+  } catch (error: unknown) {
     // Handle user cancellation gracefully
     if (error instanceof Error && error.name === 'ExitPromptError') {
       consola.info('\nOperation cancelled by user.')
@@ -179,7 +195,8 @@ async function main(): Promise<void> {
     }
 
     // Handle other errors
-    const errorToHandle = error instanceof Error ? error : new Error(String(error))
+    const errorToHandle =
+      error instanceof Error ? error : new Error(String(error))
     getErrorHandler().handleError(errorToHandle)
   }
 }
@@ -214,9 +231,11 @@ if (isMain) {
     consola.error(`Fatal error: ${errorMessage}`)
 
     // Show troubleshooting info for common issues
-    if (errorMessage.includes('Homebrew')
-      || errorMessage.includes('permission')
-      || errorMessage.includes('ENOENT')) {
+    if (
+      errorMessage.includes('Homebrew') ||
+      errorMessage.includes('permission') ||
+      errorMessage.includes('ENOENT')
+    ) {
       displayTroubleshooting()
     }
 

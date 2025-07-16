@@ -68,18 +68,24 @@ export class AppMatcher {
             // Handle both string and object formats
             if (typeof appName === 'string') {
               appNameString = appName
-            }
-            else if (typeof appName === 'object' && appName !== null && 'target' in appName) {
+            } else if (
+              typeof appName === 'object' &&
+              appName !== null &&
+              'target' in appName
+            ) {
               // Extract the target path from object format
               appNameString = appName.target
-            }
-            else {
+            } else {
               // Log warning for unexpected formats but continue processing
-              consola.debug(`Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`)
+              consola.debug(
+                `Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`,
+              )
               continue
             }
 
-            const normalized = normalizeAppName(appNameString.replace(/\.app$/, ''))
+            const normalized = normalizeAppName(
+              appNameString.replace(/\.app$/, ''),
+            )
             this.addToMap(index.byAppBundle, normalized, cask)
           }
         }
@@ -91,7 +97,10 @@ export class AppMatcher {
               this.addToMap(index.byBundleId, uninstallStep.quit, cask)
             }
 
-            if (uninstallStep.launchctl !== undefined && uninstallStep.launchctl !== '') {
+            if (
+              uninstallStep.launchctl !== undefined &&
+              uninstallStep.launchctl !== ''
+            ) {
               this.addToMap(index.byBundleId, uninstallStep.launchctl, cask)
             }
           }
@@ -125,7 +134,7 @@ export class AppMatcher {
     // Remove duplicates and sort by confidence
     const uniqueMatches = this.deduplicateMatches(allMatches)
     const filteredMatches = uniqueMatches
-      .filter(match => match.confidence >= this.config.minConfidence)
+      .filter((match) => match.confidence >= this.config.minConfidence)
       .sort((matchA, matchB) => matchB.confidence - matchA.confidence)
       .slice(0, this.config.maxMatches)
 
@@ -152,7 +161,7 @@ export class AppMatcher {
 
     consola.debug(`Matching ${apps.length} apps against cask database...`)
 
-    const results = apps.map(app => this.matchApp(app, index))
+    const results = apps.map((app) => this.matchApp(app, index))
 
     const matchSummary = results.map((result) => {
       const { appInfo, matches } = result
@@ -178,8 +187,10 @@ export class AppMatcher {
       return summaryRow
     })
 
-    const matchesFound = results.filter(result => result.bestMatch).length
-    const noMatches = results.filter(result => result.matches.length === 0).length
+    const matchesFound = results.filter((result) => result.bestMatch).length
+    const noMatches = results.filter(
+      (result) => result.matches.length === 0,
+    ).length
 
     if (consola.level >= 4) {
       consola.debug('Match Results Summary:')
@@ -193,7 +204,9 @@ export class AppMatcher {
       })
     }
 
-    consola.debug(`Matching complete: ${matchesFound}/${apps.length} matches found`)
+    consola.debug(
+      `Matching complete: ${matchesFound}/${apps.length} matches found`,
+    )
 
     return results
   }
@@ -208,8 +221,7 @@ export class AppMatcher {
       if (!existing.includes(value)) {
         existing.push(value)
       }
-    }
-    else {
+    } else {
       map.set(key, [value])
     }
   }
@@ -235,13 +247,11 @@ export class AppMatcher {
    * Determine the primary matching strategy used
    */
   private determineStrategy(matches: CaskMatch[]): MatchingStrategy {
-    if (matches.length === 0)
-      return 'hybrid'
+    if (matches.length === 0) return 'hybrid'
 
     const [topMatch] = matches
 
-    if (!topMatch)
-      return 'hybrid'
+    if (!topMatch) return 'hybrid'
 
     switch (topMatch.matchType) {
       case 'exact-app-bundle':
@@ -259,11 +269,15 @@ export class AppMatcher {
   /**
    * Find matches by app bundle name
    */
-  private findAppBundleMatches(appInfo: AppInfo, index: CaskIndex): CaskMatch[] {
+  private findAppBundleMatches(
+    appInfo: AppInfo,
+    index: CaskIndex,
+  ): CaskMatch[] {
     const matches: CaskMatch[] = []
     const originalAppNameNormalized = normalizeAppName(appInfo.originalName)
     // Also create a version of the normalized app name with hyphens removed, for cases like "QuitAll" vs "Quit All"
-    const originalAppNameNormalizedNoHyphens = originalAppNameNormalized.replaceAll('-', '')
+    const originalAppNameNormalizedNoHyphens =
+      originalAppNameNormalized.replaceAll('-', '')
 
     // Strategy 1: Exact match on cask name array
     for (const cask of index.byToken.values()) {
@@ -284,9 +298,14 @@ export class AppMatcher {
         }
 
         // Try matching without hyphens
-        const caskNameNormalizedNoHyphens = caskNameNormalized.replaceAll('-', '')
+        const caskNameNormalizedNoHyphens = caskNameNormalized.replaceAll(
+          '-',
+          '',
+        )
 
-        if (caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens) {
+        if (
+          caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens
+        ) {
           matches.push({
             cask,
             confidence: 0.98, // Slightly lower confidence than direct normalized match
@@ -302,7 +321,8 @@ export class AppMatcher {
     }
 
     // Strategy 2: Exact normalized match on app bundle (existing logic)
-    const exactBundleMatches = index.byAppBundle.get(originalAppNameNormalized) ?? []
+    const exactBundleMatches =
+      index.byAppBundle.get(originalAppNameNormalized) ?? []
     for (const cask of exactBundleMatches) {
       matches.push({
         cask,
@@ -333,7 +353,8 @@ export class AppMatcher {
 
       // Also try brew name without hyphens
       const brewNameNormalizedNoHyphens = brewNameNormalized.replaceAll('-', '')
-      const brewMatchesNoHyphens = index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? []
+      const brewMatchesNoHyphens =
+        index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? []
       for (const cask of brewMatchesNoHyphens) {
         matches.push({
           cask,

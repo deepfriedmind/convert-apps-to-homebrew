@@ -40,11 +40,9 @@ describe('ErrorHandler', () => {
 
     try {
       handler.handleError(error)
-    }
-    catch {
+    } catch {
       // Expected to throw in test environment
-    }
-    finally {
+    } finally {
       process.exit = originalExit
     }
 
@@ -68,11 +66,9 @@ describe('ErrorHandler', () => {
 
     try {
       handler.handleError(error)
-    }
-    catch {
+    } catch {
       // Expected to throw in test environment
-    }
-    finally {
+    } finally {
       process.exit = originalExit
     }
 
@@ -108,12 +104,16 @@ describe('ProgressTracker', () => {
 
   test('should complete operation successfully', () => {
     const tracker = new ProgressTracker()
-    expect(() => tracker.completeOperation('test operation', true)).not.toThrow()
+    expect(() =>
+      tracker.completeOperation('test operation', true),
+    ).not.toThrow()
   })
 
   test('should complete operation with errors', () => {
     const tracker = new ProgressTracker()
-    expect(() => tracker.completeOperation('test operation', false)).not.toThrow()
+    expect(() =>
+      tracker.completeOperation('test operation', false),
+    ).not.toThrow()
   })
 })
 

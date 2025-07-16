@@ -25,13 +25,15 @@ export class ErrorHandler {
 
     if (error instanceof ConvertAppsError) {
       this.handleConvertAppsError(error, contextMessage)
-    }
-    else {
+    } else {
       this.handleGenericError(error, contextMessage)
     }
   }
 
-  private handleConvertAppsError(error: ConvertAppsError, context: string): never {
+  private handleConvertAppsError(
+    error: ConvertAppsError,
+    context: string,
+  ): never {
     /* eslint-disable no-fallthrough */
     switch (error.type) {
       case ErrorType.COMMAND_FAILED: {
@@ -59,7 +61,9 @@ export class ErrorHandler {
       }
 
       case ErrorType.NETWORK_ERROR: {
-        consola.error(`Network error occurred${context}. Please check your internet connection.`)
+        consola.error(
+          `Network error occurred${context}. Please check your internet connection.`,
+        )
         this.showNetworkHelp()
         process.exit(EXIT_CODES.NETWORK_ERROR)
       }
@@ -99,15 +103,19 @@ export class ErrorHandler {
     // Check for common error patterns
     if (error.message.includes('ENOENT')) {
       this.showFileNotFoundHelp()
-    }
-    else if (error.message.includes('EACCES')) {
+    } else if (error.message.includes('EACCES')) {
       this.showPermissionHelp()
-    }
-    else if (error.message.includes('ENOTDIR')) {
-      consola.info('💡 The specified path is not a directory. Check your --applications-dir setting.')
-    }
-    else if (error.message.includes('spawn') && error.message.includes('ENOENT')) {
-      consola.info('💡 Command not found. Make sure Homebrew is installed and in your PATH.')
+    } else if (error.message.includes('ENOTDIR')) {
+      consola.info(
+        '💡 The specified path is not a directory. Check your --applications-dir setting.',
+      )
+    } else if (
+      error.message.includes('spawn') &&
+      error.message.includes('ENOENT')
+    ) {
+      consola.info(
+        '💡 Command not found. Make sure Homebrew is installed and in your PATH.',
+      )
     }
 
     if (this.verbose) {
@@ -135,8 +143,12 @@ export class ErrorHandler {
 
   private showHomebrewInstallationHelp(): void {
     consola.info('🍺 Homebrew Installation Help:')
-    consola.info('1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
-    consola.info('2. Add Homebrew to your PATH (follow the installation instructions)')
+    consola.info(
+      '1. Install Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+    )
+    consola.info(
+      '2. Add Homebrew to your PATH (follow the installation instructions)',
+    )
     consola.info('3. Verify installation: brew --version')
     consola.info('4. Run this tool again')
     consola.info('\nFor more information: https://brew.sh/')
@@ -146,7 +158,9 @@ export class ErrorHandler {
     consola.info('📝 Input Validation Help:')
     consola.info('1. Check your command line arguments')
     consola.info('2. App names in --ignore should not be empty or whitespace')
-    consola.info('3. Use quotes for app names with spaces: --ignore "Adobe Photoshop"')
+    consola.info(
+      '3. Use quotes for app names with spaces: --ignore "Adobe Photoshop"',
+    )
     consola.info('4. Use --help to see all available options')
   }
 
@@ -154,7 +168,7 @@ export class ErrorHandler {
     consola.info('🌐 Network Help:')
     consola.info('1. Check your internet connection')
     consola.info('2. Verify DNS resolution: nslookup github.com')
-    consola.info('3. Check if you\'re behind a corporate firewall')
+    consola.info("3. Check if you're behind a corporate firewall")
     consola.info('4. Try again in a few minutes')
   }
 
@@ -188,8 +202,7 @@ export class ProgressTracker {
 
     if (success) {
       consola.success(`${operation} completed in ${elapsedSeconds}s`)
-    }
-    else {
+    } else {
       consola.warn(`${operation} completed with errors in ${elapsedSeconds}s`)
     }
   }
@@ -203,8 +216,7 @@ export class ProgressTracker {
 
     if (total === undefined) {
       consola.start(`Starting ${operation}...`)
-    }
-    else {
+    } else {
       consola.start(`Starting ${operation} (${total} items)...`)
     }
   }
@@ -232,7 +244,8 @@ export class ProgressTracker {
       progressMessage = `${message} ${progressBar} ${current}/${total} (${percentage}%)`
     }
 
-    if (elapsed > 5000) { // Show elapsed time for long operations
+    if (elapsed > 5000) {
+      // Show elapsed time for long operations
       const elapsedSeconds = Math.round(elapsed / 1000)
       progressMessage += ` [${elapsedSeconds}s]`
     }
@@ -243,7 +256,11 @@ export class ProgressTracker {
   /**
    * Create a simple progress bar
    */
-  private createProgressBar(current: number, total: number, width = 20): string {
+  private createProgressBar(
+    current: number,
+    total: number,
+    width = 20,
+  ): string {
     const percentage = current / total
     const filled = Math.round(width * percentage)
     const empty = width - filled

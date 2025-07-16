@@ -3,10 +3,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
-import type { HomebrewCask } from '../src/types.ts'
-
 import { clearHomebrewCache } from '../src/homebrew-api.ts'
+import type { HomebrewCask } from '../src/types.ts'
 
 describe('Homebrew API Functions', () => {
   describe('cache operations', () => {
@@ -20,8 +18,7 @@ describe('Homebrew API Functions', () => {
       try {
         await clearHomebrewCache()
         expect(true).toBe(true) // Test passes if no error is thrown
-      }
-      catch (error) {
+      } catch (error) {
         // If an error is thrown, it should be handled gracefully
         expect(error).toBeDefined()
       }
@@ -53,7 +50,9 @@ describe('Homebrew API Functions', () => {
       expect(mockCask.token).toBe('test-app')
       expect(mockCask.name[0]).toBe('Test App')
       expect(mockCask.artifacts[0]?.app?.[0]).toBe('Test App.app')
-      expect(mockCask.artifacts[0]?.uninstall?.[0]?.quit).toBe('com.example.testapp')
+      expect(mockCask.artifacts[0]?.uninstall?.[0]?.quit).toBe(
+        'com.example.testapp',
+      )
     })
   })
 })

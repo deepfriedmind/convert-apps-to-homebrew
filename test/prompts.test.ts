@@ -3,14 +3,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
-import type { AppInfo } from '../src/types.ts'
-
 import {
   displayFinalSummary,
   displayInstallationPlan,
   promptAppSelection,
 } from '../src/prompts.ts'
+import type { AppInfo } from '../src/types.ts'
 
 describe('displayFinalSummary', () => {
   test('should display dry run summary with no apps', () => {
@@ -185,7 +183,10 @@ describe('Mac App Store labeling integration', () => {
       },
     ]
 
-    for (const [_index, { brewName, expectedHint, expectedLabel, fromMacAppStore, originalName }] of testCases.entries()) {
+    for (const [
+      _index,
+      { brewName, expectedHint, expectedLabel, fromMacAppStore, originalName },
+    ] of testCases.entries()) {
       // Simulate the logic from promptAppSelection
       const brewHint = brewName === originalName ? '' : brewName
       const appStoreHint = fromMacAppStore ? '– installed via App Store' : ''
@@ -222,7 +223,9 @@ describe('Mac App Store labeling integration', () => {
 
     // We can't easily test the private displayAppSummary function directly,
     // but we can verify the logic that would trigger the Mac App Store message
-    const macAppStoreCount = appsWithAppStore.filter(app => app.status === 'available' && app.fromMacAppStore).length
+    const macAppStoreCount = appsWithAppStore.filter(
+      (app) => app.status === 'available' && app.fromMacAppStore,
+    ).length
     expect(macAppStoreCount).toBe(1)
     expect(macAppStoreCount > 0).toBe(true)
   })
@@ -249,8 +252,7 @@ describe('Mac App Store labeling integration', () => {
       if (fromMacAppStore) {
         expect(appLabel.endsWith(' ')).toBe(true)
         expect(appLabel).toBe(`${originalName} `)
-      }
-      else {
+      } else {
         expect(appLabel.includes('')).toBe(false)
         expect(appLabel).toBe(originalName)
       }
@@ -291,9 +293,13 @@ describe('Mac App Store labeling integration', () => {
 
     const options = mockApps.map((app) => {
       const brewHint = app.brewName === app.originalName ? '' : app.brewName
-      const appStoreHint = app.fromMacAppStore ? '– installed via App Store' : ''
+      const appStoreHint = app.fromMacAppStore
+        ? '– installed via App Store'
+        : ''
       const combinedHint = [brewHint, appStoreHint].filter(Boolean).join(' ')
-      const appLabel = app.fromMacAppStore ? `${app.originalName} ` : app.originalName
+      const appLabel = app.fromMacAppStore
+        ? `${app.originalName} `
+        : app.originalName
 
       return {
         hint: combinedHint,
@@ -317,7 +323,9 @@ describe('Mac App Store labeling integration', () => {
 
     // Test third app: App Store app with different brew name
     expect(options[2]!.label).toBe('Different Name ')
-    expect(options[2]!.hint).toBe('totally-different-cask-name – installed via App Store')
+    expect(options[2]!.hint).toBe(
+      'totally-different-cask-name – installed via App Store',
+    )
     expect(options[2]!.value).toBe('Different Name')
   })
 })

@@ -6,10 +6,8 @@ import type { Buffer } from 'node:buffer'
 
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
-
-import type { BrewCommandResult } from './types.ts'
-
 import { DEFAULT_CONFIG } from './constants.ts'
+import type { BrewCommandResult } from './types.ts'
 
 const execAsync = promisify(exec)
 
@@ -102,9 +100,13 @@ export async function executeCommand(
       stdout: stdout.trim(),
       success: true,
     }
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: number, message?: string, stderr?: string, stdout?: string }
+  } catch (error: unknown) {
+    const typedError = error as {
+      code?: number
+      message?: string
+      stderr?: string
+      stdout?: string
+    }
 
     return {
       exitCode: typedError.code ?? 1,
@@ -132,7 +134,7 @@ export function extractAppName(appPath: string): string {
  * Format a list of items for display
  */
 export function formatList(items: string[], indent = '  '): string {
-  return items.map(item => `${indent}• ${item}`).join('\n')
+  return items.map((item) => `${indent}• ${item}`).join('\n')
 }
 
 /**
@@ -154,8 +156,8 @@ export function normalizeAppName(appName: string): string {
 export function parseCommandOutput(output: string): string[] {
   return output
     .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
 }
 
 /**
@@ -185,15 +187,19 @@ export function shouldIgnoreApp(
     const normalizedIgnoredApp = normalizeAppName(ignoredApp.trim())
 
     // Exact match against original name or brew name
-    if (normalizedIgnoredApp === normalizedOriginalName
-      || normalizedIgnoredApp === normalizedBrewName) {
+    if (
+      normalizedIgnoredApp === normalizedOriginalName ||
+      normalizedIgnoredApp === normalizedBrewName
+    ) {
       return true
     }
 
     // Handle partial brew name matching (e.g., "bartender" should match "bartender-5")
     // This allows users to specify the base package name without version suffixes
-    if (normalizedBrewName.startsWith(`${normalizedIgnoredApp}-`)
-      || normalizedOriginalName.startsWith(`${normalizedIgnoredApp}-`)) {
+    if (
+      normalizedBrewName.startsWith(`${normalizedIgnoredApp}-`) ||
+      normalizedOriginalName.startsWith(`${normalizedIgnoredApp}-`)
+    ) {
       return true
     }
   }

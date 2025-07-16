@@ -22,7 +22,9 @@ void describe('utils', () => {
     })
 
     void test('should escape internal quotes', () => {
-      expect(escapeShellArgument('say "hello"')).toBe(String.raw`"say \"hello\""`)
+      expect(escapeShellArgument('say "hello"')).toBe(
+        String.raw`"say \"hello\""`,
+      )
     })
 
     void test('should handle empty string', () => {
@@ -37,11 +39,15 @@ void describe('utils', () => {
 
   void describe('extractAppName', () => {
     void test('should extract app name from .app path', () => {
-      expect(extractAppName('/Applications/Google Chrome.app')).toBe('Google Chrome')
+      expect(extractAppName('/Applications/Google Chrome.app')).toBe(
+        'Google Chrome',
+      )
     })
 
     void test('should handle nested paths', () => {
-      expect(extractAppName('/Users/test/Applications/Firefox.app')).toBe('Firefox')
+      expect(extractAppName('/Users/test/Applications/Firefox.app')).toBe(
+        'Firefox',
+      )
     })
 
     void test('should handle case insensitive .app extension', () => {
@@ -196,11 +202,17 @@ void describe('utils', () => {
     })
 
     void test('should return dry run message when dryRun is true', async () => {
-      const result = await executeCommand('echo "Should not execute"', 5000, true)
+      const result = await executeCommand(
+        'echo "Should not execute"',
+        5000,
+        true,
+      )
 
       expect(result.success).toBe(true)
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toBe('[DRY RUN] Would execute: echo "Should not execute"')
+      expect(result.stdout).toBe(
+        '[DRY RUN] Would execute: echo "Should not execute"',
+      )
       expect(result.stderr).toBe('')
     })
 
@@ -227,7 +239,9 @@ void describe('utils', () => {
     })
 
     void test('should handle command with multiple arguments', async () => {
-      const result = await executeCommand(String.raw`printf "%s %s\n" "Hello" "World"`)
+      const result = await executeCommand(
+        String.raw`printf "%s %s\n" "Hello" "World"`,
+      )
 
       expect(result.success).toBe(true)
       expect(result.stdout).toBe('Hello World')
@@ -262,7 +276,9 @@ void describe('utils', () => {
     })
 
     void test('should throw error for whitespace-only command', () => {
-      expect(executeCommand('   \t  \n  ')).rejects.toThrow('Command cannot be empty')
+      expect(executeCommand('   \t  \n  ')).rejects.toThrow(
+        'Command cannot be empty',
+      )
     })
 
     void test('should handle very short timeout', async () => {
@@ -282,18 +298,26 @@ void describe('utils', () => {
     })
 
     void test('should ignore app by original name', () => {
-      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['Bartender 5'])
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'Bartender 5',
+      ])
       expect(result).toBe(true)
     })
 
     void test('should ignore app by brew name', () => {
-      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'bartender',
+      ])
       expect(result).toBe(true)
     })
 
     void test('should ignore app case insensitively', () => {
-      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['BARTENDER 5'])
-      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['BARTENDER'])
+      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'BARTENDER 5',
+      ])
+      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'BARTENDER',
+      ])
       expect(result1).toBe(true)
       expect(result2).toBe(true)
     })
@@ -301,10 +325,16 @@ void describe('utils', () => {
     void test('should handle multiple ignore patterns', () => {
       const ignoreList = ['chrome', 'Visual Studio Code', 'bartender']
 
-      expect(shouldIgnoreApp('Google Chrome', 'google-chrome', ignoreList)).toBe(false)
+      expect(
+        shouldIgnoreApp('Google Chrome', 'google-chrome', ignoreList),
+      ).toBe(false)
       expect(shouldIgnoreApp('Chrome', 'chrome', ignoreList)).toBe(true)
-      expect(shouldIgnoreApp('Visual Studio Code', 'visual-studio-code', ignoreList)).toBe(true)
-      expect(shouldIgnoreApp('Bartender 5', 'bartender-5', ignoreList)).toBe(true)
+      expect(
+        shouldIgnoreApp('Visual Studio Code', 'visual-studio-code', ignoreList),
+      ).toBe(true)
+      expect(shouldIgnoreApp('Bartender 5', 'bartender-5', ignoreList)).toBe(
+        true,
+      )
     })
 
     void test('should not ignore when no match found', () => {
@@ -313,19 +343,25 @@ void describe('utils', () => {
     })
 
     void test('should handle whitespace in ignore patterns', () => {
-      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [' bartender '])
+      const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        ' bartender ',
+      ])
       expect(result).toBe(true)
     })
 
     void test('should handle special characters', () => {
-      const result = shouldIgnoreApp('App with (parens)', 'app-with-parens', ['app with (parens)'])
+      const result = shouldIgnoreApp('App with (parens)', 'app-with-parens', [
+        'app with (parens)',
+      ])
       expect(result).toBe(true)
     })
 
     void test('should match exact normalized names only', () => {
       // "bartender" should match "bartender-5" (prefix matching)
       const result1 = shouldIgnoreApp('Bartender', 'bartender', ['bartender-5'])
-      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+      const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'bartender',
+      ])
 
       expect(result1).toBe(false) // "bartender" != "bartender-5"
       expect(result2).toBe(true) // "bartender" matches "bartender-5" via prefix
@@ -333,7 +369,9 @@ void describe('utils', () => {
 
     void test('should handle prefix matching for versioned apps', () => {
       // Test the key use case: --ignore bartender should ignore "Bartender 5"
-      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bartender'])
+      const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
+        'bartender',
+      ])
       const result2 = shouldIgnoreApp('Chrome 110', 'chrome-110', ['chrome'])
       const result3 = shouldIgnoreApp('App 2.0', 'app-2.0', ['app'])
 

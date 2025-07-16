@@ -2,15 +2,9 @@
  * App scanner module for discovering macOS applications and checking Homebrew availability
  */
 
-import { consola } from 'consola'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-
-import type {
-  AppInfo,
-  ScannerConfig,
-} from './types.ts'
-
+import { consola } from 'consola'
 import { AppMatcher } from './app-matcher.ts'
 import {
   BREW_COMMANDS,
@@ -19,6 +13,7 @@ import {
 } from './constants.ts'
 import { fetchHomebrewCasks } from './homebrew-api.ts'
 import { getMacAppStoreApps, isAppFromMacAppStore } from './mas-integration.ts'
+import type { AppInfo, ScannerConfig } from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
   executeCommand,
@@ -48,10 +43,13 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   const masApps = masResult.success ? masResult.apps : []
 
   if (masResult.masInstalled) {
-    consola.debug(`Mac App Store integration enabled: found ${masApps.length} installed apps`)
-  }
-  else {
-    consola.debug('Mac App Store integration not available (mas CLI not installed)')
+    consola.debug(
+      `Mac App Store integration enabled: found ${masApps.length} installed apps`,
+    )
+  } else {
+    consola.debug(
+      'Mac App Store integration not available (mas CLI not installed)',
+    )
   }
 
   const appPaths = await scanApplicationsDirectory(config.applicationsDir)
@@ -135,21 +133,25 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   }
 
   // Batch process apps that aren't already installed or ignored
-  const appsToCheck = apps.filter(app => app.status === 'unavailable')
+  const appsToCheck = apps.filter((app) => app.status === 'unavailable')
 
   if (appsToCheck.length > 0) {
-    consola.debug(`Batch checking Homebrew availability for ${appsToCheck.length} apps...`)
+    consola.debug(
+      `Batch checking Homebrew availability for ${appsToCheck.length} apps...`,
+    )
 
     // Use fallback to CLI if requested
     if (config.fallbackToCli) {
       consola.debug('Using individual brew commands as requested')
 
       await procesAppsIndividually(appsToCheck)
-    }
-    else {
+    } else {
       try {
         // Fetch Homebrew cask database
-        const caskResult = await fetchHomebrewCasks(config.forceRefreshCache, true)
+        const caskResult = await fetchHomebrewCasks(
+          config.forceRefreshCache,
+          true,
+        )
 
         if (caskResult.success && caskResult.data) {
           const matchingConfig = {
@@ -175,30 +177,30 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
                 app.brewType = 'cask'
                 app.status = 'already-installed'
                 app.brewName = matchedCaskName
-              }
-              else {
+              } else {
                 // Found a match and not already installed
                 app.alreadyInstalled = false
                 app.brewType = 'cask'
                 app.status = 'available'
                 app.brewName = matchedCaskName
               }
-            }
-            else {
+            } else {
               // No match found
               app.brewType = 'unavailable'
               app.status = 'unavailable'
             }
           }
-        }
-        else {
+        } else {
           // Fallback to individual brew commands
-          consola.warn('Failed to fetch Homebrew cask database, falling back to individual commands')
+          consola.warn(
+            'Failed to fetch Homebrew cask database, falling back to individual commands',
+          )
           await procesAppsIndividually(appsToCheck)
         }
-      }
-      catch (error) {
-        consola.warn(`Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      } catch (error) {
+        consola.warn(
+          `Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        )
         consola.warn('Falling back to individual brew commands')
         await procesAppsIndividually(appsToCheck)
       }
@@ -222,7 +224,10 @@ async function checkHomebrewInstalled(): Promise<boolean> {
 /**
  * Determine the Homebrew package type and availability for an app
  */
-async function determinePackageInfo(_appName: string, brewName: string): Promise<{
+async function determinePackageInfo(
+  _appName: string,
+  brewName: string,
+): Promise<{
   alreadyInstalled: boolean
   brewType: 'cask' | 'unavailable'
 }> {
@@ -265,14 +270,19 @@ async function procesAppsIndividually(apps: AppInfo[]): Promise<void> {
     consola.debug(`Checking Homebrew availability for: ${app.originalName}`)
 
     try {
-      const packageInfo = await determinePackageInfo(app.originalName, app.brewName)
+      const packageInfo = await determinePackageInfo(
+        app.originalName,
+        app.brewName,
+      )
 
       app.alreadyInstalled = packageInfo.alreadyInstalled
       app.brewType = packageInfo.brewType
-      app.status = packageInfo.brewType === 'unavailable' ? 'unavailable' : 'available'
-    }
-    catch (error) {
-      consola.warn(`Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`)
+      app.status =
+        packageInfo.brewType === 'unavailable' ? 'unavailable' : 'available'
+    } catch (error) {
+      consola.warn(
+        `Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`,
+      )
       app.alreadyInstalled = false
       app.brewType = 'unavailable'
       app.status = 'unavailable'
@@ -283,16 +293,22 @@ async function procesAppsIndividually(apps: AppInfo[]): Promise<void> {
 /**
  * Scan the Applications directory for .app bundles
  */
-async function scanApplicationsDirectory(applicationsDirectory: string = DEFAULT_APPLICATIONS_DIR): Promise<string[]> {
+async function scanApplicationsDirectory(
+  applicationsDirectory: string = DEFAULT_APPLICATIONS_DIR,
+): Promise<string[]> {
   try {
-    const entries = await fs.readdir(applicationsDirectory, { withFileTypes: true })
+    const entries = await fs.readdir(applicationsDirectory, {
+      withFileTypes: true,
+    })
 
     return entries
-      .filter(entry => entry.isDirectory() && FILE_PATTERNS.APP_PATTERN.test(entry.name))
-      .map(entry => path.join(applicationsDirectory, entry.name))
-  }
-  catch (error: unknown) {
-    const typedError = error as { code?: string, message?: string }
+      .filter(
+        (entry) =>
+          entry.isDirectory() && FILE_PATTERNS.APP_PATTERN.test(entry.name),
+      )
+      .map((entry) => path.join(applicationsDirectory, entry.name))
+  } catch (error: unknown) {
+    const typedError = error as { code?: string; message?: string }
 
     if (typedError.code === 'ENOENT') {
       throw new ConvertAppsError(

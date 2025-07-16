@@ -253,7 +253,10 @@ export interface PackageInstallResult {
 /**
  * Configuration for the application scanner
  */
-export interface ScannerConfig extends BaseConfig, FilteringConfig, HomebrewConfig {
+export interface ScannerConfig
+  extends BaseConfig,
+    FilteringConfig,
+    HomebrewConfig {
   /** Directory to scan for applications */
   applicationsDir: string
   /** Confidence threshold for matching (0.0-1.0) */
@@ -333,11 +336,11 @@ interface HomebrewConfig {
 /**
  * Specific match types within strategies
  */
-type MatchType
-  = | 'exact-app-bundle'
-    | 'name-exact'
-    | 'normalized-app-bundle'
-    | 'token-match'
+type MatchType =
+  | 'exact-app-bundle'
+  | 'name-exact'
+  | 'normalized-app-bundle'
+  | 'token-match'
 
 /**
  * Error types that can occur during execution
@@ -376,7 +379,7 @@ export interface OperationSummary {
   unavailable: number
 }
 
-type ErrorTypeValue = typeof ErrorType[keyof typeof ErrorType]
+type ErrorTypeValue = (typeof ErrorType)[keyof typeof ErrorType]
 
 /**
  * Custom error class for application-specific errors
@@ -385,11 +388,7 @@ export class ConvertAppsError extends Error {
   public readonly originalError?: Error
   public readonly type: ErrorTypeValue
 
-  constructor(
-    message: string,
-    type: ErrorTypeValue,
-    originalError?: Error,
-  ) {
+  constructor(message: string, type: ErrorTypeValue, originalError?: Error) {
     super(message)
     this.name = 'ConvertAppsError'
     this.type = type

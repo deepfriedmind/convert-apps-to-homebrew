@@ -3,15 +3,13 @@
  */
 
 import { consola } from 'consola'
-
+import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import type {
   AppInfo,
   InstallationResult,
   InstallerConfig,
   PackageInstallResult,
 } from './types.ts'
-
-import { BREW_COMMANDS, DEFAULT_CONFIG } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import { executeCommand, pluralize } from './utils.ts'
 
@@ -23,8 +21,7 @@ export function getInstallationSummary(result: InstallationResult): string {
 
   if (result.dryRun) {
     lines.push('🔍 DRY RUN SUMMARY', '═'.repeat(50))
-  }
-  else {
+  } else {
     lines.push('📦 INSTALLATION SUMMARY', '═'.repeat(50))
   }
 
@@ -40,7 +37,9 @@ export function getInstallationSummary(result: InstallationResult): string {
     lines.push(`❌ Failed to install: ${result.failed.length}`)
 
     for (const app of result.failed) {
-      lines.push(`   • ${app.appName} (${app.packageName}): ${app.error ?? 'Unknown error'}`)
+      lines.push(
+        `   • ${app.appName} (${app.packageName}): ${app.error ?? 'Unknown error'}`,
+      )
     }
   }
 
@@ -77,8 +76,8 @@ export async function installApps(
     const caskResults = await installCasks(selectedApps, config)
     allResults.push(...caskResults)
 
-    const installed = allResults.filter(result => result.success)
-    const failed = allResults.filter(result => !result.success)
+    const installed = allResults.filter((result) => result.success)
+    const failed = allResults.filter((result) => !result.success)
 
     return {
       alreadyInstalled: [],
@@ -88,8 +87,7 @@ export async function installApps(
       installed,
       unavailable: [],
     }
-  }
-  catch (error: unknown) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     consola.error(`Installation failed: ${errorMessage}`)
 
@@ -127,34 +125,40 @@ async function installCasks(
     return []
   }
 
-  const caskNames = casks.map(app => app.brewName)
+  const caskNames = casks.map((app) => app.brewName)
   const command = BREW_COMMANDS.INSTALL_CASK(caskNames)
 
-  consola.debug(`${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`)
+  consola.debug(
+    `${config.dryRun ? '[DRY RUN] ' : ''}Installing ${casks.length} ${pluralize('cask', casks.length)}: ${caskNames.join(', ')}`,
+  )
 
   consola.debug(`Command: ${command}`)
 
   // Use streamOutput=true to show real-time output during installation
-  const result = await executeCommand(command, DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT, config.dryRun, true)
+  const result = await executeCommand(
+    command,
+    DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
+    config.dryRun,
+    true,
+  )
 
   if (result.success) {
-    return casks.map(app => ({
+    return casks.map((app) => ({
       appName: app.originalName,
       dryRun: config.dryRun,
       packageName: app.brewName,
       success: true,
     }))
   }
-  else {
-    consola.error(`Failed to install casks: ${result.stderr}`)
 
-    // In case of batch failure, mark all as failed
-    return casks.map(app => ({
-      appName: app.originalName,
-      dryRun: config.dryRun,
-      error: result.stderr,
-      packageName: app.brewName,
-      success: false,
-    }))
-  }
+  consola.error(`Failed to install casks: ${result.stderr}`)
+
+  // In case of batch failure, mark all as failed
+  return casks.map((app) => ({
+    appName: app.originalName,
+    dryRun: config.dryRun,
+    error: result.stderr,
+    packageName: app.brewName,
+    success: false,
+  }))
 }
