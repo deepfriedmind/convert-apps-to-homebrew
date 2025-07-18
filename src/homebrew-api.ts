@@ -10,7 +10,7 @@ import { promisify } from 'node:util'
 import { gunzip, gzip } from 'node:zlib'
 import { spinner } from '@clack/prompts'
 import { consola } from 'consola'
-
+import packageJson from '../package.json' with { type: 'json' }
 import type {
   CaskCacheEntry,
   HomebrewApiResult,
@@ -37,7 +37,7 @@ const HOMEBREW_API = {
  */
 const CACHE_CONFIG = {
   /** Cache directory name */
-  DIR_NAME: '.cache/convert-apps-to-homebrew',
+  DIR_NAME: `.cache/${packageJson.name}`,
   /** Cache file name */
   FILE_NAME: 'casks.json.gz',
   /** Request timeout in milliseconds */
@@ -295,7 +295,7 @@ class HomebrewApiClient {
     return await fetch(HOMEBREW_API.CASKS, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'convert-apps-to-homebrew',
+        'User-Agent': packageJson.name,
       },
       signal: controller.signal,
     })

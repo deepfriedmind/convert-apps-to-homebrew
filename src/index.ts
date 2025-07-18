@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { consola } from 'consola'
+import packageJson from '../package.json' with { type: 'json' }
 import { discoverApps } from './app-scanner.ts'
 import {
   displayTroubleshooting,
@@ -217,7 +218,7 @@ if (!isMain && argvFileName) {
 
 if (!isMain && argvPath) {
   // Check if being run via linked binary (npm link creates a symlink in bin directory)
-  const binaryName = 'convert-apps-to-homebrew'
+  const binaryName = packageJson.name
   const isBinaryPath = argvPath.includes(binaryName)
 
   if (isBinaryPath) {

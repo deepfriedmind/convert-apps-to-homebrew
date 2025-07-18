@@ -21,10 +21,8 @@ export function createProgram(): Command {
   const program = new Command()
 
   program
-    .name('convert-apps-to-homebrew')
-    .description(
-      'Convert macOS applications to Homebrew installations with interactive selection',
-    )
+    .name(packageJson.name)
+    .description(packageJson.description)
     .version(getPackageVersion(), '-v, --version', 'display version number')
     .helpOption('-h, --help', 'display help for command')
 
@@ -79,15 +77,15 @@ export function createProgram(): Command {
     'after',
     `
 Examples:
-  $ npx convert-apps-to-homebrew@latest
-  $ npx convert-apps-to-homebrew@latest --dry-run
-  $ npx convert-apps-to-homebrew@latest --verbose --dry-run
-  $ npx convert-apps-to-homebrew@latest --ignore "Adobe Photoshop" "Microsoft Word" google-chrome
-  $ npx convert-apps-to-homebrew@latest --ignore-app-store
-  $ npx convert-apps-to-homebrew@latest --applications-dir "custom/path/to/Applications"
-  $ npx convert-apps-to-homebrew@latest --force-refresh-cache
-  $ npx convert-apps-to-homebrew@latest --matching-threshold 0.8
-  $ npx convert-apps-to-homebrew@latest --fallback-to-cli
+  $ npx ${packageJson.name}@latest
+  $ npx ${packageJson.name}@latest --dry-run
+  $ npx ${packageJson.name}@latest --verbose --dry-run
+  $ npx ${packageJson.name}@latest --ignore "Adobe Photoshop" "Microsoft Word" google-chrome
+  $ npx ${packageJson.name}@latest --ignore-app-store
+  $ npx ${packageJson.name}@latest --applications-dir "custom/path/to/Applications"
+  $ npx ${packageJson.name}@latest --force-refresh-cache
+  $ npx ${packageJson.name}@latest --matching-threshold 0.8
+  $ npx ${packageJson.name}@latest --fallback-to-cli
 
 Notes:
   • The tool will scan your Applications directory for .app bundles
