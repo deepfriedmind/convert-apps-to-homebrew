@@ -88,66 +88,120 @@ class HomebrewApiClient {
     try {
       // Try to load from cache first unless force refresh
       if (!forceRefresh) {
-        const cached = await this.loadFromCache()
-
-        if (cached.success && cached.data) {
-          consola.debug('Using cached cask data')
-
-          return { ...cached, fromCache: true }
-        }
-
-        consola.debug('Cache not found or invalid, fetching from API...')
-      }
-
-      // Only show spinner when actually fetching from API
-      const spinnerIndicator = showSpinner ? spinner() : null
-
-      if (spinnerIndicator) {
-        if (forceRefresh) {
-          spinnerIndicator.start(
-            'Refreshing Homebrew cask database from API...',
-          )
-        } else {
-          spinnerIndicator.start('Fetching Homebrew cask database from API...')
+        const cached = await this.tryLoadFromCache()
+        if (cached) {
+          return cached
         }
       }
 
-      consola.debug('Fetching cask data from Homebrew API...')
-
-      // Fetch from API
-      const result = await this.fetchFromApi(spinnerIndicator)
-
-      if (result.success && result.data) {
-        // Save to cache
-        if (spinnerIndicator) {
-          spinnerIndicator.message('Caching cask database...')
-        }
-
-        await this.saveToCache(result.data)
-
-        consola.debug('Cask data cached successfully')
-
-        if (spinnerIndicator) {
-          spinnerIndicator.stop(
-            `Successfully loaded ${result.data.length} casks from Homebrew API`,
-          )
-        }
-      } else if (spinnerIndicator) {
-        spinnerIndicator.stop('Failed to fetch cask database from API', 1)
-      }
-
-      return result
+      // Fetch from API with spinner
+      return await this.fetchWithSpinner(forceRefresh, showSpinner)
     } catch (error) {
-      return {
-        error: {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Unknown error fetching casks',
-          ...(error instanceof Error && { originalError: error }),
-        },
-        success: false,
-      }
+      return this.createErrorResult(error)
+    }
+  }
+
+  /**
+   * Try to load data from cache
+   */
+  private async tryLoadFromCache(): Promise<HomebrewApiResult<
+    HomebrewCask[]
+  > | null> {
+    const cached = await this.loadFromCache()
+
+    if (cached.success && cached.data) {
+      consola.debug('Using cached cask data')
+      return { ...cached, fromCache: true }
+    }
+
+    consola.debug('Cache not found or invalid, fetching from API...')
+    return null
+  }
+
+  /**
+   * Fetch from API with spinner management
+   */
+  private async fetchWithSpinner(
+    forceRefresh: boolean,
+    showSpinner: boolean,
+  ): Promise<HomebrewApiResult<HomebrewCask[]>> {
+    const spinnerIndicator = this.createSpinner(forceRefresh, showSpinner)
+
+    consola.debug('Fetching cask data from Homebrew API...')
+
+    const result = await this.fetchFromApi(spinnerIndicator)
+
+    if (result.success && result.data) {
+      await this.handleSuccessfulFetch(result.data, spinnerIndicator)
+    } else {
+      this.handleFailedFetch(spinnerIndicator)
+    }
+
+    return result
+  }
+
+  /**
+   * Create and start spinner if needed
+   */
+  private createSpinner(forceRefresh: boolean, showSpinner: boolean) {
+    if (!showSpinner) {
+      return null
+    }
+
+    const spinnerIndicator = spinner()
+    const message = forceRefresh
+      ? 'Refreshing Homebrew cask database from API...'
+      : 'Fetching Homebrew cask database from API...'
+
+    spinnerIndicator.start(message)
+    return spinnerIndicator
+  }
+
+  /**
+   * Handle successful API fetch
+   */
+  private async handleSuccessfulFetch(
+    data: HomebrewCask[],
+    spinnerIndicator: ReturnType<typeof spinner> | null,
+  ): Promise<void> {
+    if (spinnerIndicator) {
+      spinnerIndicator.message('Caching cask database...')
+    }
+
+    await this.saveToCache(data)
+    consola.debug('Cask data cached successfully')
+
+    if (spinnerIndicator) {
+      spinnerIndicator.stop(
+        `Successfully loaded ${data.length} casks from Homebrew API`,
+      )
+    }
+  }
+
+  /**
+   * Handle failed API fetch
+   */
+  private handleFailedFetch(
+    spinnerIndicator: ReturnType<typeof spinner> | null,
+  ): void {
+    if (spinnerIndicator) {
+      spinnerIndicator.stop('Failed to fetch cask database from API', 1)
+    }
+  }
+
+  /**
+   * Create error result object
+   */
+  private createErrorResult(error: unknown): HomebrewApiResult<HomebrewCask[]> {
+    return {
+      error: {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unknown error fetching casks',
+        ...(error instanceof Error && { originalError: error }),
+      },
+      success: false,
     }
   }
 
@@ -189,6 +243,29 @@ class HomebrewApiClient {
   private async fetchFromApi(
     spinnerIndicator?: null | ReturnType<typeof spinner>,
   ): Promise<HomebrewApiResult<HomebrewCask[]>> {
+    const { controller, timeoutId } = this.setupRequestTimeout(spinnerIndicator)
+
+    try {
+      const response = await this.makeApiRequest(controller, spinnerIndicator)
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        return this.handleHttpError(response, spinnerIndicator)
+      }
+
+      return await this.processSuccessfulResponse(response, spinnerIndicator)
+    } catch (error) {
+      clearTimeout(timeoutId)
+      return this.handleRequestError(error)
+    }
+  }
+
+  /**
+   * Setup request timeout and abort controller
+   */
+  private setupRequestTimeout(
+    spinnerIndicator?: null | ReturnType<typeof spinner>,
+  ) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => {
       controller.abort()
@@ -201,78 +278,108 @@ class HomebrewApiClient {
       }
     }, CACHE_CONFIG.REQUEST_TIMEOUT)
 
-    try {
-      if (spinnerIndicator) {
-        spinnerIndicator.message('Connecting to Homebrew API...')
-      }
+    return { controller, timeoutId }
+  }
 
-      const response = await fetch(HOMEBREW_API.CASKS, {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'convert-apps-to-homebrew',
-        },
-        signal: controller.signal,
-      })
+  /**
+   * Make the actual API request
+   */
+  private async makeApiRequest(
+    controller: AbortController,
+    spinnerIndicator?: null | ReturnType<typeof spinner>,
+  ): Promise<Response> {
+    if (spinnerIndicator) {
+      spinnerIndicator.message('Connecting to Homebrew API...')
+    }
 
-      clearTimeout(timeoutId)
+    return await fetch(HOMEBREW_API.CASKS, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'convert-apps-to-homebrew',
+      },
+      signal: controller.signal,
+    })
+  }
 
-      if (!response.ok) {
-        if (spinnerIndicator) {
-          spinnerIndicator.stop(
-            `HTTP ${response.status}: ${response.statusText}`,
-            1,
-          )
-        }
+  /**
+   * Handle HTTP error responses
+   */
+  private handleHttpError(
+    response: Response,
+    spinnerIndicator?: null | ReturnType<typeof spinner>,
+  ): HomebrewApiResult<HomebrewCask[]> {
+    if (spinnerIndicator) {
+      spinnerIndicator.stop(
+        `HTTP ${response.status}: ${response.statusText}`,
+        1,
+      )
+    }
 
-        return {
-          error: {
-            code: response.status.toString(),
-            message: `HTTP ${response.status}: ${response.statusText}`,
-          },
-          success: false,
-        }
-      }
+    return {
+      error: {
+        code: response.status.toString(),
+        message: `HTTP ${response.status}: ${response.statusText}`,
+      },
+      success: false,
+    }
+  }
 
-      const contentLength = response.headers.get('content-length')
-      const totalBytes =
-        contentLength !== null && contentLength !== ''
-          ? Number.parseInt(contentLength, 10)
-          : 0
-      const sizeText =
-        totalBytes > 0 ? ` (${Math.round(totalBytes / 1000)} kB)` : ''
+  /**
+   * Process successful API response
+   */
+  private async processSuccessfulResponse(
+    response: Response,
+    spinnerIndicator?: null | ReturnType<typeof spinner>,
+  ): Promise<HomebrewApiResult<HomebrewCask[]>> {
+    const sizeText = this.getResponseSizeText(response)
 
-      if (spinnerIndicator) {
-        spinnerIndicator.message(`Downloading cask database${sizeText}...`)
-      }
+    if (spinnerIndicator) {
+      spinnerIndicator.message(`Downloading cask database${sizeText}...`)
+    }
 
-      // The actual download happens here, awaiting the full response
-      const casks = (await response.json()) as HomebrewCask[]
+    const casks = (await response.json()) as HomebrewCask[]
+    consola.debug(`Fetched ${casks.length} casks from Homebrew API`)
 
-      consola.debug(`Fetched ${casks.length} casks from Homebrew API`)
+    return { data: casks, success: true }
+  }
 
-      return { data: casks, success: true }
-    } catch (error) {
-      clearTimeout(timeoutId)
+  /**
+   * Get response size text for display
+   */
+  private getResponseSizeText(response: Response): string {
+    const contentLength = response.headers.get('content-length')
+    const totalBytes =
+      contentLength !== null && contentLength !== ''
+        ? Number.parseInt(contentLength, 10)
+        : 0
 
-      if (error instanceof Error && error.name === 'AbortError') {
-        return {
-          error: {
-            code: 'TIMEOUT',
-            message: 'Request timeout',
-            ...(error instanceof Error && { originalError: error }),
-          },
-          success: false,
-        }
-      }
+    return totalBytes > 0 ? ` (${Math.round(totalBytes / 1000)} kB)` : ''
+  }
 
+  /**
+   * Handle request errors (timeout, network, etc.)
+   */
+  private handleRequestError(
+    error: unknown,
+  ): HomebrewApiResult<HomebrewCask[]> {
+    if (error instanceof Error && error.name === 'AbortError') {
       return {
         error: {
-          code: 'NETWORK_ERROR',
-          message: error instanceof Error ? error.message : 'Network error',
+          code: 'TIMEOUT',
+          message: 'Request timeout',
           ...(error instanceof Error && { originalError: error }),
         },
         success: false,
       }
+    }
+
+    return {
+      error: {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network error',
+        ...(error instanceof Error && { originalError: error }),
+      },
+      success: false,
     }
   }
 
@@ -405,5 +512,5 @@ export async function fetchHomebrewCasks(
 ): Promise<HomebrewApiResult<HomebrewCask[]>> {
   const client = new HomebrewApiClient()
 
-  return client.fetchAllCasks(forceRefresh, showSpinner)
+  return await client.fetchAllCasks(forceRefresh, showSpinner)
 }

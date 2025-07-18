@@ -4,9 +4,14 @@
 
 import { consola } from 'consola'
 
+import { FILE_PATTERNS } from './constants.ts'
 import type { MasAppInfo, MasIntegrationResult } from './types.ts'
-
 import { executeCommand } from './utils.ts'
+
+/**
+ * Regular expressions used in this module
+ */
+const CLOSING_PAREN_REGEX = /\)$/
 
 /**
  * Mac App Store CLI commands
@@ -81,7 +86,9 @@ export function isAppFromMacAppStore(
     return false
   }
 
-  const normalizedAppName = appName.toLowerCase().replace(/\.app$/, '')
+  const normalizedAppName = appName
+    .toLowerCase()
+    .replace(FILE_PATTERNS.APP_PATTERN, '')
 
   return masApps.some((masApp) => {
     const normalizedMasName = masApp.name.toLowerCase()
@@ -144,7 +151,7 @@ function parseMasOutput(output: string): MasAppInfo[] {
       const versionPart = remainder.slice(lastParenIndex + 2) // Skip " ("
 
       // Remove trailing ")"
-      const version = versionPart.replace(/\)$/, '').trim()
+      const version = versionPart.replace(CLOSING_PAREN_REGEX, '').trim()
 
       if (appId.length > 0 && appName.length > 0 && version.length > 0) {
         apps.push({

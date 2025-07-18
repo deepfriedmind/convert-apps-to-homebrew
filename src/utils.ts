@@ -6,7 +6,7 @@ import type { Buffer } from 'node:buffer'
 
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
-import { DEFAULT_CONFIG } from './constants.ts'
+import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
 import type { BrewCommandResult } from './types.ts'
 
 const execAsync = promisify(exec)
@@ -127,7 +127,7 @@ export function extractAppName(appPath: string): string {
     return ''
   }
 
-  return basename.replace(/\.app$/i, '')
+  return basename.replace(FILE_PATTERNS.APP_PATTERN, '')
 }
 
 /**

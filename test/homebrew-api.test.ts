@@ -8,7 +8,7 @@ import type { HomebrewCask } from '../src/types.ts'
 
 describe('Homebrew API Functions', () => {
   describe('cache operations', () => {
-    test('should handle cache operations', async () => {
+    test('should handle cache operations', () => {
       // This is a basic test to ensure the module structure is valid
       expect(typeof clearHomebrewCache).toBe('function')
     })

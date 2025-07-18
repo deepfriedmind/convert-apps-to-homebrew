@@ -10,6 +10,11 @@ import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
 
 /**
+ * Regular expressions used in this module
+ */
+const VERSION_REGEX = /(\d+)/
+
+/**
  * Create and configure the Commander.js program
  */
 export function createProgram(): Command {
@@ -179,68 +184,99 @@ export function parseArguments(argv: string[] = process.argv): CommandOptions {
     program.parse(argv)
     const options = program.opts()
 
-    // Validate applications directory
-    if (
-      options['applicationsDir'] !== undefined &&
-      typeof options['applicationsDir'] !== 'string'
-    ) {
-      throw new Error('Applications directory must be a valid path')
-    }
-
-    // Ensure ignore is always an array
-    const ignore: string[] = Array.isArray(options['ignore'])
-      ? (options['ignore'] as unknown[]).filter(
-          (item): item is string => typeof item === 'string',
-        )
-      : typeof options['ignore'] === 'string'
-        ? [options['ignore']]
-        : []
-
-    // Validate ignore list
-    for (const app of ignore) {
-      if (typeof app !== 'string' || app.trim().length === 0) {
-        throw new Error(`Invalid app name in ignore list: "${app}"`)
-      }
-    }
-
-    const parsedOptions: CommandOptions = {
-      applicationsDir:
-        typeof options['applicationsDir'] === 'string'
-          ? options['applicationsDir']
-          : '/Applications',
-      dryRun: Boolean(options['dryRun']),
-      fallbackToCli: Boolean(options['fallbackToCli']),
-      forceRefreshCache: Boolean(options['forceRefreshCache']),
-      ignore: ignore.map((app: string) => app.trim()),
-      ignoreAppStore: Boolean(options['ignoreAppStore']),
-      verbose: Boolean(options['verbose']),
-    }
-
-    // Add optional properties only if they exist
-    if (typeof options['matchingThreshold'] === 'number') {
-      parsedOptions.matchingThreshold = options['matchingThreshold']
-    }
+    validateApplicationsDirectory(options)
+    const ignore = processIgnoreList(options)
+    const parsedOptions = buildCommandOptions(options, ignore)
 
     return parsedOptions
   } catch (error: unknown) {
-    const typedError = error as { code?: string; message?: string }
-
-    if (typedError.code === 'commander.helpDisplayed') {
-      // Help was displayed, exit gracefully
-      process.exit(0)
-    }
-
-    if (typedError.code === 'commander.version') {
-      // Version was displayed, exit gracefully
-      process.exit(0)
-    }
-
-    // Handle parsing errors
-    const errorMessage = typedError.message ?? 'Unknown error'
-    consola.error(`Command line parsing error: ${errorMessage}`)
-    consola.info('Use --help for usage information')
-    process.exit(1)
+    handleParsingError(error)
   }
+}
+
+/**
+ * Validate applications directory option
+ */
+function validateApplicationsDirectory(options: Record<string, unknown>): void {
+  if (
+    options['applicationsDir'] !== undefined &&
+    typeof options['applicationsDir'] !== 'string'
+  ) {
+    throw new Error('Applications directory must be a valid path')
+  }
+}
+
+/**
+ * Process and validate ignore list
+ */
+function processIgnoreList(options: Record<string, unknown>): string[] {
+  let ignore: string[] = []
+
+  if (Array.isArray(options['ignore'])) {
+    ignore = (options['ignore'] as unknown[]).filter(
+      (item): item is string => typeof item === 'string',
+    )
+  } else if (typeof options['ignore'] === 'string') {
+    ignore = [options['ignore']]
+  }
+
+  // Validate ignore list
+  for (const app of ignore) {
+    if (typeof app !== 'string' || app.trim().length === 0) {
+      throw new Error(`Invalid app name in ignore list: "${app}"`)
+    }
+  }
+
+  return ignore.map((app: string) => app.trim())
+}
+
+/**
+ * Build CommandOptions object from parsed options
+ */
+function buildCommandOptions(
+  options: Record<string, unknown>,
+  ignore: string[],
+): CommandOptions {
+  const parsedOptions: CommandOptions = {
+    applicationsDir:
+      typeof options['applicationsDir'] === 'string'
+        ? options['applicationsDir']
+        : '/Applications',
+    dryRun: Boolean(options['dryRun']),
+    fallbackToCli: Boolean(options['fallbackToCli']),
+    forceRefreshCache: Boolean(options['forceRefreshCache']),
+    ignore,
+    ignoreAppStore: Boolean(options['ignoreAppStore']),
+    verbose: Boolean(options['verbose']),
+  }
+
+  // Add optional properties only if they exist
+  if (typeof options['matchingThreshold'] === 'number') {
+    parsedOptions.matchingThreshold = options['matchingThreshold']
+  }
+
+  return parsedOptions
+}
+
+/**
+ * Handle parsing errors and exit appropriately
+ */
+function handleParsingError(error: unknown): never {
+  const typedError = error as { code?: string; message?: string }
+
+  if (typedError.code === 'commander.helpDisplayed') {
+    process.exit(0)
+  }
+
+  if (typedError.code === 'commander.version') {
+    process.exit(0)
+  }
+
+  // Handle parsing errors
+  const errorMessage = typedError.message ?? 'Unknown error'
+  consola.error(`Command line parsing error: ${errorMessage}`)
+  consola.info('Use --help for usage information')
+  process.exit(1)
 }
 
 /**
@@ -288,7 +324,7 @@ export function validateEnvironment(): void {
   const engines = packageJson.engines?.node
 
   if (engines) {
-    const versionMatch = engines.match(/(\d+)/)
+    const versionMatch = engines.match(VERSION_REGEX)
     const versionString = versionMatch?.[1]
 
     if (versionString !== undefined && versionString.trim() !== '') {

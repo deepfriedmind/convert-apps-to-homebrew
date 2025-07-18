@@ -312,20 +312,20 @@ describe('Mac App Store labeling integration', () => {
     expect(options.length).toBe(3)
 
     // Test first app: regular cask with different brew name
-    expect(options[0]!.label).toBe('Regular Cask')
-    expect(options[0]!.hint).toBe('regular-cask')
-    expect(options[0]!.value).toBe('Regular Cask')
+    expect(options[0]?.label).toBe('Regular Cask')
+    expect(options[0]?.hint).toBe('regular-cask')
+    expect(options[0]?.value).toBe('Regular Cask')
 
     // Test second app: App Store app with matching name
-    expect(options[1]!.label).toBe('Bitwarden ')
-    expect(options[1]!.hint).toBe('– installed via App Store')
-    expect(options[1]!.value).toBe('Bitwarden')
+    expect(options[1]?.label).toBe('Bitwarden ')
+    expect(options[1]?.hint).toBe('– installed via App Store')
+    expect(options[1]?.value).toBe('Bitwarden')
 
     // Test third app: App Store app with different brew name
-    expect(options[2]!.label).toBe('Different Name ')
-    expect(options[2]!.hint).toBe(
+    expect(options[2]?.label).toBe('Different Name ')
+    expect(options[2]?.hint).toBe(
       'totally-different-cask-name – installed via App Store',
     )
-    expect(options[2]!.value).toBe('Different Name')
+    expect(options[2]?.value).toBe('Different Name')
   })
 })

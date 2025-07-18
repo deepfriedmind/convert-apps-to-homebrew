@@ -34,87 +34,70 @@ export class ErrorHandler {
     error: ConvertAppsError,
     context: string,
   ): never {
-    /* eslint-disable no-fallthrough */
+    let exitCode: (typeof EXIT_CODES)[keyof typeof EXIT_CODES] =
+      EXIT_CODES.GENERAL_ERROR
     switch (error.type) {
-      case ErrorType.COMMAND_FAILED: {
+      case ErrorType.COMMAND_FAILED:
         consola.error(`Command execution failed${context}: ${error.message}`)
         this.showCommandFailureHelp()
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      case ErrorType.FILE_NOT_FOUND: {
+        break
+      case ErrorType.FILE_NOT_FOUND:
         consola.error(`File not found${context}: ${error.message}`)
         this.showFileNotFoundHelp()
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      case ErrorType.HOMEBREW_NOT_INSTALLED: {
+        break
+      case ErrorType.HOMEBREW_NOT_INSTALLED:
         consola.error(`${MESSAGES.HOMEBREW_NOT_INSTALLED}${context}`)
         this.showHomebrewInstallationHelp()
-        process.exit(EXIT_CODES.HOMEBREW_NOT_INSTALLED)
-      }
-
-      case ErrorType.INVALID_INPUT: {
+        exitCode = EXIT_CODES.HOMEBREW_NOT_INSTALLED
+        break
+      case ErrorType.INVALID_INPUT:
         consola.error(`Invalid input${context}: ${error.message}`)
         this.showInputValidationHelp()
-        process.exit(EXIT_CODES.INVALID_INPUT)
-      }
-
-      case ErrorType.NETWORK_ERROR: {
+        exitCode = EXIT_CODES.INVALID_INPUT
+        break
+      case ErrorType.NETWORK_ERROR:
         consola.error(
           `Network error occurred${context}. Please check your internet connection.`,
         )
         this.showNetworkHelp()
-        process.exit(EXIT_CODES.NETWORK_ERROR)
-      }
-
-      case ErrorType.PERMISSION_DENIED: {
+        exitCode = EXIT_CODES.NETWORK_ERROR
+        break
+      case ErrorType.PERMISSION_DENIED:
         consola.error(`${MESSAGES.PERMISSION_DENIED}${context}`)
         this.showPermissionHelp()
-        process.exit(EXIT_CODES.PERMISSION_DENIED)
-      }
-
-      case ErrorType.UNKNOWN_ERROR: {
+        exitCode = EXIT_CODES.PERMISSION_DENIED
+        break
+      case ErrorType.UNKNOWN_ERROR:
         consola.error(`Unknown error${context}: ${error.message}`)
-
         if (error.originalError !== undefined && this.verbose) {
           consola.debug(`Original error: ${error.originalError.message}`)
         }
-
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
-
-      default: {
+        break
+      default:
         consola.error(`Application error${context}: ${error.message}`)
-
         if (error.originalError !== undefined && this.verbose) {
           consola.debug(`Original error: ${error.originalError.message}`)
         }
-
-        process.exit(EXIT_CODES.GENERAL_ERROR)
-      }
+        break
     }
-    /* eslint-enable no-fallthrough */
+    process.exit(exitCode)
   }
 
   private handleGenericError(error: Error, context: string): never {
     consola.error(`Unexpected error${context}: ${error.message}`)
 
     // Check for common error patterns
-    if (error.message.includes('ENOENT')) {
+    if (error.message.includes('spawn') && error.message.includes('ENOENT')) {
+      consola.info(
+        '💡 Command not found. Make sure Homebrew is installed and in your PATH.',
+      )
+    } else if (error.message.includes('ENOENT')) {
       this.showFileNotFoundHelp()
     } else if (error.message.includes('EACCES')) {
       this.showPermissionHelp()
     } else if (error.message.includes('ENOTDIR')) {
       consola.info(
         '💡 The specified path is not a directory. Check your --applications-dir setting.',
-      )
-    } else if (
-      error.message.includes('spawn') &&
-      error.message.includes('ENOENT')
-    ) {
-      consola.info(
-        '💡 Command not found. Make sure Homebrew is installed and in your PATH.',
       )
     }
 
@@ -292,12 +275,12 @@ export function setupGlobalErrorHandlers(verbose = false): void {
   const errorHandler = new ErrorHandler(verbose)
 
   process.on('uncaughtException', (error: Error) => {
-    consola.error('💥 Uncaught Exception:')
+    consola.error('Uncaught Exception:')
     errorHandler.handleError(error, 'uncaught exception')
   })
 
   process.on('unhandledRejection', (reason: unknown) => {
-    consola.error('💥 Unhandled Promise Rejection:')
+    consola.error('Unhandled Promise Rejection:')
     const error = reason instanceof Error ? reason : new Error(String(reason))
     errorHandler.handleError(error, 'unhandled rejection')
   })

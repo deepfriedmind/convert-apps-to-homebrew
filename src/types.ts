@@ -385,8 +385,8 @@ type ErrorTypeValue = (typeof ErrorType)[keyof typeof ErrorType]
  * Custom error class for application-specific errors
  */
 export class ConvertAppsError extends Error {
-  public readonly originalError?: Error
-  public readonly type: ErrorTypeValue
+  readonly originalError?: Error
+  readonly type: ErrorTypeValue
 
   constructor(message: string, type: ErrorTypeValue, originalError?: Error) {
     super(message)

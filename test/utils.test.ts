@@ -15,152 +15,152 @@ import {
   shouldIgnoreApp,
 } from '../src/utils.ts'
 
-void describe('utils', () => {
-  void describe('escapeShellArgument', () => {
-    void test('should wrap simple text in quotes', () => {
+describe('utils', () => {
+  describe('escapeShellArgument', () => {
+    test('should wrap simple text in quotes', () => {
       expect(escapeShellArgument('hello')).toBe('"hello"')
     })
 
-    void test('should escape internal quotes', () => {
+    test('should escape internal quotes', () => {
       expect(escapeShellArgument('say "hello"')).toBe(
         String.raw`"say \"hello\""`,
       )
     })
 
-    void test('should handle empty string', () => {
+    test('should handle empty string', () => {
       expect(escapeShellArgument('')).toBe('""')
     })
 
-    void test('should handle special characters', () => {
+    test('should handle special characters', () => {
       const result = escapeShellArgument('hello & world')
       expect(result).toBe('"hello & world"')
     })
   })
 
-  void describe('extractAppName', () => {
-    void test('should extract app name from .app path', () => {
+  describe('extractAppName', () => {
+    test('should extract app name from .app path', () => {
       expect(extractAppName('/Applications/Google Chrome.app')).toBe(
         'Google Chrome',
       )
     })
 
-    void test('should handle nested paths', () => {
+    test('should handle nested paths', () => {
       expect(extractAppName('/Users/test/Applications/Firefox.app')).toBe(
         'Firefox',
       )
     })
 
-    void test('should handle case insensitive .app extension', () => {
+    test('should handle case insensitive .app extension', () => {
       expect(extractAppName('/Applications/Test.APP')).toBe('Test')
     })
 
-    void test('should return empty string for invalid path', () => {
+    test('should return empty string for invalid path', () => {
       expect(extractAppName('')).toBe('')
     })
 
-    void test('should handle path without .app extension', () => {
+    test('should handle path without .app extension', () => {
       expect(extractAppName('/Applications/SomeFile')).toBe('SomeFile')
     })
   })
 
-  void describe('formatList', () => {
-    void test('should format list with default indent', () => {
+  describe('formatList', () => {
+    test('should format list with default indent', () => {
       const result = formatList(['item1', 'item2', 'item3'])
       expect(result.includes('• item1')).toBe(true)
       expect(result.includes('• item2')).toBe(true)
       expect(result.includes('• item3')).toBe(true)
     })
 
-    void test('should format list with custom indent', () => {
+    test('should format list with custom indent', () => {
       const result = formatList(['item1'], '    ')
       expect(result.includes('    • item1')).toBe(true)
     })
 
-    void test('should handle empty list', () => {
+    test('should handle empty list', () => {
       expect(formatList([])).toBe('')
     })
 
-    void test('should handle single item', () => {
+    test('should handle single item', () => {
       const result = formatList(['single'])
       expect(result).toBe('  • single')
     })
   })
 
-  void describe('normalizeAppName', () => {
-    void test('should convert to lowercase', () => {
+  describe('normalizeAppName', () => {
+    test('should convert to lowercase', () => {
       expect(normalizeAppName('Google Chrome')).toBe('google-chrome')
     })
 
-    void test('should replace spaces with hyphens', () => {
+    test('should replace spaces with hyphens', () => {
       expect(normalizeAppName('Visual Studio Code')).toBe('visual-studio-code')
     })
 
-    void test('should remove special characters', () => {
+    test('should remove special characters', () => {
       expect(normalizeAppName('App@#$Name')).toBe('appname')
     })
 
-    void test('should handle multiple consecutive spaces', () => {
+    test('should handle multiple consecutive spaces', () => {
       expect(normalizeAppName('App    Name')).toBe('app-name')
     })
 
-    void test('should remove leading and trailing hyphens', () => {
+    test('should remove leading and trailing hyphens', () => {
       expect(normalizeAppName('  App Name  ')).toBe('app-name')
     })
 
-    void test('should preserve dots and underscores', () => {
+    test('should preserve dots and underscores', () => {
       expect(normalizeAppName('App.Name_Test')).toBe('app.name_test')
     })
   })
 
-  void describe('parseCommandOutput', () => {
-    void test('should split output into lines', () => {
+  describe('parseCommandOutput', () => {
+    test('should split output into lines', () => {
       const output = 'line1\nline2\nline3'
       const result = parseCommandOutput(output)
       expect(result).toEqual(['line1', 'line2', 'line3'])
     })
 
-    void test('should filter out empty lines', () => {
+    test('should filter out empty lines', () => {
       const output = 'line1\n\nline2\n\nline3'
       const result = parseCommandOutput(output)
       expect(result).toEqual(['line1', 'line2', 'line3'])
     })
 
-    void test('should trim whitespace from lines', () => {
+    test('should trim whitespace from lines', () => {
       const output = '  line1  \n  line2  '
       const result = parseCommandOutput(output)
       expect(result).toEqual(['line1', 'line2'])
     })
 
-    void test('should handle empty output', () => {
+    test('should handle empty output', () => {
       const result = parseCommandOutput('')
       expect(result).toEqual([])
     })
   })
 
-  void describe('pluralize', () => {
-    void test('should return singular for count of 1', () => {
+  describe('pluralize', () => {
+    test('should return singular for count of 1', () => {
       expect(pluralize('app', 1)).toBe('app')
     })
 
-    void test('should return plural for count > 1', () => {
+    test('should return plural for count > 1', () => {
       expect(pluralize('app', 2)).toBe('apps')
     })
 
-    void test('should return plural for count of 0', () => {
+    test('should return plural for count of 0', () => {
       expect(pluralize('app', 0)).toBe('apps')
     })
 
-    void test('should use custom suffix', () => {
+    test('should use custom suffix', () => {
       expect(pluralize('child', 2, 'ren')).toBe('children')
     })
 
-    void test('should handle negative counts as plural', () => {
+    test('should handle negative counts as plural', () => {
       expect(pluralize('app', -1)).toBe('apps')
     })
   })
 
-  void describe('executeCommand', () => {
-    void test('should execute simple command successfully', async () => {
+  describe('executeCommand', () => {
+    test('should execute simple command successfully', async () => {
       const result = await executeCommand('echo "Hello World"')
 
       expect(result.success).toBe(true)
@@ -169,7 +169,7 @@ void describe('utils', () => {
       expect(result.stderr).toBe('')
     })
 
-    void test('should handle command with output to stderr', async () => {
+    test('should handle command with output to stderr', async () => {
       const result = await executeCommand('echo "Error message" >&2')
 
       expect(result.success).toBe(true)
@@ -178,7 +178,7 @@ void describe('utils', () => {
       expect(result.stderr).toBe('Error message')
     })
 
-    void test('should handle failing command', async () => {
+    test('should handle failing command', async () => {
       const result = await executeCommand('exit 1')
 
       expect(result.success).toBe(false)
@@ -186,14 +186,14 @@ void describe('utils', () => {
       expect(result.stdout).toBe('')
     })
 
-    void test('should handle command not found', async () => {
+    test('should handle command not found', async () => {
       const result = await executeCommand('nonexistentcommand123456')
 
       expect(result.success).toBe(false)
       expect(result.exitCode).toBe(127)
     })
 
-    void test('should handle timeout', async () => {
+    test('should handle timeout', async () => {
       const result = await executeCommand('sleep 2', 500) // 500ms timeout for 2s sleep
 
       expect(result.success).toBe(false)
@@ -201,7 +201,7 @@ void describe('utils', () => {
       expect(result.exitCode !== 0 || result.stderr.length > 0).toBe(true)
     })
 
-    void test('should return dry run message when dryRun is true', async () => {
+    test('should return dry run message when dryRun is true', async () => {
       const result = await executeCommand(
         'echo "Should not execute"',
         5000,
@@ -216,14 +216,14 @@ void describe('utils', () => {
       expect(result.stderr).toBe('')
     })
 
-    void test('should use default timeout when not specified', async () => {
+    test('should use default timeout when not specified', async () => {
       const result = await executeCommand('echo "default timeout test"')
 
       expect(result.success).toBe(true)
       expect(result.stdout).toBe('default timeout test')
     })
 
-    void test('should trim stdout and stderr output', async () => {
+    test('should trim stdout and stderr output', async () => {
       const result = await executeCommand('echo "  spaces  "')
 
       expect(result.success).toBe(true)
@@ -231,14 +231,14 @@ void describe('utils', () => {
       expect(result.stdout).toBe('spaces')
     })
 
-    void test('should handle complex command with pipes', async () => {
+    test('should handle complex command with pipes', async () => {
       const result = await executeCommand('echo "hello world" | tr a-z A-Z')
 
       expect(result.success).toBe(true)
       expect(result.stdout).toBe('HELLO WORLD')
     })
 
-    void test('should handle command with multiple arguments', async () => {
+    test('should handle command with multiple arguments', async () => {
       const result = await executeCommand(
         String.raw`printf "%s %s\n" "Hello" "World"`,
       )
@@ -247,7 +247,7 @@ void describe('utils', () => {
       expect(result.stdout).toBe('Hello World')
     })
 
-    void test('should return consistent result structure on success', async () => {
+    test('should return consistent result structure on success', async () => {
       const result = await executeCommand('echo test')
 
       expect(typeof result.success).toBe('boolean')
@@ -260,7 +260,7 @@ void describe('utils', () => {
       expect('stderr' in result).toBe(true)
     })
 
-    void test('should return consistent result structure on failure', async () => {
+    test('should return consistent result structure on failure', async () => {
       const result = await executeCommand('exit 42')
 
       expect(typeof result.success).toBe('boolean')
@@ -271,17 +271,17 @@ void describe('utils', () => {
       expect(result.exitCode).toBe(42)
     })
 
-    void test('should throw error for empty command', () => {
+    test('should throw error for empty command', () => {
       expect(executeCommand('')).rejects.toThrow('Command cannot be empty')
     })
 
-    void test('should throw error for whitespace-only command', () => {
+    test('should throw error for whitespace-only command', () => {
       expect(executeCommand('   \t  \n  ')).rejects.toThrow(
         'Command cannot be empty',
       )
     })
 
-    void test('should handle very short timeout', async () => {
+    test('should handle very short timeout', async () => {
       const result = await executeCommand('echo "quick"', 1) // 1ms timeout
 
       // This might succeed or fail depending on system speed,
@@ -291,27 +291,27 @@ void describe('utils', () => {
     })
   })
 
-  void describe('shouldIgnoreApp', () => {
-    void test('should return false when ignore list is empty', () => {
+  describe('shouldIgnoreApp', () => {
+    test('should return false when ignore list is empty', () => {
       const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [])
       expect(result).toBe(false)
     })
 
-    void test('should ignore app by original name', () => {
+    test('should ignore app by original name', () => {
       const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
         'Bartender 5',
       ])
       expect(result).toBe(true)
     })
 
-    void test('should ignore app by brew name', () => {
+    test('should ignore app by brew name', () => {
       const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
         'bartender',
       ])
       expect(result).toBe(true)
     })
 
-    void test('should ignore app case insensitively', () => {
+    test('should ignore app case insensitively', () => {
       const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
         'BARTENDER 5',
       ])
@@ -322,7 +322,7 @@ void describe('utils', () => {
       expect(result2).toBe(true)
     })
 
-    void test('should handle multiple ignore patterns', () => {
+    test('should handle multiple ignore patterns', () => {
       const ignoreList = ['chrome', 'Visual Studio Code', 'bartender']
 
       expect(
@@ -337,26 +337,26 @@ void describe('utils', () => {
       )
     })
 
-    void test('should not ignore when no match found', () => {
+    test('should not ignore when no match found', () => {
       const result = shouldIgnoreApp('Firefox', 'firefox', ['chrome', 'safari'])
       expect(result).toBe(false)
     })
 
-    void test('should handle whitespace in ignore patterns', () => {
+    test('should handle whitespace in ignore patterns', () => {
       const result = shouldIgnoreApp('Bartender 5', 'bartender-5', [
         ' bartender ',
       ])
       expect(result).toBe(true)
     })
 
-    void test('should handle special characters', () => {
+    test('should handle special characters', () => {
       const result = shouldIgnoreApp('App with (parens)', 'app-with-parens', [
         'app with (parens)',
       ])
       expect(result).toBe(true)
     })
 
-    void test('should match exact normalized names only', () => {
+    test('should match exact normalized names only', () => {
       // "bartender" should match "bartender-5" (prefix matching)
       const result1 = shouldIgnoreApp('Bartender', 'bartender', ['bartender-5'])
       const result2 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
@@ -367,7 +367,7 @@ void describe('utils', () => {
       expect(result2).toBe(true) // "bartender" matches "bartender-5" via prefix
     })
 
-    void test('should handle prefix matching for versioned apps', () => {
+    test('should handle prefix matching for versioned apps', () => {
       // Test the key use case: --ignore bartender should ignore "Bartender 5"
       const result1 = shouldIgnoreApp('Bartender 5', 'bartender-5', [
         'bartender',
@@ -380,7 +380,7 @@ void describe('utils', () => {
       expect(result3).toBe(true)
     })
 
-    void test('should not match unrelated prefixes', () => {
+    test('should not match unrelated prefixes', () => {
       // "bart" should not match "bartender-5"
       const result = shouldIgnoreApp('Bartender 5', 'bartender-5', ['bart'])
       expect(result).toBe(false)

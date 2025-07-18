@@ -13,7 +13,12 @@ import {
 } from './constants.ts'
 import { fetchHomebrewCasks } from './homebrew-api.ts'
 import { getMacAppStoreApps, isAppFromMacAppStore } from './mas-integration.ts'
-import type { AppInfo, ScannerConfig } from './types.ts'
+import type {
+  AppInfo,
+  HomebrewCask,
+  MasAppInfo,
+  ScannerConfig,
+} from './types.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 import {
   executeCommand,
@@ -27,6 +32,28 @@ import {
  * Main function to discover and analyze applications
  */
 export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
+  await validateHomebrewInstallation()
+
+  const masApps = await initializeMacAppStoreIntegration()
+  const appPaths = await getApplicationPaths(config.applicationsDir)
+  const installedCaskSet = await getInstalledCaskSet()
+
+  const apps = createInitialAppInfoList(
+    appPaths,
+    config,
+    masApps,
+    installedCaskSet,
+  )
+  await processUnresolvedApps(apps, config, installedCaskSet)
+
+  consola.ready(`Discovery complete: ${apps.length} apps processed`)
+  return apps
+}
+
+/**
+ * Validate that Homebrew is installed and accessible
+ */
+async function validateHomebrewInstallation(): Promise<void> {
   const homebrewInstalled = await checkHomebrewInstalled()
 
   if (!homebrewInstalled) {
@@ -37,8 +64,12 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   }
 
   consola.debug('Homebrew installation verified')
+}
 
-  // Get Mac App Store apps if mas is available
+/**
+ * Initialize Mac App Store integration and return available apps
+ */
+async function initializeMacAppStoreIntegration(): Promise<MasAppInfo[]> {
   const masResult = await getMacAppStoreApps()
   const masApps = masResult.success ? masResult.apps : []
 
@@ -52,164 +83,224 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
     )
   }
 
-  const appPaths = await scanApplicationsDirectory(config.applicationsDir)
+  return masApps
+}
+
+/**
+ * Get application paths from the Applications directory
+ */
+async function getApplicationPaths(
+  applicationsDir?: string,
+): Promise<string[]> {
+  const appPaths = await scanApplicationsDirectory(applicationsDir)
 
   if (appPaths.length === 0) {
     consola.warn('No applications found in the Applications directory')
-
     return []
   }
 
   consola.debug(`Found ${appPaths.length} applications`)
+  return appPaths
+}
 
+/**
+ * Get set of already installed Homebrew casks
+ */
+async function getInstalledCaskSet(): Promise<Set<string>> {
   consola.debug('Getting list of already installed Homebrew casks...')
-
   const installedCasks = await getInstalledCasks()
-  const installedCaskSet = new Set(installedCasks)
+  return new Set(installedCasks)
+}
 
-  // Create initial app info objects
+/**
+ * Create initial app info objects for all discovered applications
+ */
+function createInitialAppInfoList(
+  appPaths: string[],
+  config: ScannerConfig,
+  masApps: MasAppInfo[],
+  installedCaskSet: Set<string>,
+): AppInfo[] {
   const apps: AppInfo[] = []
 
   for (const appPath of appPaths) {
-    const originalName = extractAppName(appPath)
-    const brewName = normalizeAppName(originalName)
-
-    // Check if this app is from Mac App Store
-    const fromMacAppStore = isAppFromMacAppStore(originalName, masApps)
-
-    // Skip Mac App Store apps if --ignore-app-store flag is set
-    if (config.ignoreAppStore && fromMacAppStore) {
-      apps.push({
-        alreadyInstalled: false,
-        appPath,
-        brewName,
-        brewType: 'unavailable',
-        fromMacAppStore,
-        originalName,
-        status: 'ignored',
-      })
-      continue
-    }
-
-    // Skip ignored apps - check against both original name and brew name
-    if (shouldIgnoreApp(originalName, brewName, config.ignoredApps)) {
-      apps.push({
-        alreadyInstalled: false,
-        appPath,
-        brewName,
-        brewType: 'unavailable',
-        fromMacAppStore,
-        originalName,
-        status: 'ignored',
-      })
-      continue
-    }
-
-    const isAlreadyInstalledCask = installedCaskSet.has(brewName)
-
-    if (isAlreadyInstalledCask) {
-      apps.push({
-        alreadyInstalled: true,
-        appPath,
-        brewName,
-        brewType: 'cask',
-        fromMacAppStore,
-        originalName,
-        status: 'already-installed',
-      })
-      continue
-    }
-
-    // Add to list for batch processing
-    apps.push({
-      alreadyInstalled: false,
-      appPath,
-      brewName,
-      brewType: 'unavailable', // Will be updated after matching
-      fromMacAppStore,
-      originalName,
-      status: 'unavailable', // Will be updated after matching
-    })
+    const appInfo = createAppInfo(appPath, config, masApps, installedCaskSet)
+    apps.push(appInfo)
   }
-
-  // Batch process apps that aren't already installed or ignored
-  const appsToCheck = apps.filter((app) => app.status === 'unavailable')
-
-  if (appsToCheck.length > 0) {
-    consola.debug(
-      `Batch checking Homebrew availability for ${appsToCheck.length} apps...`,
-    )
-
-    // Use fallback to CLI if requested
-    if (config.fallbackToCli) {
-      consola.debug('Using individual brew commands as requested')
-
-      await procesAppsIndividually(appsToCheck)
-    } else {
-      try {
-        // Fetch Homebrew cask database
-        const caskResult = await fetchHomebrewCasks(
-          config.forceRefreshCache,
-          true,
-        )
-
-        if (caskResult.success && caskResult.data) {
-          const matchingConfig = {
-            enableBundleIdLookup: true,
-            enableFuzzyMatching: true,
-            maxMatches: 5,
-            minConfidence: config.matchingThreshold ?? 0.6,
-          }
-          const matcher = new AppMatcher(matchingConfig)
-          const index = matcher.buildIndex(caskResult.data)
-
-          const matchResults = matcher.matchApps(appsToCheck, index)
-
-          for (const matchResult of matchResults) {
-            const app = matchResult.appInfo
-
-            if (matchResult.bestMatch) {
-              const matchedCaskName = matchResult.bestMatch.cask.token
-
-              // Check if the matched cask is already installed
-              if (installedCaskSet.has(matchedCaskName)) {
-                app.alreadyInstalled = true
-                app.brewType = 'cask'
-                app.status = 'already-installed'
-                app.brewName = matchedCaskName
-              } else {
-                // Found a match and not already installed
-                app.alreadyInstalled = false
-                app.brewType = 'cask'
-                app.status = 'available'
-                app.brewName = matchedCaskName
-              }
-            } else {
-              // No match found
-              app.brewType = 'unavailable'
-              app.status = 'unavailable'
-            }
-          }
-        } else {
-          // Fallback to individual brew commands
-          consola.warn(
-            'Failed to fetch Homebrew cask database, falling back to individual commands',
-          )
-          await procesAppsIndividually(appsToCheck)
-        }
-      } catch (error) {
-        consola.warn(
-          `Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        )
-        consola.warn('Falling back to individual brew commands')
-        await procesAppsIndividually(appsToCheck)
-      }
-    }
-  }
-
-  consola.ready(`Discovery complete: ${apps.length} apps processed`)
 
   return apps
+}
+
+/**
+ * Create app info object for a single application
+ */
+function createAppInfo(
+  appPath: string,
+  config: ScannerConfig,
+  masApps: MasAppInfo[],
+  installedCaskSet: Set<string>,
+): AppInfo {
+  const originalName = extractAppName(appPath)
+  const brewName = normalizeAppName(originalName)
+  const fromMacAppStore = isAppFromMacAppStore(originalName, masApps)
+
+  const baseAppInfo = {
+    appPath,
+    brewName,
+    fromMacAppStore,
+    originalName,
+  }
+
+  // Check if app should be ignored
+  if (shouldIgnoreApp(originalName, brewName, config.ignoredApps)) {
+    return {
+      ...baseAppInfo,
+      alreadyInstalled: false,
+      brewType: 'unavailable' as const,
+      status: 'ignored' as const,
+    }
+  }
+
+  // Check if Mac App Store app should be ignored
+  if (config.ignoreAppStore && fromMacAppStore) {
+    return {
+      ...baseAppInfo,
+      alreadyInstalled: false,
+      brewType: 'unavailable' as const,
+      status: 'ignored' as const,
+    }
+  }
+
+  // Check if already installed
+  if (installedCaskSet.has(brewName)) {
+    return {
+      ...baseAppInfo,
+      alreadyInstalled: true,
+      brewType: 'cask' as const,
+      status: 'already-installed' as const,
+    }
+  }
+
+  // Default: needs to be processed
+  return {
+    ...baseAppInfo,
+    alreadyInstalled: false,
+    brewType: 'unavailable' as const,
+    status: 'unavailable' as const,
+  }
+}
+
+/**
+ * Process apps that need Homebrew availability checking
+ */
+async function processUnresolvedApps(
+  apps: AppInfo[],
+  config: ScannerConfig,
+  installedCaskSet: Set<string>,
+): Promise<void> {
+  const appsToCheck = apps.filter((app) => app.status === 'unavailable')
+
+  if (appsToCheck.length === 0) {
+    return
+  }
+
+  consola.debug(
+    `Batch checking Homebrew availability for ${appsToCheck.length} apps...`,
+  )
+
+  if (config.fallbackToCli) {
+    consola.debug('Using individual brew commands as requested')
+    await procesAppsIndividually(appsToCheck)
+  } else {
+    await processBatchMatching(appsToCheck, config, installedCaskSet)
+  }
+}
+
+/**
+ * Process apps using batch matching with Homebrew API
+ */
+async function processBatchMatching(
+  appsToCheck: AppInfo[],
+  config: ScannerConfig,
+  installedCaskSet: Set<string>,
+): Promise<void> {
+  try {
+    const caskResult = await fetchHomebrewCasks(config.forceRefreshCache, true)
+
+    if (caskResult.success && caskResult.data) {
+      performBatchMatching(
+        appsToCheck,
+        config,
+        caskResult.data,
+        installedCaskSet,
+      )
+    } else {
+      consola.warn(
+        'Failed to fetch Homebrew cask database, falling back to individual commands',
+      )
+      await procesAppsIndividually(appsToCheck)
+    }
+  } catch (error) {
+    consola.warn(
+      `Error during batch processing: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+    consola.warn('Falling back to individual brew commands')
+    await procesAppsIndividually(appsToCheck)
+  }
+}
+
+/**
+ * Perform batch matching using AppMatcher
+ */
+function performBatchMatching(
+  appsToCheck: AppInfo[],
+  config: ScannerConfig,
+  caskData: HomebrewCask[],
+  installedCaskSet: Set<string>,
+): void {
+  const matchingConfig = {
+    enableBundleIdLookup: true,
+    enableFuzzyMatching: true,
+    maxMatches: 5,
+    minConfidence: config.matchingThreshold ?? 0.6,
+  }
+
+  const matcher = new AppMatcher(matchingConfig)
+  const index = matcher.buildIndex(caskData)
+  const matchResults = matcher.matchApps(appsToCheck, index)
+
+  for (const matchResult of matchResults) {
+    updateAppWithMatchResult(matchResult, installedCaskSet)
+  }
+}
+
+/**
+ * Update app info based on match result
+ */
+function updateAppWithMatchResult(
+  matchResult: { appInfo: AppInfo; bestMatch?: { cask: { token: string } } },
+  installedCaskSet: Set<string>,
+): void {
+  const app = matchResult.appInfo
+
+  if (matchResult.bestMatch) {
+    const matchedCaskName = matchResult.bestMatch.cask.token
+
+    if (installedCaskSet.has(matchedCaskName)) {
+      app.alreadyInstalled = true
+      app.brewType = 'cask'
+      app.status = 'already-installed'
+      app.brewName = matchedCaskName
+    } else {
+      app.alreadyInstalled = false
+      app.brewType = 'cask'
+      app.status = 'available'
+      app.brewName = matchedCaskName
+    }
+  } else {
+    app.brewType = 'unavailable'
+    app.status = 'unavailable'
+  }
 }
 
 /**
@@ -266,28 +357,30 @@ async function isCaskAvailable(packageName: string): Promise<boolean> {
  * Fallback function to process apps individually using brew commands
  */
 async function procesAppsIndividually(apps: AppInfo[]): Promise<void> {
-  for (const app of apps) {
-    consola.debug(`Checking Homebrew availability for: ${app.originalName}`)
+  await Promise.all(
+    apps.map(async (app) => {
+      consola.debug(`Checking Homebrew availability for: ${app.originalName}`)
 
-    try {
-      const packageInfo = await determinePackageInfo(
-        app.originalName,
-        app.brewName,
-      )
+      try {
+        const packageInfo = await determinePackageInfo(
+          app.originalName,
+          app.brewName,
+        )
 
-      app.alreadyInstalled = packageInfo.alreadyInstalled
-      app.brewType = packageInfo.brewType
-      app.status =
-        packageInfo.brewType === 'unavailable' ? 'unavailable' : 'available'
-    } catch (error) {
-      consola.warn(
-        `Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`,
-      )
-      app.alreadyInstalled = false
-      app.brewType = 'unavailable'
-      app.status = 'unavailable'
-    }
-  }
+        app.alreadyInstalled = packageInfo.alreadyInstalled
+        app.brewType = packageInfo.brewType
+        app.status =
+          packageInfo.brewType === 'unavailable' ? 'unavailable' : 'available'
+      } catch (error) {
+        consola.warn(
+          `Failed to check Homebrew availability for ${app.originalName}: ${String(error)}`,
+        )
+        app.alreadyInstalled = false
+        app.brewType = 'unavailable'
+        app.status = 'unavailable'
+      }
+    }),
+  )
 }
 
 /**

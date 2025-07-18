@@ -1,11 +1,6 @@
 /**
  * Integration tests for convert-apps-to-homebrew
- *
- * These tests demonstrate how higher-level workflows could be tested,
- * but are optional and focus on integration patterns rather than
- * comprehensive coverage of all edge cases.
  */
-
 import { describe, expect, test } from 'bun:test'
 
 describe('Integration Tests', () => {

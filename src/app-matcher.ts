@@ -3,7 +3,7 @@
  */
 
 import { consola } from 'consola'
-
+import { FILE_PATTERNS } from './constants.ts'
 import type {
   AppInfo,
   AppMatchResult,
@@ -13,7 +13,6 @@ import type {
   MatchingConfig,
   MatchingStrategy,
 } from './types.ts'
-
 import { normalizeAppName } from './utils.ts'
 
 /**
@@ -49,70 +48,142 @@ export class AppMatcher {
     }
 
     for (const cask of casks) {
-      // Index by token
-      index.byToken.set(cask.token, cask)
-
-      // Index by normalized names
-      for (const name of cask.name) {
-        const normalized = normalizeAppName(name)
-        this.addToMap(index.byNormalizedName, normalized, cask)
-      }
-
-      // Index by app bundles and bundle IDs from artifacts
-      for (const artifact of cask.artifacts) {
-        // Index app bundles
-        if (artifact.app) {
-          for (const appName of artifact.app) {
-            let appNameString: string
-
-            // Handle both string and object formats
-            if (typeof appName === 'string') {
-              appNameString = appName
-            } else if (
-              typeof appName === 'object' &&
-              appName !== null &&
-              'target' in appName
-            ) {
-              // Extract the target path from object format
-              appNameString = appName.target
-            } else {
-              // Log warning for unexpected formats but continue processing
-              consola.debug(
-                `Skipping unexpected app name format in cask ${cask.token}: ${typeof appName}`,
-              )
-              continue
-            }
-
-            const normalized = normalizeAppName(
-              appNameString.replace(/\.app$/, ''),
-            )
-            this.addToMap(index.byAppBundle, normalized, cask)
-          }
-        }
-
-        // Index bundle IDs from uninstall instructions
-        if (artifact.uninstall) {
-          for (const uninstallStep of artifact.uninstall) {
-            if (uninstallStep.quit !== undefined && uninstallStep.quit !== '') {
-              this.addToMap(index.byBundleId, uninstallStep.quit, cask)
-            }
-
-            if (
-              uninstallStep.launchctl !== undefined &&
-              uninstallStep.launchctl !== ''
-            ) {
-              this.addToMap(index.byBundleId, uninstallStep.launchctl, cask)
-            }
-          }
-        }
-      }
+      this.indexCask(cask, index)
     }
 
     this.caskIndex = index
-
     consola.debug('Search index built successfully')
-
     return index
+  }
+
+  /**
+   * Index a single cask into all relevant indexes
+   */
+  private indexCask(cask: HomebrewCask, index: CaskIndex): void {
+    // Index by token
+    index.byToken.set(cask.token, cask)
+
+    // Index by normalized names
+    this.indexCaskNames(cask, index)
+
+    // Index by artifacts (app bundles and bundle IDs)
+    this.indexCaskArtifacts(cask, index)
+  }
+
+  /**
+   * Index cask names into the normalized name index
+   */
+  private indexCaskNames(cask: HomebrewCask, index: CaskIndex): void {
+    for (const name of cask.name) {
+      const normalized = normalizeAppName(name)
+      this.addToMap(index.byNormalizedName, normalized, cask)
+    }
+  }
+
+  /**
+   * Index cask artifacts (app bundles and bundle IDs)
+   */
+  private indexCaskArtifacts(cask: HomebrewCask, index: CaskIndex): void {
+    for (const artifact of cask.artifacts) {
+      this.indexAppBundles(artifact, cask, index)
+      this.indexBundleIds(artifact, cask, index)
+    }
+  }
+
+  /**
+   * Index app bundles from an artifact
+   */
+  private indexAppBundles(
+    artifact: { app?: unknown[] },
+    cask: HomebrewCask,
+    index: CaskIndex,
+  ): void {
+    if (!artifact.app) {
+      return
+    }
+
+    for (const appName of artifact.app) {
+      const appNameString = this.extractAppNameString(appName, cask.token)
+      if (appNameString) {
+        const normalized = normalizeAppName(
+          appNameString.replace(FILE_PATTERNS.APP_PATTERN, ''),
+        )
+        this.addToMap(index.byAppBundle, normalized, cask)
+      }
+    }
+  }
+
+  /**
+   * Extract app name string from various formats
+   */
+  private extractAppNameString(
+    appName: unknown,
+    caskToken: string,
+  ): string | null {
+    if (typeof appName === 'string') {
+      return appName
+    }
+
+    if (
+      typeof appName === 'object' &&
+      appName !== null &&
+      'target' in appName &&
+      typeof (appName as { target: unknown }).target === 'string'
+    ) {
+      return (appName as { target: string }).target
+    }
+
+    consola.debug(
+      `Skipping unexpected app name format in cask ${caskToken}: ${typeof appName}`,
+    )
+    return null
+  }
+
+  /**
+   * Index bundle IDs from uninstall instructions
+   */
+  private indexBundleIds(
+    artifact: { uninstall?: unknown[] },
+    cask: HomebrewCask,
+    index: CaskIndex,
+  ): void {
+    if (!artifact.uninstall) {
+      return
+    }
+
+    for (const uninstallStep of artifact.uninstall) {
+      if (
+        typeof uninstallStep === 'object' &&
+        uninstallStep !== null &&
+        ('quit' in uninstallStep || 'launchctl' in uninstallStep)
+      ) {
+        this.indexUninstallStep(
+          uninstallStep as { quit?: string; launchctl?: string },
+          cask,
+          index,
+        )
+      }
+    }
+  }
+
+  /**
+   * Index bundle IDs from a single uninstall step
+   */
+  private indexUninstallStep(
+    uninstallStep: { quit?: string; launchctl?: string },
+    cask: HomebrewCask,
+    index: CaskIndex,
+  ): void {
+    if (uninstallStep.quit !== undefined && uninstallStep.quit !== '') {
+      this.addToMap(index.byBundleId, uninstallStep.quit, cask)
+    }
+
+    if (
+      uninstallStep.launchctl !== undefined &&
+      uninstallStep.launchctl !== ''
+    ) {
+      this.addToMap(index.byBundleId, uninstallStep.launchctl, cask)
+    }
   }
 
   /**
@@ -275,54 +346,105 @@ export class AppMatcher {
   ): CaskMatch[] {
     const matches: CaskMatch[] = []
     const originalAppNameNormalized = normalizeAppName(appInfo.originalName)
-    // Also create a version of the normalized app name with hyphens removed, for cases like "QuitAll" vs "Quit All"
     const originalAppNameNormalizedNoHyphens =
       originalAppNameNormalized.replaceAll('-', '')
 
     // Strategy 1: Exact match on cask name array
+    this.findCaskNameMatches(
+      appInfo,
+      index,
+      originalAppNameNormalized,
+      originalAppNameNormalizedNoHyphens,
+      matches,
+    )
+
+    // Strategy 2: Exact normalized match on app bundle
+    this.findAppBundleExactMatches(originalAppNameNormalized, index, matches)
+
+    // Strategy 3: Try with brew name variations
+    this.findBrewNameMatches(appInfo, originalAppNameNormalized, index, matches)
+
+    return matches
+  }
+
+  /**
+   * Find matches by exact cask name
+   */
+  private findCaskNameMatches(
+    appInfo: AppInfo,
+    index: CaskIndex,
+    originalAppNameNormalized: string,
+    originalAppNameNormalizedNoHyphens: string,
+    matches: CaskMatch[],
+  ): void {
     for (const cask of index.byToken.values()) {
-      for (const nameInCask of cask.name) {
-        const caskNameNormalized = normalizeAppName(nameInCask)
+      const nameMatch = this.findCaskNameMatch(
+        cask,
+        appInfo.originalName,
+        originalAppNameNormalized,
+        originalAppNameNormalizedNoHyphens,
+      )
 
-        if (caskNameNormalized === originalAppNameNormalized) {
-          matches.push({
-            cask,
-            confidence: 1, // Highest confidence for exact normalized name match
-            matchDetails: {
-              matchedValue: appInfo.originalName, // Keep original name for reference
-              source: 'cask-name-normalized-exact',
-            },
-            matchType: 'name-exact',
-          })
-          break // Found a match for this cask via its name array, move to next cask
+      if (nameMatch) {
+        matches.push(nameMatch)
+        break // Found a match for this cask, move to next cask
+      }
+    }
+  }
+
+  /**
+   * Find a single cask name match
+   */
+  private findCaskNameMatch(
+    cask: HomebrewCask,
+    originalName: string,
+    originalAppNameNormalized: string,
+    originalAppNameNormalizedNoHyphens: string,
+  ): CaskMatch | null {
+    for (const nameInCask of cask.name) {
+      const caskNameNormalized = normalizeAppName(nameInCask)
+
+      if (caskNameNormalized === originalAppNameNormalized) {
+        return {
+          cask,
+          confidence: 1,
+          matchDetails: {
+            matchedValue: originalName,
+            source: 'cask-name-normalized-exact',
+          },
+          matchType: 'name-exact',
         }
+      }
 
-        // Try matching without hyphens
-        const caskNameNormalizedNoHyphens = caskNameNormalized.replaceAll(
-          '-',
-          '',
-        )
-
-        if (
-          caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens
-        ) {
-          matches.push({
-            cask,
-            confidence: 0.98, // Slightly lower confidence than direct normalized match
-            matchDetails: {
-              matchedValue: appInfo.originalName,
-              source: 'cask-name-normalized-no-hyphens',
-            },
-            matchType: 'name-exact',
-          })
-          break
+      // Try matching without hyphens
+      const caskNameNormalizedNoHyphens = caskNameNormalized.replaceAll('-', '')
+      if (caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens) {
+        return {
+          cask,
+          confidence: 0.98,
+          matchDetails: {
+            matchedValue: originalName,
+            source: 'cask-name-normalized-no-hyphens',
+          },
+          matchType: 'name-exact',
         }
       }
     }
 
-    // Strategy 2: Exact normalized match on app bundle (existing logic)
+    return null
+  }
+
+  /**
+   * Find exact app bundle matches
+   */
+  private findAppBundleExactMatches(
+    originalAppNameNormalized: string,
+    index: CaskIndex,
+    matches: CaskMatch[],
+  ): void {
     const exactBundleMatches =
       index.byAppBundle.get(originalAppNameNormalized) ?? []
+
     for (const cask of exactBundleMatches) {
       matches.push({
         cask,
@@ -334,40 +456,63 @@ export class AppMatcher {
         matchType: 'exact-app-bundle',
       })
     }
+  }
 
-    // Try with the brew name as well
-    if (appInfo.brewName !== originalAppNameNormalized) {
-      const brewNameNormalized = normalizeAppName(appInfo.brewName) // Ensure brewName is also normalized
-      const brewMatches = index.byAppBundle.get(brewNameNormalized) ?? []
-      for (const cask of brewMatches) {
-        matches.push({
-          cask,
-          confidence: 0.9,
-          matchDetails: {
-            matchedValue: appInfo.brewName,
-            source: 'brew-name',
-          },
-          matchType: 'normalized-app-bundle',
-        })
-      }
-
-      // Also try brew name without hyphens
-      const brewNameNormalizedNoHyphens = brewNameNormalized.replaceAll('-', '')
-      const brewMatchesNoHyphens =
-        index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? []
-      for (const cask of brewMatchesNoHyphens) {
-        matches.push({
-          cask,
-          confidence: 0.88,
-          matchDetails: {
-            matchedValue: appInfo.brewName,
-            source: 'brew-name-no-hyphens',
-          },
-          matchType: 'normalized-app-bundle',
-        })
-      }
+  /**
+   * Find matches using brew name variations
+   */
+  private findBrewNameMatches(
+    appInfo: AppInfo,
+    originalAppNameNormalized: string,
+    index: CaskIndex,
+    matches: CaskMatch[],
+  ): void {
+    if (appInfo.brewName === originalAppNameNormalized) {
+      return
     }
 
-    return matches
+    const brewNameNormalized = normalizeAppName(appInfo.brewName)
+
+    // Try exact brew name match
+    this.addBrewNameMatches(
+      index.byAppBundle.get(brewNameNormalized) ?? [],
+      appInfo.brewName,
+      'brew-name',
+      0.9,
+      matches,
+    )
+
+    // Try brew name without hyphens
+    const brewNameNormalizedNoHyphens = brewNameNormalized.replaceAll('-', '')
+    this.addBrewNameMatches(
+      index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? [],
+      appInfo.brewName,
+      'brew-name-no-hyphens',
+      0.88,
+      matches,
+    )
+  }
+
+  /**
+   * Add brew name matches to the matches array
+   */
+  private addBrewNameMatches(
+    casks: HomebrewCask[],
+    brewName: string,
+    source: string,
+    confidence: number,
+    matches: CaskMatch[],
+  ): void {
+    for (const cask of casks) {
+      matches.push({
+        cask,
+        confidence,
+        matchDetails: {
+          matchedValue: brewName,
+          source,
+        },
+        matchType: 'normalized-app-bundle',
+      })
+    }
   }
 }
