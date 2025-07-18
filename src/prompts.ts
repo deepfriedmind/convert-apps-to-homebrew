@@ -82,11 +82,14 @@ export async function promptAppSelection(apps: AppInfo[]): Promise<AppInfo[]> {
     const options = availableApps.map((app) => {
       const brewHint = app.brewName === app.originalName ? '' : app.brewName
       const appStoreHint = app.fromMacAppStore
-        ? '– installed via App Store'
+        ? '(installed via App Store)'
         : ''
+      const descriptionHint = app.description ? `– ${app.description}` : ''
 
-      // Combine hints with space if both exist
-      const combinedHint = [brewHint, appStoreHint].filter(Boolean).join(' ')
+      // Combine hints with space if they exist
+      const combinedHint = [brewHint, descriptionHint, appStoreHint]
+        .filter(Boolean)
+        .join(' ')
 
       const appLabel = app.fromMacAppStore
         ? `${app.originalName} `

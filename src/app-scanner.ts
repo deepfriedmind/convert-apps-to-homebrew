@@ -278,24 +278,30 @@ function performBatchMatching(
  * Update app info based on match result
  */
 function updateAppWithMatchResult(
-  matchResult: { appInfo: AppInfo; bestMatch?: { cask: { token: string } } },
+  matchResult: {
+    appInfo: AppInfo
+    bestMatch?: { cask: { token: string; desc: string } }
+  },
   installedCaskSet: Set<string>,
 ): void {
   const app = matchResult.appInfo
 
   if (matchResult.bestMatch) {
     const matchedCaskName = matchResult.bestMatch.cask.token
+    const matchedCaskDescription = matchResult.bestMatch.cask.desc
 
     if (installedCaskSet.has(matchedCaskName)) {
       app.alreadyInstalled = true
       app.brewType = 'cask'
       app.status = 'already-installed'
       app.brewName = matchedCaskName
+      app.description = matchedCaskDescription
     } else {
       app.alreadyInstalled = false
       app.brewType = 'cask'
       app.status = 'available'
       app.brewName = matchedCaskName
+      app.description = matchedCaskDescription
     }
   } else {
     app.brewType = 'unavailable'

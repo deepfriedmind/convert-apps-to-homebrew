@@ -14,6 +14,8 @@ export interface AppInfo {
   brewName: string
   /** Type of Homebrew package */
   brewType: BrewPackageType
+  /** Description from Homebrew cask (if available) */
+  description?: string
   /** Whether this app was installed via Mac App Store */
   fromMacAppStore?: boolean
   /** Original application name (e.g., "Google Chrome") */
