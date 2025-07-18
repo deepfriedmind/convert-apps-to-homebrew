@@ -41,10 +41,11 @@
     "build": "bun clean && bun build src/index.ts --outdir dist --target node --minify",
     "check": "bun format && bun type-check && bun knip && bun test && bun run build",
     "clean": "rm -rf dist",
+    "format": "bunx ultracite@latest format",
     "knip": "knip",
     "lint": "bunx ultracite@latest lint",
     "lint:summary": "biome check --reporter=summary",
-    "format": "bunx ultracite@latest format",
+    "prepare": "bunx simple-git-hooks",
     "release": "release-it",
     "start": "bun src/index.ts",
     "test": "bun test",
@@ -54,6 +55,7 @@
     "type-check": "tsc --noEmit"
   },
   "simple-git-hooks": {
+    "pre-commit": "bun check",
     "prepare-commit-msg": "bunx devmoji --edit"
   },
   "overrides": {
