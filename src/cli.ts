@@ -5,6 +5,7 @@
 import { Command } from 'commander'
 import { consola } from 'consola'
 import { box, colors } from 'consola/utils'
+import terminalLink from 'terminal-link'
 import packageJson from '../package.json' with { type: 'json' }
 import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
@@ -100,7 +101,7 @@ Notes:
   • Use --matching-threshold to adjust fuzzy matching sensitivity
 
 Requirements:
-  • Mac App Store detection requires 'mas' CLI tool: https://github.com/mas-cli/mas
+  • Mac App Store detection requires 'mas' CLI tool: ${terminalLink(colors.blue('https://github.com/mas-cli/mas'), 'https://github.com/mas-cli/mas')}
   • Install with: brew install mas
 `,
   )
@@ -133,8 +134,8 @@ export function displayTroubleshooting(): void {
   Check your network connection and try again
 
 For more help:
-  • Visit: ${colors.blue('https://brew.sh')}
-  ${packageJson.bugs?.url && `• Report issues: ${colors.blue(packageJson.bugs.url)}`}`,
+  • Visit: ${terminalLink(colors.blue('https://brew.sh'), 'https://brew.sh')}
+  ${packageJson.bugs?.url && `• Report issues: ${terminalLink(colors.blue(packageJson.bugs.url), packageJson.bugs.url)}`}`,
       { style: { borderColor: 'yellow' }, title: '🔧 Troubleshooting' },
     ),
   )

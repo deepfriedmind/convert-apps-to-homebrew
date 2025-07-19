@@ -3,6 +3,7 @@
  */
 import { consola } from 'consola'
 import { box, colors } from 'consola/utils'
+import terminalLink from 'terminal-link'
 import packageJson from '../package.json' with { type: 'json' }
 import type { AppInfo } from './types.ts'
 import { formatList, pluralize } from './utils.ts'
@@ -19,7 +20,7 @@ export function displayFinalSummary(
   consola.log(
     box(`${dryRun ? 'Dry run' : 'Installation'} complete`, {
       style: { borderColor: 'greenBright' },
-      title: '🎉',
+      title: '🎉 Done',
     }),
   )
 
@@ -82,12 +83,23 @@ export async function promptAppSelection(apps: AppInfo[]): Promise<AppInfo[]> {
     const options = availableApps.map((app) => {
       const brewHint = app.brewName === app.originalName ? '' : app.brewName
       const appStoreHint = app.fromMacAppStore
-        ? '(installed via App Store)'
+        ? '- installed via App Store'
         : ''
       const descriptionHint = app.description ? `– ${app.description}` : ''
-
-      // Combine hints with space if they exist
-      const combinedHint = [brewHint, descriptionHint, appStoreHint]
+      const linkHint = app.homepage
+        ? `– ${terminalLink(colors.blue('Homepage'), app.homepage)}`
+        : ''
+      const brewLinkHint =
+        app.brewName && app.status === 'available'
+          ? `| ${terminalLink(colors.blue('Cask'), `https://formulae.brew.sh/cask/${app.brewName}`)}`
+          : ''
+      const combinedHint = [
+        brewHint,
+        descriptionHint,
+        linkHint,
+        brewLinkHint,
+        appStoreHint,
+      ]
         .filter(Boolean)
         .join(' ')
 

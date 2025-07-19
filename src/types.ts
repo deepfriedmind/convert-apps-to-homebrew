@@ -18,6 +18,8 @@ export interface AppInfo {
   description?: string
   /** Whether this app was installed via Mac App Store */
   fromMacAppStore?: boolean
+  /** Homepage URL from Homebrew cask (if available) */
+  homepage?: string
   /** Original application name (e.g., "Google Chrome") */
   originalName: string
   /** Current status of the app */

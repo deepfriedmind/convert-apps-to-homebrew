@@ -280,7 +280,7 @@ function performBatchMatching(
 function updateAppWithMatchResult(
   matchResult: {
     appInfo: AppInfo
-    bestMatch?: { cask: { token: string; desc: string } }
+    bestMatch?: { cask: { token: string; desc: string; homepage: string } }
   },
   installedCaskSet: Set<string>,
 ): void {
@@ -289,6 +289,7 @@ function updateAppWithMatchResult(
   if (matchResult.bestMatch) {
     const matchedCaskName = matchResult.bestMatch.cask.token
     const matchedCaskDescription = matchResult.bestMatch.cask.desc
+    const matchedCaskHomepage = matchResult.bestMatch.cask.homepage
 
     if (installedCaskSet.has(matchedCaskName)) {
       app.alreadyInstalled = true
@@ -296,12 +297,14 @@ function updateAppWithMatchResult(
       app.status = 'already-installed'
       app.brewName = matchedCaskName
       app.description = matchedCaskDescription
+      app.homepage = matchedCaskHomepage
     } else {
       app.alreadyInstalled = false
       app.brewType = 'cask'
       app.status = 'available'
       app.brewName = matchedCaskName
       app.description = matchedCaskDescription
+      app.homepage = matchedCaskHomepage
     }
   } else {
     app.brewType = 'unavailable'

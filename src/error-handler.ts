@@ -3,6 +3,8 @@
  */
 
 import { consola } from 'consola'
+import { colors } from 'consola/utils'
+import terminalLink from 'terminal-link'
 
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
@@ -134,7 +136,9 @@ export class ErrorHandler {
     )
     consola.info('3. Verify installation: brew --version')
     consola.info('4. Run this tool again')
-    consola.info('\nFor more information: https://brew.sh/')
+    consola.info(
+      `\nFor more information: ${terminalLink(colors.blue('https://brew.sh'), 'https://brew.sh')}`,
+    )
   }
 
   private showInputValidationHelp(): void {
