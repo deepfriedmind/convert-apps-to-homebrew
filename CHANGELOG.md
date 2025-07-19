@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.4...1.3.0) (2025-07-19)
+
+### Features
+
+* **app-scanner:** ✨ add cask description to app info and prompt hint ([c199559](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/c1995595a6eb662d0223f94d1e553518d667ea91))
+* **cli:** ✨ add terminal links to CLI output ([2bf69b4](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/2bf69b4384ac689ab8ff20b02a84e04c5f54d3f3))
+
 ## [1.2.4](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.3...1.2.4) (2025-07-16)
 
 ## [1.2.3](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.2...1.2.3) (2025-07-10)
