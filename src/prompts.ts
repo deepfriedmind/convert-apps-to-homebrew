@@ -67,7 +67,9 @@ export function displayInstallationPlan(
 export async function promptAppSelection(apps: AppInfo[]): Promise<AppInfo[]> {
   displayAppSummary(apps)
 
-  const availableApps = apps.filter((app) => app.status === 'available')
+  const availableApps = apps
+    .filter((app) => app.status === 'available')
+    .sort((a, b) => a.originalName.localeCompare(b.originalName))
 
   if (availableApps.length === 0) {
     consola.info('No apps available for selection.')
