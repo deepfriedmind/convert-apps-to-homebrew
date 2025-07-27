@@ -5,6 +5,7 @@
 import { Command } from 'commander'
 import { consola } from 'consola'
 import { box, colors } from 'consola/utils'
+import figlet from 'figlet'
 import terminalLink from 'terminal-link'
 import packageJson from '../package.json' with { type: 'json' }
 import { MESSAGES } from './constants.ts'
@@ -14,6 +15,27 @@ import type { CommandOptions } from './types.ts'
  * Regular expressions used in this module
  */
 const VERSION_REGEX = /(\d+)/
+
+/**
+ * Generate ASCII art logo using figlet
+ */
+function generateLogo(text = '') {
+  try {
+    const result = figlet.textSync(text, {
+      font: 'miniwi' as figlet.Fonts,
+      horizontalLayout: 'fitted',
+    })
+    const lines = result.split('\n')
+    const coloredLines = lines.map((line, index) => {
+      const color = index < 2 ? colors.magentaBright : colors.magenta
+      return `    ${color(line)}`
+    })
+
+    return coloredLines.join('\n')
+  } catch {
+    return `    ${colors.magentaBright(text)}`
+  }
+}
 
 /**
  * Create and configure the Commander.js program
@@ -144,28 +166,16 @@ For more help:
 /**
  * Display welcome message with current configuration
  */
-export function displayWelcome(options: CommandOptions): void {
+export function displayWelcome(options: CommandOptions) {
   consola.log(
-    box(
-      `${colors.magentaBright('    ▄▖          ▗   ▄▖        ▗     ▖▖       ▌')}
-    ${colors.magentaBright('▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌')}
-    ${colors.magenta('▙▖▙▌▌▌▚▘▙▖▌ ▐▖  ▛▌▙▌▙▌▄▌  ▐▖▙▌  ▌▌▙▌▌▌▌▙▖▙▌▌ ▙▖▚▚▘   ')}
-    ${colors.magenta('                  ▌ ▌')}`,
-      { style: { borderColor: 'magentaBright' }, title: '🍺' },
-    ),
+    box(generateLogo('Convert Apps to Homebrew'), {
+      style: { borderColor: 'magentaBright' },
+      title: '🍺',
+    }),
   )
-
-  // ▄▖          ▗   ▄▖        ▗     ▖▖       ▌
-  // ▌ ▛▌▛▌▌▌█▌▛▘▜▘  ▌▌▛▌▛▌▛▘  ▜▘▛▌  ▙▌▛▌▛▛▌█▌▛▌▛▘█▌▌▌▌
-  // ▙▖▙▌▌▌▚▘▙▖▌ ▐▖  ▛▌▙▌▙▌▄▌  ▐▖▙▌  ▌▌▙▌▌▌▌▙▖▙▌▌ ▙▖▚▚▘
-  //                   ▌ ▌
 
   if (options.dryRun) {
     consola.warn(`${MESSAGES.DRY_RUN_MODE}`)
-  }
-
-  if (options.verbose) {
-    consola.debug('Verbose mode enabled')
   }
 
   if (options.ignore.length > 0) {
