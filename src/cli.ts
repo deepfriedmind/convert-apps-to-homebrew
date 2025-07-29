@@ -168,7 +168,7 @@ For more help:
  */
 export function displayWelcome(options: CommandOptions) {
   consola.log(
-    box(generateLogo('Convert Apps to Homebrew'), {
+    box(generateLogo(packageJson.displayName), {
       style: { borderColor: 'magentaBright' },
       title: '🍺',
     }),
