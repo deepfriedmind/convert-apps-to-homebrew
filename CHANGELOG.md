@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.3.1](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.0...1.3.1) (2025-07-29)
+
 ## [1.3.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.4...1.3.0) (2025-07-19)
 
 ### Features
