@@ -96,7 +96,7 @@ function generateOperationSummary(
 /**
  * Main application function
  */
-async function main(): Promise<void> {
+async function main() {
   try {
     // Set up signal handlers for graceful shutdown
     setupSignalHandlers()
