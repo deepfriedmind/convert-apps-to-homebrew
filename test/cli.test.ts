@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
+import packageJson from '../package.json' with { type: 'json' }
 import { createProgram, parseArguments } from '../src/cli.ts'
 
 describe('CLI', () => {
@@ -11,7 +11,7 @@ describe('CLI', () => {
     test('should create a commander program with correct configuration', () => {
       const program = createProgram()
 
-      expect(program.name()).toBe('convert-apps-to-homebrew')
+      expect(program.name()).toBe(packageJson.name)
     })
 
     test('should have all required options configured', () => {
