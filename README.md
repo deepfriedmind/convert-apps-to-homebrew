@@ -63,9 +63,6 @@ cd convert-apps-to-homebrew
 # Install dependencies
 bun install
 
-# Install commit hooks
-bunx simple-git-hooks
-
 # Run the project
 bun start
 
