@@ -227,7 +227,7 @@ if (!isMain && argvPath) {
 }
 
 if (isMain) {
-  main().catch((error: unknown) => {
+  main().catch((error) => {
     const errorMessage = error instanceof Error ? error.message : String(error)
     consola.error(`Fatal error: ${errorMessage}`)
 
