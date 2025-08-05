@@ -23,7 +23,11 @@
         "useLiteralKeys": "off"
       },
       "style": {
-        "useBlockStatements": "off"
+        "useBlockStatements": "off",
+        "useTemplate": {
+          "fix": "safe",
+          "level": "error"
+        }
       },
       "suspicious": {
         "noConsole": {
