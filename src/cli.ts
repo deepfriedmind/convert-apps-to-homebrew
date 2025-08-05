@@ -5,37 +5,16 @@
 import { Command } from 'commander'
 import { consola } from 'consola'
 import { box, colors } from 'consola/utils'
-import figlet from 'figlet'
 import terminalLink from 'terminal-link'
 import packageJson from '../package.json' with { type: 'json' }
 import { MESSAGES } from './constants.ts'
 import type { CommandOptions } from './types.ts'
+import { generateLogo, inlineCode } from './utils.ts'
 
 /**
  * Regular expressions used in this module
  */
 const VERSION_REGEX = /(\d+)/
-
-/**
- * Generate ASCII art logo using figlet
- */
-function generateLogo(text = '') {
-  try {
-    const result = figlet.textSync(text, {
-      font: 'miniwi' as figlet.Fonts,
-      horizontalLayout: 'fitted',
-    })
-    const lines = result.split('\n')
-    const coloredLines = lines.map((line, index) => {
-      const color = index < 2 ? colors.magentaBright : colors.magenta
-      return `    ${color(line)}`
-    })
-
-    return coloredLines.join('\n')
-  } catch {
-    return `    ${colors.magentaBright(text)}`
-  }
-}
 
 /**
  * Create and configure the Commander.js program
@@ -141,7 +120,7 @@ export function displayTroubleshooting(): void {
 
 1. Homebrew not installed:
   Install Homebrew first:
-  ${colors.whiteBright(colors.bgBlack('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'))}
+  ${inlineCode('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')}
 
 2. Permission denied:
   Make sure you have read access to the Applications directory
@@ -149,7 +128,7 @@ export function displayTroubleshooting(): void {
 
 3. App not found in Homebrew:
   Not all applications are available as Homebrew casks
-  You can search manually: ${colors.whiteBright(colors.bgBlack('brew search <app-name>'))}
+  You can search manually: ${inlineCode('brew search <app-name>')}
 
 4. Network issues:
   Homebrew requires internet access to check package availability
@@ -164,12 +143,12 @@ For more help:
 }
 
 /**
- * Display welcome message with current configuration
+ * Display welcome message
  */
 export function displayWelcome(options: CommandOptions) {
   consola.log(
     box(generateLogo(packageJson.displayName), {
-      style: { borderColor: 'magentaBright' },
+      style: { borderColor: 'yellowBright' },
       title: '🍺',
     }),
   )

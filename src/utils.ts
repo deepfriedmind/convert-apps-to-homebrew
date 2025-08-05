@@ -6,10 +6,40 @@ import type { Buffer } from 'node:buffer'
 
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
+import { colors } from 'consola/utils'
+import figlet from 'figlet'
+import gradient from 'gradient-string'
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
 import type { BrewCommandResult } from './types.ts'
 
-const execAsync = promisify(exec)
+/**
+ * Generate an ASCII art logo
+ *
+ * @param text - The text to convert into ASCII art.
+ * @returns The ASCII art representation of the text, or the original text if generation fails.
+ */
+export function generateLogo(text = '') {
+  try {
+    return gradient(['#d97811', '#ffec91', '#c98957']).multiline(
+      figlet.textSync(text, {
+        font: 'miniwi' as figlet.Fonts,
+        horizontalLayout: 'fitted',
+      }),
+    )
+  } catch {
+    return text
+  }
+}
+
+/**
+ * Format the given text as inline code with a black background and bright white foreground.
+ *
+ * @param text - The text to format as inline code.
+ * @returns The formatted string with inline code styling.
+ */
+export function inlineCode(text = '') {
+  return `${colors.bgBlack(colors.whiteBright(text))}`
+}
 
 /**
  * Escape shell arguments to prevent injection
@@ -18,6 +48,7 @@ export function escapeShellArgument(argument: string): string {
   return `"${argument.replaceAll('"', String.raw`\"`)}"`
 }
 
+const execAsync = promisify(exec)
 /**
  * Execute a shell command asynchronously and return a structured result
  *
