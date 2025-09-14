@@ -6,8 +6,10 @@ import type { Buffer } from 'node:buffer'
 
 import { exec, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
+import consola from 'consola'
 import { colors } from 'consola/utils'
 import figlet from 'figlet'
+import miniwiFont from 'figlet/importable-fonts/miniwi.js'
 import gradient from 'gradient-string'
 import packageJson from '../package.json' with { type: 'json' }
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
@@ -21,13 +23,16 @@ import type { BrewCommandResult } from './types.ts'
  */
 export function generateLogo(text = '') {
   try {
+    figlet.parseFont('miniwi', miniwiFont)
+
     return gradient(['#d97811', '#ffec91', '#c98957']).multiline(
       figlet.textSync(text, {
-        font: 'miniwi' as figlet.Fonts,
+        font: 'miniwi',
         horizontalLayout: 'fitted',
       }),
     )
-  } catch {
+  } catch (error) {
+    consola.debug('Error generating logo:', error)
     return text
   }
 }
