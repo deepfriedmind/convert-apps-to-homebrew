@@ -180,7 +180,7 @@ describe('CLI', () => {
       )
 
       expect(verboseOption).toBeDefined()
-      expect(verboseOption?.flags).toBe('--verbose')
+      expect(verboseOption?.flags).toBe('-V, --verbose')
     })
 
     test('should configure applications-dir option correctly', () => {

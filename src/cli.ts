@@ -37,7 +37,7 @@ export function createProgram(): Command {
     .name(packageJson.name)
     .description(packageJson.description)
     .version(getPackageVersion(), '-v, --version', 'display version number')
-    .helpOption('-h, --help', 'display help for command')
+    .helpOption('-h, --help', 'show this help message')
 
   program
     .option(
@@ -50,7 +50,7 @@ export function createProgram(): Command {
       'show what would be done without making any changes',
       false,
     )
-    .option('--verbose', 'enable verbose output for debugging', false)
+    .option('-V, --verbose', 'enable verbose output', false)
     .option(
       '--applications-dir <path>',
       'specify custom Applications directory path',

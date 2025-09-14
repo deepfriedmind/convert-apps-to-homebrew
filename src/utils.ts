@@ -9,6 +9,7 @@ import { promisify } from 'node:util'
 import { colors } from 'consola/utils'
 import figlet from 'figlet'
 import gradient from 'gradient-string'
+import packageJson from '../package.json' with { type: 'json' }
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
 import type { BrewCommandResult } from './types.ts'
 
@@ -238,4 +239,33 @@ export function shouldIgnoreApp(
   return false
 }
 
-/* Removed unused utility functions */
+/**
+ * Determines if the current module is the main entry point
+ * Handles various execution scenarios including direct execution,
+ * symlinked binaries, and module imports
+ *
+ * @returns boolean indicating if the current module is the main entry point
+ */
+export function isMainModule(): boolean {
+  const argvPath = (process.argv[1] ?? '') || ''
+  const argvFileName = (argvPath.split('/').pop() ?? '') || ''
+
+  // Check if import.meta.url matches the executed file path
+  if (argvPath && import.meta.url === `file://${argvPath}`) {
+    return true
+  }
+
+  // Check if import.meta.url ends with the filename
+  if (argvFileName && import.meta.url.endsWith(argvFileName)) {
+    return true
+  }
+
+  // Check if being run via linked binary (npm link creates a symlink in bin directory)
+  if (argvPath) {
+    const binaryName = packageJson.name
+    const isBinaryPath = argvPath.includes(binaryName)
+    return isBinaryPath
+  }
+
+  return false
+}

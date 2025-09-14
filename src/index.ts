@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { consola } from 'consola'
-import packageJson from '../package.json' with { type: 'json' }
 import { discoverApps } from './app-scanner.ts'
 import {
   displayTroubleshooting,
@@ -30,6 +29,7 @@ import type {
   OperationSummary,
   ScannerConfig,
 } from './types.ts'
+import { isMainModule } from './utils.ts'
 
 /**
  * Create installer configuration from command options
@@ -211,28 +211,7 @@ async function main() {
 // Check if this module is being run directly (ES module equivalent of require.main === module)
 // This prevents the main logic from running when the module is imported as a dependency,
 // ensuring it only executes when run as a standalone script (e.g., via CLI or direct node execution)
-const argvPath = (process.argv[1] ?? '') || ''
-const argvFileName = (argvPath.split('/').pop() ?? '') || ''
-let isMain = false
-if (argvPath) {
-  isMain = import.meta.url === `file://${argvPath}`
-}
-
-if (!isMain && argvFileName) {
-  isMain = import.meta.url.endsWith(argvFileName)
-}
-
-if (!isMain && argvPath) {
-  // Check if being run via linked binary (npm link creates a symlink in bin directory)
-  const binaryName = packageJson.name
-  const isBinaryPath = argvPath.includes(binaryName)
-
-  if (isBinaryPath) {
-    isMain = true
-  }
-}
-
-if (isMain) {
+if (isMainModule()) {
   main().catch((error) => {
     const errorMessage = error instanceof Error ? error.message : String(error)
     consola.error(`Fatal error: ${errorMessage}`)
