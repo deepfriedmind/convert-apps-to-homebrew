@@ -17,6 +17,17 @@ import { generateLogo, inlineCode } from './utils.ts'
 const VERSION_REGEX = /(\d+)/
 
 /**
+ * Default matching threshold for fuzzy matching
+ */
+const DEFAULT_MATCHING_THRESHOLD = 0.6
+
+/**
+ * Standard exit codes
+ */
+const EXIT_CODE_SIGINT = 130
+const EXIT_CODE_SIGTERM = 143
+
+/**
  * Create and configure the Commander.js program
  */
 export function createProgram(): Command {
@@ -67,7 +78,7 @@ export function createProgram(): Command {
 
         return threshold
       },
-      0.6,
+      DEFAULT_MATCHING_THRESHOLD,
     )
     .option(
       '--ignore-app-store',
@@ -267,12 +278,12 @@ function handleParsingError(error: unknown): never {
 export function setupSignalHandlers(): void {
   process.on('SIGINT', () => {
     consola.warn('Operation cancelled by user (Ctrl+C)')
-    process.exit(130) // Standard exit code for SIGINT
+    process.exit(EXIT_CODE_SIGINT)
   })
 
   process.on('SIGTERM', () => {
     consola.warn('Operation terminated')
-    process.exit(143) // Standard exit code for SIGTERM
+    process.exit(EXIT_CODE_SIGTERM)
   })
 
   process.on('uncaughtException', (error) => {

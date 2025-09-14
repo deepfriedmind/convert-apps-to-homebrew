@@ -4,6 +4,11 @@
 
 import { describe, expect, test } from 'bun:test'
 
+const COMMAND_NOT_FOUND_EXIT_CODE = 127
+const SHORT_TIMEOUT_MS = 500
+const DEFAULT_TIMEOUT_MS = 5000
+const CUSTOM_ERROR_EXIT_CODE = 42
+
 import {
   escapeShellArgument,
   executeCommand,
@@ -190,11 +195,11 @@ describe('utils', () => {
       const result = await executeCommand('nonexistentcommand123456')
 
       expect(result.success).toBe(false)
-      expect(result.exitCode).toBe(127)
+      expect(result.exitCode).toBe(COMMAND_NOT_FOUND_EXIT_CODE)
     })
 
     test('should handle timeout', async () => {
-      const result = await executeCommand('sleep 2', 500) // 500ms timeout for 2s sleep
+      const result = await executeCommand('sleep 2', SHORT_TIMEOUT_MS) // SHORT_TIMEOUT_MS timeout for 2s sleep
 
       expect(result.success).toBe(false)
       // Timeout should result in failure - exact error message may vary
@@ -204,7 +209,7 @@ describe('utils', () => {
     test('should return dry run message when dryRun is true', async () => {
       const result = await executeCommand(
         'echo "Should not execute"',
-        5000,
+        DEFAULT_TIMEOUT_MS,
         true,
       )
 
@@ -268,7 +273,7 @@ describe('utils', () => {
       expect(typeof result.stdout).toBe('string')
       expect(typeof result.stderr).toBe('string')
       expect(result.success).toBe(false)
-      expect(result.exitCode).toBe(42)
+      expect(result.exitCode).toBe(CUSTOM_ERROR_EXIT_CODE)
     })
 
     test('should throw error for empty command', () => {

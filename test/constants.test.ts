@@ -4,6 +4,14 @@
 
 import { describe, expect, test } from 'bun:test'
 
+const EXIT_CODE_PERMISSION_DENIED = 3
+const EXIT_CODE_INVALID_INPUT = 4
+const EXIT_CODE_NETWORK_ERROR = 5
+const DEFAULT_BREW_COMMAND_TIMEOUT = 30_000
+const DEFAULT_MAX_CONCURRENT_OPERATIONS = 5
+const MAX_BREW_COMMAND_TIMEOUT = 60_000
+const MAX_CONCURRENT_OPERATIONS_LIMIT = 20
+
 import {
   BREW_COMMANDS,
   DEFAULT_APPLICATIONS_DIR,
@@ -100,9 +108,9 @@ describe('constants', () => {
       expect(EXIT_CODES.SUCCESS).toBe(0)
       expect(EXIT_CODES.GENERAL_ERROR).toBe(1)
       expect(EXIT_CODES.HOMEBREW_NOT_INSTALLED).toBe(2)
-      expect(EXIT_CODES.PERMISSION_DENIED).toBe(3)
-      expect(EXIT_CODES.INVALID_INPUT).toBe(4)
-      expect(EXIT_CODES.NETWORK_ERROR).toBe(5)
+      expect(EXIT_CODES.PERMISSION_DENIED).toBe(EXIT_CODE_PERMISSION_DENIED)
+      expect(EXIT_CODES.INVALID_INPUT).toBe(EXIT_CODE_INVALID_INPUT)
+      expect(EXIT_CODES.NETWORK_ERROR).toBe(EXIT_CODE_NETWORK_ERROR)
     })
 
     test('should have unique exit code values', () => {
@@ -121,20 +129,29 @@ describe('constants', () => {
     })
 
     test('should have correct default values', () => {
-      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT).toBe(30_000)
+      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT).toBe(
+        DEFAULT_BREW_COMMAND_TIMEOUT,
+      )
       expect(DEFAULT_CONFIG.DRY_RUN).toBe(false)
-      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS).toBe(5)
+      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS).toBe(
+        DEFAULT_MAX_CONCURRENT_OPERATIONS,
+      )
       expect(DEFAULT_CONFIG.VERBOSE).toBe(false)
     })
 
     test('timeout should be reasonable', () => {
       expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT > 0).toBe(true)
-      expect(DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT <= 60_000).toBe(true) // Max 1 minute
+      expect(
+        DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT <= MAX_BREW_COMMAND_TIMEOUT,
+      ).toBe(true) // Max 1 minute
     })
 
     test('max concurrent operations should be reasonable', () => {
       expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS > 0).toBe(true)
-      expect(DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS <= 20).toBe(true) // Reasonable max
+      expect(
+        DEFAULT_CONFIG.MAX_CONCURRENT_OPERATIONS <=
+          MAX_CONCURRENT_OPERATIONS_LIMIT,
+      ).toBe(true) // Reasonable max
     })
   })
 

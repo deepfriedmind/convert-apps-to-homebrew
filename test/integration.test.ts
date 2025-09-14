@@ -3,6 +3,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 
+const MAX_PROCESSING_TIME = 100
+
 describe('Integration Tests', () => {
   describe('CLI Integration', () => {
     test('should parse and validate command arguments', async () => {
@@ -131,6 +133,6 @@ describe('Performance Integration', () => {
     expect(results[1]?.normalized).toBe('microsoft-word')
 
     // Verify performance (should be very fast for small datasets)
-    expect(processingTime).toBeLessThan(100)
+    expect(processingTime).toBeLessThan(MAX_PROCESSING_TIME)
   })
 })

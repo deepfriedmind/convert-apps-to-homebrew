@@ -250,6 +250,11 @@ async function processBatchMatching(
 }
 
 /**
+ * Default matching threshold
+ */
+const DEFAULT_MATCHING_THRESHOLD = 0.6
+
+/**
  * Perform batch matching using AppMatcher
  */
 function performBatchMatching(
@@ -262,7 +267,7 @@ function performBatchMatching(
     enableBundleIdLookup: true,
     enableFuzzyMatching: true,
     maxMatches: 5,
-    minConfidence: config.matchingThreshold ?? 0.6,
+    minConfidence: config.matchingThreshold ?? DEFAULT_MATCHING_THRESHOLD,
   }
 
   const matcher = new AppMatcher(matchingConfig)

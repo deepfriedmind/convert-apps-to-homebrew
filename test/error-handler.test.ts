@@ -4,6 +4,9 @@
 
 import { describe, expect, test } from 'bun:test'
 
+const TEST_TOTAL = 100
+const TEST_CURRENT = 50
+
 import { EXIT_CODES } from '../src/constants.ts'
 import {
   ErrorHandler,
@@ -89,7 +92,9 @@ describe('ProgressTracker', () => {
 
   test('should start operation with total', () => {
     const tracker = new ProgressTracker()
-    expect(() => tracker.startOperation('test operation', 100)).not.toThrow()
+    expect(() =>
+      tracker.startOperation('test operation', TEST_TOTAL),
+    ).not.toThrow()
   })
 
   test('should update progress without numbers', () => {
@@ -99,7 +104,9 @@ describe('ProgressTracker', () => {
 
   test('should update progress with current and total', () => {
     const tracker = new ProgressTracker()
-    expect(() => tracker.updateProgress('test message', 50, 100)).not.toThrow()
+    expect(() =>
+      tracker.updateProgress('test message', TEST_CURRENT, TEST_TOTAL),
+    ).not.toThrow()
   })
 
   test('should complete operation successfully', () => {

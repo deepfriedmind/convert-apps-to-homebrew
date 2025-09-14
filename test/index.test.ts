@@ -4,6 +4,8 @@
 
 import { describe, expect, test } from 'bun:test'
 
+const EXPECTED_APP_COUNT = 5
+
 import type { AppInfo, InstallationResult } from '../src/types.ts'
 
 describe('main entry point', () => {
@@ -72,7 +74,7 @@ describe('data structure validation', () => {
     expect(alreadyInstalled).toHaveLength(1)
     expect(ignored).toHaveLength(1)
     expect(unavailable).toHaveLength(1)
-    expect(allApps).toHaveLength(5)
+    expect(allApps).toHaveLength(EXPECTED_APP_COUNT)
   })
 
   test('should validate installation result filtering logic', () => {

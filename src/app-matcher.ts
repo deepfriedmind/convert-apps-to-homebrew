@@ -5,10 +5,12 @@
 import { consola } from 'consola'
 import { FILE_PATTERNS } from './constants.ts'
 import type {
+  AddBrewNameMatchesOptions,
   AppInfo,
   AppMatchResult,
   CaskIndex,
   CaskMatch,
+  FindCaskNameMatchesOptions,
   HomebrewCask,
   MatchingConfig,
   MatchingStrategy,
@@ -18,9 +20,14 @@ import { normalizeAppName } from './utils.ts'
 /**
  * Default matching configuration
  */
+const DEFAULT_MIN_CONFIDENCE = 0.6
+const CONSOLA_DEBUG_LEVEL = 4
+const BREW_NAME_CONFIDENCE = 0.9
+const BREW_NAME_NO_HYPHENS_CONFIDENCE = 0.88
+
 const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
   maxMatches: 5,
-  minConfidence: 0.6,
+  minConfidence: DEFAULT_MIN_CONFIDENCE,
 }
 
 /**
@@ -263,7 +270,7 @@ export class AppMatcher {
       (result) => result.matches.length === 0,
     ).length
 
-    if (consola.level >= 4) {
+    if (consola.level >= CONSOLA_DEBUG_LEVEL) {
       consola.debug('Match Results Summary:')
       console.table(matchSummary)
 
@@ -350,13 +357,13 @@ export class AppMatcher {
       originalAppNameNormalized.replaceAll('-', '')
 
     // Strategy 1: Exact match on cask name array
-    this.findCaskNameMatches(
+    this.findCaskNameMatches({
       appInfo,
       index,
+      matches,
       originalAppNameNormalized,
       originalAppNameNormalizedNoHyphens,
-      matches,
-    )
+    })
 
     // Strategy 2: Exact normalized match on app bundle
     this.findAppBundleExactMatches(originalAppNameNormalized, index, matches)
@@ -370,13 +377,15 @@ export class AppMatcher {
   /**
    * Find matches by exact cask name
    */
-  private findCaskNameMatches(
-    appInfo: AppInfo,
-    index: CaskIndex,
-    originalAppNameNormalized: string,
-    originalAppNameNormalizedNoHyphens: string,
-    matches: CaskMatch[],
-  ): void {
+  private findCaskNameMatches(options: FindCaskNameMatchesOptions): void {
+    const {
+      appInfo,
+      index,
+      originalAppNameNormalized,
+      originalAppNameNormalizedNoHyphens,
+      matches,
+    } = options
+
     for (const cask of index.byToken.values()) {
       const nameMatch = this.findCaskNameMatch(
         cask,
@@ -474,35 +483,31 @@ export class AppMatcher {
     const brewNameNormalized = normalizeAppName(appInfo.brewName)
 
     // Try exact brew name match
-    this.addBrewNameMatches(
-      index.byAppBundle.get(brewNameNormalized) ?? [],
-      appInfo.brewName,
-      'brew-name',
-      0.9,
+    this.addBrewNameMatches({
+      brewName: appInfo.brewName,
+      casks: index.byAppBundle.get(brewNameNormalized) ?? [],
+      confidence: BREW_NAME_CONFIDENCE,
       matches,
-    )
+      source: 'brew-name',
+    })
 
     // Try brew name without hyphens
     const brewNameNormalizedNoHyphens = brewNameNormalized.replaceAll('-', '')
-    this.addBrewNameMatches(
-      index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? [],
-      appInfo.brewName,
-      'brew-name-no-hyphens',
-      0.88,
+    this.addBrewNameMatches({
+      brewName: appInfo.brewName,
+      casks: index.byAppBundle.get(brewNameNormalizedNoHyphens) ?? [],
+      confidence: BREW_NAME_NO_HYPHENS_CONFIDENCE,
       matches,
-    )
+      source: 'brew-name-no-hyphens',
+    })
   }
 
   /**
    * Add brew name matches to the matches array
    */
-  private addBrewNameMatches(
-    casks: HomebrewCask[],
-    brewName: string,
-    source: string,
-    confidence: number,
-    matches: CaskMatch[],
-  ): void {
+  private addBrewNameMatches(options: AddBrewNameMatchesOptions): void {
+    const { casks, brewName, source, confidence, matches } = options
+
     for (const cask of casks) {
       matches.push({
         cask,

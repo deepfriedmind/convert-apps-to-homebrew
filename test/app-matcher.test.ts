@@ -6,6 +6,10 @@ import { expect, test } from 'bun:test'
 import { AppMatcher } from '../src/app-matcher.ts'
 import type { AppInfo, HomebrewCask } from '../src/types.ts'
 
+// Confidence thresholds for testing
+const MIN_CONFIDENCE_THRESHOLD = 0.8
+const HIGH_CONFIDENCE_THRESHOLD = 0.98
+
 // Mock data for testing
 const mockCasks: HomebrewCask[] = [
   {
@@ -89,7 +93,7 @@ test('AppMatcher', () => {
 
     expect(index.byToken.has('visual-studio-code')).toBe(true)
     expect(index.byToken.has('google-chrome')).toBe(true)
-    expect(index.byToken.size).toBe(4)
+    expect(index.byToken.size).toBe(mockCasks.length)
   })
 
   test('should match apps by exact bundle name', () => {
@@ -100,7 +104,9 @@ test('AppMatcher', () => {
 
     expect(matchResult.bestMatch).toBeDefined()
     expect(matchResult.bestMatch?.cask.token).toBe('visual-studio-code')
-    expect(matchResult.bestMatch?.confidence).toBeGreaterThan(0.8)
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThan(
+      MIN_CONFIDENCE_THRESHOLD,
+    )
   })
 
   test('should match "YubiKey Manager" using normalized cask name match', () => {
@@ -121,7 +127,9 @@ test('AppMatcher', () => {
     expect(matchResult.bestMatch).toBeDefined()
     expect(matchResult.bestMatch?.cask.token).toBe('yubico-yubikey-manager')
     expect(matchResult.bestMatch?.matchType).toBe('name-exact')
-    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(0.98)
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(
+      HIGH_CONFIDENCE_THRESHOLD,
+    )
   })
 
   test('should match "Quit All" using hyphen-less normalized cask name match', () => {
@@ -141,7 +149,9 @@ test('AppMatcher', () => {
     expect(matchResult.bestMatch).toBeDefined()
     expect(matchResult.bestMatch?.cask.token).toBe('quit-all')
     expect(matchResult.bestMatch?.matchType).toBe('name-exact')
-    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(0.98)
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(
+      HIGH_CONFIDENCE_THRESHOLD,
+    )
   })
 
   test('should handle apps with no matches', () => {

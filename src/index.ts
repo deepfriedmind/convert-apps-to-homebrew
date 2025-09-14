@@ -107,8 +107,14 @@ async function main() {
     // Parse command line arguments
     const options = parseArguments()
 
+    // Log levels for consola
+    const CONSOLA_VERBOSE_LEVEL = 4
+    const CONSOLA_DEFAULT_LEVEL = 3
+
     // Configure consola log level based on verbose flag
-    consola.level = options.verbose ? 4 : 3
+    consola.level = options.verbose
+      ? CONSOLA_VERBOSE_LEVEL
+      : CONSOLA_DEFAULT_LEVEL
 
     // Set up enhanced error handling
     setupGlobalErrorHandlers(options.verbose)

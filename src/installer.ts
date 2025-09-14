@@ -14,15 +14,20 @@ import { ConvertAppsError, ErrorType } from './types.ts'
 import { executeCommand, pluralize } from './utils.ts'
 
 /**
+ * Summary separator length
+ */
+const SUMMARY_SEPARATOR_LENGTH = 50
+
+/**
  * Get installation summary for display
  */
 export function getInstallationSummary(result: InstallationResult): string {
   const lines: string[] = []
 
   if (result.dryRun) {
-    lines.push('🔍 DRY RUN SUMMARY', '═'.repeat(50))
+    lines.push('DRY RUN SUMMARY', '═'.repeat(SUMMARY_SEPARATOR_LENGTH))
   } else {
-    lines.push('📦 INSTALLATION SUMMARY', '═'.repeat(50))
+    lines.push('INSTALLATION SUMMARY', '═'.repeat(SUMMARY_SEPARATOR_LENGTH))
   }
 
   if (result.installed.length > 0) {
@@ -34,7 +39,7 @@ export function getInstallationSummary(result: InstallationResult): string {
   }
 
   if (result.failed.length > 0) {
-    lines.push(`❌ Failed to install: ${result.failed.length}`)
+    lines.push(`Failed to install: ${result.failed.length}`)
 
     for (const app of result.failed) {
       lines.push(
@@ -104,7 +109,10 @@ export async function installApps(
  */
 export async function validateInstallationPrerequisites(): Promise<void> {
   // Check if Homebrew is available
-  const brewCheck = await executeCommand(BREW_COMMANDS.VERSION, 5000)
+  const brewCheck = await executeCommand(
+    BREW_COMMANDS.VERSION,
+    DEFAULT_CONFIG.BREW_COMMAND_TIMEOUT,
+  )
 
   if (!brewCheck.success) {
     throw new ConvertAppsError(

@@ -3,6 +3,9 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
+const EXPECTED_OPTIONS_COUNT = 3
+
 import {
   displayFinalSummary,
   displayInstallationPlan,
@@ -309,7 +312,7 @@ describe('Mac App Store labeling integration', () => {
     })
 
     // Ensure we have 3 options
-    expect(options.length).toBe(3)
+    expect(options.length).toBe(EXPECTED_OPTIONS_COUNT)
 
     // Test first app: regular cask with different brew name
     expect(options[0]?.label).toBe('Regular Cask')

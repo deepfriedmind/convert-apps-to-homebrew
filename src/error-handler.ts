@@ -9,11 +9,17 @@ import terminalLink from 'terminal-link'
 import { EXIT_CODES, MESSAGES } from './constants.ts'
 import { ConvertAppsError, ErrorType } from './types.ts'
 
+const MS_TO_SECONDS = 1000
+const PROGRESS_UPDATE_THRESHOLD = 1000
+const LONG_OPERATION_THRESHOLD = 5000
+const PROGRESS_BAR_WIDTH = 20
+const PERCENTAGE_MULTIPLIER = 100
+
 /**
  * Enhanced error handler with context and recovery suggestions
  */
 export class ErrorHandler {
-  private verbose: boolean
+  private readonly verbose: boolean
 
   constructor(verbose = false) {
     this.verbose = verbose
@@ -185,7 +191,7 @@ export class ProgressTracker {
    */
   completeOperation(operation: string, success = true): void {
     const elapsed = Date.now() - this.startTime
-    const elapsedSeconds = (elapsed / 1000).toFixed(1)
+    const elapsedSeconds = (elapsed / MS_TO_SECONDS).toFixed(1)
 
     if (success) {
       consola.success(`${operation} completed in ${elapsedSeconds}s`)
@@ -217,7 +223,7 @@ export class ProgressTracker {
     const sinceLastUpdate = now - this.lastUpdate
 
     // Only show updates if enough time has passed (avoid spam)
-    if (sinceLastUpdate < 1000 && current !== total) {
+    if (sinceLastUpdate < PROGRESS_UPDATE_THRESHOLD && current !== total) {
       return
     }
 
@@ -226,14 +232,14 @@ export class ProgressTracker {
     let progressMessage = message
 
     if (current !== undefined && total !== undefined) {
-      const percentage = Math.round((current / total) * 100)
+      const percentage = Math.round((current / total) * PERCENTAGE_MULTIPLIER)
       const progressBar = this.createProgressBar(current, total)
       progressMessage = `${message} ${progressBar} ${current}/${total} (${percentage}%)`
     }
 
-    if (elapsed > 5000) {
+    if (elapsed > LONG_OPERATION_THRESHOLD) {
       // Show elapsed time for long operations
-      const elapsedSeconds = Math.round(elapsed / 1000)
+      const elapsedSeconds = Math.round(elapsed / MS_TO_SECONDS)
       progressMessage += ` [${elapsedSeconds}s]`
     }
 
@@ -246,7 +252,7 @@ export class ProgressTracker {
   private createProgressBar(
     current: number,
     total: number,
-    width = 20,
+    width = PROGRESS_BAR_WIDTH,
   ): string {
     const percentage = current / total
     const filled = Math.round(width * percentage)

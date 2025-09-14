@@ -33,6 +33,14 @@ const HOMEBREW_API = {
 } as const
 
 /**
+ * Time conversion constants
+ */
+const MS_TO_SECONDS = 1000
+const MS_TO_HOURS = 60 * MS_TO_SECONDS
+const BYTES_TO_KB = 1024
+const BYTES_TO_KB_ALT = 100
+
+/**
  * Cache configuration
  */
 const CACHE_CONFIG = {
@@ -43,7 +51,7 @@ const CACHE_CONFIG = {
   /** Request timeout in milliseconds */
   REQUEST_TIMEOUT: 30_000,
   /** Cache TTL in milliseconds (24 hours) */
-  TTL: 24 * 60 * 60 * 1000,
+  TTL: 24 * MS_TO_HOURS,
   /** Cache version for invalidation */
   VERSION: '1.0.0',
 } as const
@@ -172,9 +180,7 @@ class HomebrewApiClient {
     consola.debug('Cask data cached successfully')
 
     if (spinnerIndicator) {
-      spinnerIndicator.stop(
-        `Successfully loaded ${data.length} casks from Homebrew API`,
-      )
+      spinnerIndicator.stop(`Loaded ${data.length} casks from Homebrew API`)
     }
   }
 
@@ -272,7 +278,7 @@ class HomebrewApiClient {
 
       if (spinnerIndicator) {
         spinnerIndicator.stop(
-          `Request timed out after ${CACHE_CONFIG.REQUEST_TIMEOUT / 1000} seconds`,
+          `Request timed out after ${CACHE_CONFIG.REQUEST_TIMEOUT / MS_TO_SECONDS} seconds`,
           1,
         )
       }
@@ -353,7 +359,9 @@ class HomebrewApiClient {
         ? Number.parseInt(contentLength, 10)
         : 0
 
-    return totalBytes > 0 ? ` (${Math.round(totalBytes / 1000)} kB)` : ''
+    return totalBytes > 0
+      ? ` (${Math.round(totalBytes / BYTES_TO_KB_ALT)} kB)`
+      : ''
   }
 
   /**
@@ -484,7 +492,7 @@ class HomebrewApiClient {
       await fs.writeFile(this.cachePath, compressedData)
 
       consola.debug(
-        `Cached ${casks.length} casks (${Math.round(compressedData.length / 1024)}KB compressed)`,
+        `Cached ${casks.length} casks (${Math.round(compressedData.length / BYTES_TO_KB)}KB compressed)`,
       )
     } catch (error) {
       // Don't throw on cache save failures, just log

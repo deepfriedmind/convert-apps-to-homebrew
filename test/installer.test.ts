@@ -3,6 +3,9 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+
+const SUMMARY_SEPARATOR_LENGTH = 50
+
 import { getInstallationSummary } from '../src/installer.ts'
 import type {
   AppInfo,
@@ -23,7 +26,7 @@ describe('getInstallationSummary', () => {
 
     const summary = getInstallationSummary(result)
     expect(summary).toContain('DRY RUN SUMMARY')
-    expect(summary).toContain('═'.repeat(50))
+    expect(summary).toContain('═'.repeat(SUMMARY_SEPARATOR_LENGTH))
   })
 
   test('should create installation summary with successful installs', () => {

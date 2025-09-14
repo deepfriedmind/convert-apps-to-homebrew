@@ -383,6 +383,38 @@ export interface OperationSummary {
   unavailable: number
 }
 
+/**
+ * Options for the findCaskNameMatches function
+ */
+export interface FindCaskNameMatchesOptions {
+  /** Information about the app being matched */
+  appInfo: AppInfo
+  /** Indexed cask data for efficient lookup */
+  index: CaskIndex
+  /** Normalized app name for exact matching */
+  originalAppNameNormalized: string
+  /** Normalized app name with hyphens removed for fuzzy matching */
+  originalAppNameNormalizedNoHyphens: string
+  /** Array to accumulate matches */
+  matches: CaskMatch[]
+}
+
+/**
+ * Options for the addBrewNameMatches function
+ */
+export interface AddBrewNameMatchesOptions {
+  /** Casks to potentially match against */
+  casks: HomebrewCask[]
+  /** Brew name to match */
+  brewName: string
+  /** Source of the match for debugging */
+  source: string
+  /** Confidence level for this type of match */
+  confidence: number
+  /** Array to accumulate matches */
+  matches: CaskMatch[]
+}
+
 type ErrorTypeValue = (typeof ErrorType)[keyof typeof ErrorType]
 
 /**
