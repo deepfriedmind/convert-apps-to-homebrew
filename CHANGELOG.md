@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.1...1.3.2) (2025-09-14)
+
+### Bug Fixes
+
+* 🐛 biome issues ([e581961](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/e581961e22d2ea9ceddb134fd1274e4b3ebd76b9))
+* 🐛 replace `--force` flag with `--adopt` ([71b34d1](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/71b34d11aa90cbafca8116def6379118c9cc844b))
+* **index:** 🐛 remove redundant error type annotation in main catch ([0f471c4](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/0f471c4665ad87125f169e6cfbefd8af4e3404e5))
+
 ## [1.3.1](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.0...1.3.1) (2025-07-29)
 
 ## [1.3.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.2.4...1.3.0) (2025-07-19)
