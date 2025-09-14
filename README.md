@@ -7,7 +7,7 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/deepfriedmind/convert-apps-to-homebrew)
 [![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?logo=biome)](https://biomejs.dev)
 
-A CLI tool for macOS that automatically discovers applications in your `/Applications` directory and converts them to Homebrew-managed installations.
+A CLI tool for macOS that automatically discovers apps in your `/Applications` directory and converts them to Homebrew-managed installations, i.e. convert apps to brew.
 
 ![Screenshot](screenshot@2x.webp)
 
