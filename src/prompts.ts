@@ -6,7 +6,7 @@ import { box, colors } from 'consola/utils'
 import terminalLink from 'terminal-link'
 import packageJson from '../package.json' with { type: 'json' }
 import type { AppInfo } from './types.ts'
-import { formatList, pluralize } from './utils.ts'
+import { formatList, inlineCode, pluralize } from './utils.ts'
 
 /**
  * Display final summary after installation
@@ -204,7 +204,7 @@ function displayAppSummary(apps: AppInfo[]): void {
 
   consola.log(
     box(
-      `• The original .app files will be replaced by Homebrew's force install.
+      `• The original .app files will be replaced via Homebrew's ${inlineCode('--adopt')} install.
 • Some app installations may require entering an administrator password.`,
       { style: { borderColor: 'yellow' }, title: '💡 Note' },
     ),

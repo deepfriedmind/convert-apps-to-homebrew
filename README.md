@@ -123,7 +123,7 @@ brew install node
 #### "Permission denied"
 
 - Ensure you have read access to `/Applications`
-- For cask installations, Homebrew's --force flag is used to overwrite existing applications
+- Homebrew's `--adopt` flag is used to manage existing applications
 
 #### "No applications found"
 

@@ -93,13 +93,7 @@ Notes:
   • The tool will scan your Applications directory for .app bundles
   • It fetches the Homebrew cask database for fast batch matching
   • You can interactively select which apps to install via Homebrew
-  • Original .app files are overwritten using Homebrew's --force flag
-  • Use --dry-run to preview changes without making them
-  • Use --ignore to skip specific applications by name
-  • Use --ignore-app-store to skip Mac App Store applications
-  • Use --force-refresh-cache to update the cask database
-  • Use --fallback-to-cli to use individual brew commands instead of using the homebrew API (much slower)
-  • Use --matching-threshold to adjust fuzzy matching sensitivity
+  • Original .app files are taken over by Homebrew's ${inlineCode('--adopt')} flag
 
 Requirements:
   • Mac App Store detection requires 'mas' CLI tool: ${terminalLink(colors.blue('https://github.com/mas-cli/mas'), 'https://github.com/mas-cli/mas')}

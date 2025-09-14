@@ -33,23 +33,23 @@ describe('constants', () => {
 
     test('INSTALL_CASK should generate correct command for single cask', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['test-app'])
-      expect(result).toBe('brew install --cask --force "test-app"')
+      expect(result).toBe('brew install --cask --adopt "test-app"')
     })
 
     test('INSTALL_CASK should generate correct command for multiple casks', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['app1', 'app2', 'app3'])
-      expect(result).toBe('brew install --cask --force "app1" "app2" "app3"')
+      expect(result).toBe('brew install --cask --adopt "app1" "app2" "app3"')
     })
 
     test('INSTALL_CASK should handle empty array', () => {
       const result = BREW_COMMANDS.INSTALL_CASK([])
-      expect(result).toBe('brew install --cask --force ')
+      expect(result).toBe('brew install --cask --adopt ')
     })
 
     test('INSTALL_CASK should quote names with spaces', () => {
       const result = BREW_COMMANDS.INSTALL_CASK(['Test App', 'another-app'])
       expect(result).toBe(
-        'brew install --cask --force "Test App" "another-app"',
+        'brew install --cask --adopt "Test App" "another-app"',
       )
     })
 
