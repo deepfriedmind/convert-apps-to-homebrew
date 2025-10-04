@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.4](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.3...1.3.4) (2025-10-04)
+
+### Bug Fixes
+
+* **test:** 🐛 🚨 replace test with describe for AppMatcher tests ([d992fc4](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/d992fc4a8eb2888b3cab41d750084a39b1da8b3b))
+
 ## [1.3.3](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.2...1.3.3) (2025-09-14)
 
 ### Bug Fixes
