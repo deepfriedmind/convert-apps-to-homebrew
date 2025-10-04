@@ -3,6 +3,7 @@
  */
 
 import { expect, test } from 'bun:test'
+import { describe } from 'node:test'
 import { AppMatcher } from '../src/app-matcher.ts'
 import type { AppInfo, HomebrewCask } from '../src/types.ts'
 
@@ -81,7 +82,7 @@ const mockApp: AppInfo = {
   status: 'unavailable',
 }
 
-test('AppMatcher', () => {
+describe('AppMatcher', () => {
   test('should initialize correctly', () => {
     const matcher = new AppMatcher({})
     expect(matcher).toBeInstanceOf(AppMatcher)
