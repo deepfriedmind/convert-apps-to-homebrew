@@ -53,6 +53,10 @@ convert-apps-to-homebrew
 
 ## Development
 
+This project was based on my [Bun TS CLI Starter](https://github.com/deepfriedmind/bun-ts-cli-starter).
+
+[![bun-ts-cli-starter](bun-ts-cli-starter.svg)](https://github.com/deepfriedmind/bun-ts-cli-starter)
+
 ### Building from source
 
 ```bash
