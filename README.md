@@ -33,7 +33,7 @@ convert-apps-to-homebrew
 
 ## Requirements
 
-- **macOS**: This tool is designed specifically for macOS
+- **macOS 10.15+**: This tool is designed specifically for macOS
 - **Node.js 16+**: Required for running the application (bun required for development)
 - **Homebrew**: Must be installed and accessible in PATH
 - **[mas-cli](https://github.com/mas-cli/mas)** (optional): For Mac App Store integration - install with `brew install mas`
@@ -53,7 +53,7 @@ convert-apps-to-homebrew
 
 ## Development
 
-This project was based on my [Bun TS CLI Starter](https://github.com/deepfriedmind/bun-ts-cli-starter).
+This project is based on my **[Bun TS CLI Starter](https://github.com/deepfriedmind/bun-ts-cli-starter)**.
 
 [![bun-ts-cli-starter](bun-ts-cli-starter.svg)](https://github.com/deepfriedmind/bun-ts-cli-starter)
 
