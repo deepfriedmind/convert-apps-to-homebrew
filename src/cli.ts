@@ -150,9 +150,9 @@ For more help:
 /**
  * Display welcome message
  */
-export function displayWelcome(options: CommandOptions) {
+export async function displayWelcome(options: CommandOptions) {
   consola.log(
-    box(generateLogo(packageJson.displayName), {
+    box(await generateLogo(packageJson.displayName), {
       style: { borderColor: 'yellowBright' },
       title: '🍺',
     }),

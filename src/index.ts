@@ -120,7 +120,7 @@ async function main() {
     setupGlobalErrorHandlers(options.verbose)
     const progressTracker = new ProgressTracker()
 
-    displayWelcome(options)
+    await displayWelcome(options)
 
     // Validate prerequisites
     progressTracker.startOperation('validating prerequisites')
