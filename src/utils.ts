@@ -5,13 +5,100 @@
 import type { Buffer } from 'node:buffer'
 
 import { exec, spawn } from 'node:child_process'
+import fs, { promises as fsPromises } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { promisify } from 'node:util'
 import consola from 'consola'
 import { colors } from 'consola/utils'
 import { render } from 'oh-my-logo'
 import packageJson from '../package.json' with { type: 'json' }
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
-import type { BrewCommandResult } from './types.ts'
+import type { BrewCommandResult, BundleIdCacheEntry } from './types.ts'
+
+const MS_PER_SECOND = 1000
+const SECONDS_PER_MINUTE = 60
+const MS_TO_MINUTES = SECONDS_PER_MINUTE * MS_PER_SECOND
+const MINUTES_PER_HOUR = 60
+const MS_TO_HOURS = MINUTES_PER_HOUR * MS_TO_MINUTES
+const HOURS_PER_DAY = 24
+const CACHE_TTL_DAYS = 7
+const BUNDLE_ID_CACHE_CONFIG = {
+  CACHE_DIR: `.cache/${packageJson.name}`,
+  CACHE_FILE: 'bundle-ids.json',
+  TTL: CACHE_TTL_DAYS * HOURS_PER_DAY * MS_TO_HOURS,
+  VERSION: '1.0.0',
+} as const
+
+let bundleIdCache: BundleIdCacheEntry | null = null
+
+function getBundleIdCachePath(): string {
+  const homeDirectory = os.homedir()
+  const cacheDirectory = path.join(
+    homeDirectory,
+    BUNDLE_ID_CACHE_CONFIG.CACHE_DIR,
+  )
+
+  return path.join(cacheDirectory, BUNDLE_ID_CACHE_CONFIG.CACHE_FILE)
+}
+
+function loadBundleIdCache(): void {
+  if (bundleIdCache !== null) {
+    return
+  }
+
+  try {
+    const cachePath = getBundleIdCachePath()
+    const data = fs.readFileSync(cachePath, 'utf-8')
+    const cacheEntry = JSON.parse(data) as BundleIdCacheEntry
+
+    if (
+      cacheEntry.version === BUNDLE_ID_CACHE_CONFIG.VERSION &&
+      Date.now() - cacheEntry.timestamp < BUNDLE_ID_CACHE_CONFIG.TTL
+    ) {
+      bundleIdCache = cacheEntry
+      consola.debug(
+        `Loaded bundle ID cache with ${Object.keys(cacheEntry.data).length} entries`,
+      )
+    } else {
+      bundleIdCache = {
+        data: {},
+        timestamp: 0,
+        version: BUNDLE_ID_CACHE_CONFIG.VERSION,
+      }
+    }
+  } catch {
+    bundleIdCache = {
+      data: {},
+      timestamp: 0,
+      version: BUNDLE_ID_CACHE_CONFIG.VERSION,
+    }
+  }
+}
+
+async function saveBundleIdCache(): Promise<void> {
+  if (bundleIdCache === null) {
+    return
+  }
+
+  try {
+    const cachePath = getBundleIdCachePath()
+    const cacheDirectory = path.dirname(cachePath)
+
+    await fsPromises.mkdir(cacheDirectory, { recursive: true })
+
+    bundleIdCache.timestamp = Date.now()
+    await fsPromises.writeFile(
+      cachePath,
+      JSON.stringify(bundleIdCache),
+      'utf-8',
+    )
+  } catch (error) {
+    consola.debug(
+      `Failed to save bundle ID cache: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}
 
 /**
  * Generate an ASCII art logo
@@ -180,6 +267,54 @@ export function normalizeAppName(appName: string): string {
     .replaceAll(/[^a-z0-9\-_.]/g, '')
     .replaceAll(/-+/g, '-') // Replace multiple consecutive hyphens with single hyphen
     .replaceAll(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+}
+
+export function normalizeBundleIdentifier(bundleId: string): string {
+  return bundleId.trim().toLowerCase()
+}
+
+export async function readBundleIdentifier(
+  appPath: string,
+): Promise<string | null> {
+  await loadBundleIdCache()
+
+  if (bundleIdCache && appPath in bundleIdCache.data) {
+    const cachedValue = bundleIdCache.data[appPath]
+    return cachedValue === undefined ? null : cachedValue
+  }
+
+  const infoPlistPath = path.join(appPath, 'Contents', 'Info.plist')
+
+  try {
+    await fsPromises.access(infoPlistPath)
+  } catch {
+    if (bundleIdCache) {
+      bundleIdCache.data[appPath] = null
+      await saveBundleIdCache()
+    }
+    return null
+  }
+
+  const command = `/usr/bin/plutil -extract CFBundleIdentifier raw -o - ${escapeShellArgument(infoPlistPath)}`
+  const result = await executeCommand(command)
+
+  if (!result.success) {
+    if (bundleIdCache) {
+      bundleIdCache.data[appPath] = null
+      await saveBundleIdCache()
+    }
+    return null
+  }
+
+  const bundleId = result.stdout.trim()
+  const finalBundleId = bundleId === '' ? null : bundleId
+
+  if (bundleIdCache) {
+    bundleIdCache.data[appPath] = finalBundleId
+    await saveBundleIdCache()
+  }
+
+  return finalBundleId
 }
 
 /**

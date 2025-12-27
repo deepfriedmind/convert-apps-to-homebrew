@@ -25,6 +25,7 @@ import {
   extractAppName,
   normalizeAppName,
   parseCommandOutput,
+  readBundleIdentifier,
   shouldIgnoreApp,
 } from './utils.ts'
 
@@ -38,7 +39,7 @@ export async function discoverApps(config: ScannerConfig): Promise<AppInfo[]> {
   const appPaths = await getApplicationPaths(config.applicationsDir)
   const installedCaskSet = await getInstalledCaskSet()
 
-  const apps = createInitialAppInfoList(
+  const apps = await createInitialAppInfoList(
     appPaths,
     config,
     masApps,
@@ -120,32 +121,30 @@ function createInitialAppInfoList(
   config: ScannerConfig,
   masApps: MasAppInfo[],
   installedCaskSet: Set<string>,
-): AppInfo[] {
-  const apps: AppInfo[] = []
-
-  for (const appPath of appPaths) {
-    const appInfo = createAppInfo(appPath, config, masApps, installedCaskSet)
-    apps.push(appInfo)
-  }
-
-  return apps
+): Promise<AppInfo[]> {
+  const appInfoPromises = appPaths.map((appPath) =>
+    createAppInfo(appPath, config, masApps, installedCaskSet),
+  )
+  return Promise.all(appInfoPromises)
 }
 
 /**
  * Create app info object for a single application
  */
-function createAppInfo(
+async function createAppInfo(
   appPath: string,
   config: ScannerConfig,
   masApps: MasAppInfo[],
   installedCaskSet: Set<string>,
-): AppInfo {
+): Promise<AppInfo> {
   const originalName = extractAppName(appPath)
   const brewName = normalizeAppName(originalName)
   const fromMacAppStore = isAppFromMacAppStore(originalName, masApps)
+  const bundleId = await readBundleIdentifier(appPath)
 
   const baseAppInfo = {
     appPath,
+    ...(bundleId ? { bundleId } : {}),
     brewName,
     fromMacAppStore,
     originalName,

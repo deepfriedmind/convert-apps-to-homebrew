@@ -10,6 +10,7 @@ export interface AppInfo {
   alreadyInstalled: boolean
   /** Full path to the .app file */
   appPath: string
+  bundleId?: string
   /** Normalized name for Homebrew (e.g., "google-chrome") */
   brewName: string
   /** Type of Homebrew package */
@@ -61,6 +62,15 @@ export interface CaskCacheEntry {
   data: HomebrewCask[]
   /** HTTP ETag for conditional requests */
   etag?: string
+  /** When the cache was created */
+  timestamp: number
+  /** Cache format version */
+  version: string
+}
+
+export interface BundleIdCacheEntry {
+  /** Map of app paths to bundle IDs */
+  data: Record<string, string | null>
   /** When the cache was created */
   timestamp: number
   /** Cache format version */
@@ -149,6 +159,7 @@ export interface HomebrewCask {
     cask?: string[]
     formula?: string[]
   }
+  deprecated?: boolean
   /** Dependencies */
   depends_on?: {
     cask?: string[]
@@ -157,6 +168,11 @@ export interface HomebrewCask {
   }
   /** Brief description */
   desc: string
+  disable_date?: string
+  disable_reason?: string
+  disable_replacement_formula?: string | null
+  disable_replacement_cask?: string | null
+  disabled?: boolean
   /** Full token with tap prefix */
   full_token: string
   /** Homepage URL */
@@ -341,6 +357,7 @@ interface HomebrewConfig {
  * Specific match types within strategies
  */
 type MatchType =
+  | 'bundle-id'
   | 'exact-app-bundle'
   | 'name-exact'
   | 'normalized-app-bundle'
@@ -395,8 +412,6 @@ export interface FindCaskNameMatchesOptions {
   originalAppNameNormalized: string
   /** Normalized app name with hyphens removed for fuzzy matching */
   originalAppNameNormalizedNoHyphens: string
-  /** Array to accumulate matches */
-  matches: CaskMatch[]
 }
 
 /**

@@ -7,9 +7,9 @@ import { describe } from 'node:test'
 import { AppMatcher } from '../src/app-matcher.ts'
 import type { AppInfo, HomebrewCask } from '../src/types.ts'
 
-// Confidence thresholds for testing
 const MIN_CONFIDENCE_THRESHOLD = 0.8
 const HIGH_CONFIDENCE_THRESHOLD = 0.98
+const NO_HYPHENS_CONFIDENCE_THRESHOLD = 0.88
 
 // Mock data for testing
 const mockCasks: HomebrewCask[] = [
@@ -71,6 +71,26 @@ const mockCasks: HomebrewCask[] = [
     tap: 'homebrew/cask',
     token: 'yubico-yubikey-manager',
   },
+  {
+    artifacts: [{ app: ['Diashapes.app'] }],
+    desc: 'Additional shapes for Dia',
+    full_token: 'homebrew/cask/diashapes',
+    homepage: 'http://dia-installer.de/shapes/index.html',
+    name: ['Dia'],
+    old_tokens: [],
+    tap: 'homebrew/cask',
+    token: 'diashapes',
+  },
+  {
+    artifacts: [{ app: ['Dia.app'] }],
+    desc: 'Web browser',
+    full_token: 'homebrew/cask/thebrowsercompany-dia',
+    homepage: 'https://www.diabrowser.com/',
+    name: ['Dia'],
+    old_tokens: [],
+    tap: 'homebrew/cask',
+    token: 'thebrowsercompany-dia',
+  },
 ]
 
 const mockApp: AppInfo = {
@@ -117,9 +137,9 @@ describe('AppMatcher', () => {
     const yubiKeyApp: AppInfo = {
       alreadyInstalled: false,
       appPath: '/Applications/YubiKey Manager.app',
-      brewName: 'yubikey-manager', // or what it would be detected as
+      brewName: 'yubikey-manager',
       brewType: 'unavailable',
-      originalName: 'YubiKey Manager', // Input with space
+      originalName: 'YubiKey Manager',
       status: 'unavailable',
     }
 
@@ -129,7 +149,7 @@ describe('AppMatcher', () => {
     expect(matchResult.bestMatch?.cask.token).toBe('yubico-yubikey-manager')
     expect(matchResult.bestMatch?.matchType).toBe('name-exact')
     expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(
-      HIGH_CONFIDENCE_THRESHOLD,
+      NO_HYPHENS_CONFIDENCE_THRESHOLD,
     )
   })
 
@@ -139,10 +159,10 @@ describe('AppMatcher', () => {
 
     const quitAllApp: AppInfo = {
       alreadyInstalled: false,
-      appPath: '/Applications/Quit All.app', // Input with space
-      brewName: 'quit-all', // or what it would be detected as
+      appPath: '/Applications/Quit All.app',
+      brewName: 'quit-all',
       brewType: 'unavailable',
-      originalName: 'Quit All', // Input with space
+      originalName: 'Quit All',
       status: 'unavailable',
     }
 
@@ -151,8 +171,94 @@ describe('AppMatcher', () => {
     expect(matchResult.bestMatch?.cask.token).toBe('quit-all')
     expect(matchResult.bestMatch?.matchType).toBe('name-exact')
     expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(
+      NO_HYPHENS_CONFIDENCE_THRESHOLD,
+    )
+  })
+
+  test('should prefer app bundle match when names are ambiguous', () => {
+    const matcher = new AppMatcher({})
+    const index = matcher.buildIndex(mockCasks)
+
+    const diaApp: AppInfo = {
+      alreadyInstalled: false,
+      appPath: '/Applications/Dia.app',
+      brewName: 'dia',
+      brewType: 'unavailable',
+      originalName: 'Dia',
+      status: 'unavailable',
+    }
+
+    const matchResult = matcher.matchApp(diaApp, index)
+
+    expect(matchResult.bestMatch).toBeDefined()
+    expect(matchResult.bestMatch?.cask.token).toBe('thebrowsercompany-dia')
+    expect(matchResult.bestMatch?.matchType).toBe('exact-app-bundle')
+    expect(matchResult.bestMatch?.confidence).toBeGreaterThanOrEqual(
       HIGH_CONFIDENCE_THRESHOLD,
     )
+  })
+
+  test('should return no matches when only ambiguous names exist', () => {
+    const matcher = new AppMatcher({})
+    const ambiguousCasks: HomebrewCask[] = [
+      {
+        artifacts: [{ app: ['Diashapes.app'] }],
+        desc: 'Additional shapes for Dia',
+        full_token: 'homebrew/cask/diashapes',
+        homepage: 'http://dia-installer.de/shapes/index.html',
+        name: ['Dia'],
+        old_tokens: [],
+        tap: 'homebrew/cask',
+        token: 'diashapes',
+      },
+      {
+        artifacts: [{ app: ['Dia Browser.app'] }],
+        desc: 'Web browser',
+        full_token: 'homebrew/cask/thebrowsercompany-dia',
+        homepage: 'https://www.diabrowser.com/',
+        name: ['Dia'],
+        old_tokens: [],
+        tap: 'homebrew/cask',
+        token: 'thebrowsercompany-dia',
+      },
+    ]
+
+    const index = matcher.buildIndex(ambiguousCasks)
+
+    const diaApp: AppInfo = {
+      alreadyInstalled: false,
+      appPath: '/Applications/Dia.app',
+      brewName: 'dia',
+      brewType: 'unavailable',
+      originalName: 'Dia',
+      status: 'unavailable',
+    }
+
+    const matchResult = matcher.matchApp(diaApp, index)
+
+    expect(matchResult.bestMatch).toBeUndefined()
+    expect(matchResult.matches).toHaveLength(0)
+  })
+
+  test('should match using bundle identifier when available', () => {
+    const matcher = new AppMatcher({})
+    const index = matcher.buildIndex(mockCasks)
+
+    const chromeApp: AppInfo = {
+      alreadyInstalled: false,
+      appPath: '/Applications/Chrome.app',
+      brewName: 'chrome',
+      brewType: 'unavailable',
+      bundleId: 'com.google.Chrome',
+      originalName: 'Chrome',
+      status: 'unavailable',
+    }
+
+    const matchResult = matcher.matchApp(chromeApp, index)
+
+    expect(matchResult.bestMatch).toBeDefined()
+    expect(matchResult.bestMatch?.cask.token).toBe('google-chrome')
+    expect(matchResult.bestMatch?.matchType).toBe('bundle-id')
   })
 
   test('should handle apps with no matches', () => {

@@ -15,15 +15,22 @@ import type {
   MatchingConfig,
   MatchingStrategy,
 } from './types.ts'
-import { normalizeAppName } from './utils.ts'
+import { normalizeAppName, normalizeBundleIdentifier } from './utils.ts'
 
 /**
  * Default matching configuration
  */
 const DEFAULT_MIN_CONFIDENCE = 0.6
 const CONSOLA_DEBUG_LEVEL = 4
-const BREW_NAME_CONFIDENCE = 0.9
-const BREW_NAME_NO_HYPHENS_CONFIDENCE = 0.88
+const BUNDLE_ID_CONFIDENCE = 0.99
+const APP_BUNDLE_CONFIDENCE = 0.98
+const NAME_EXACT_CONFIDENCE = 0.9
+const NAME_NO_HYPHENS_CONFIDENCE = 0.88
+const BREW_NAME_CONFIDENCE = 0.85
+const BREW_NAME_NO_HYPHENS_CONFIDENCE = 0.83
+
+const BUNDLE_ID_SUFFIXES = ['.plist', '.binarycookies', '.sqlite', '.sqlite3']
+const BUNDLE_IDENTIFIER_PATTERN = /^[A-Za-z0-9._-]+$/
 
 const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
   maxMatches: 5,
@@ -67,6 +74,10 @@ export class AppMatcher {
    * Index a single cask into all relevant indexes
    */
   private indexCask(cask: HomebrewCask, index: CaskIndex): void {
+    if (this.shouldSkipCask(cask)) {
+      return
+    }
+
     // Index by token
     index.byToken.set(cask.token, cask)
 
@@ -77,9 +88,10 @@ export class AppMatcher {
     this.indexCaskArtifacts(cask, index)
   }
 
-  /**
-   * Index cask names into the normalized name index
-   */
+  private shouldSkipCask(cask: HomebrewCask): boolean {
+    return cask.disabled === true || cask.deprecated === true
+  }
+
   private indexCaskNames(cask: HomebrewCask, index: CaskIndex): void {
     for (const name of cask.name) {
       const normalized = normalizeAppName(name)
@@ -87,19 +99,14 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Index cask artifacts (app bundles and bundle IDs)
-   */
   private indexCaskArtifacts(cask: HomebrewCask, index: CaskIndex): void {
     for (const artifact of cask.artifacts) {
       this.indexAppBundles(artifact, cask, index)
       this.indexBundleIds(artifact, cask, index)
+      this.indexBundleIdsFromZap(artifact, cask, index)
     }
   }
 
-  /**
-   * Index app bundles from an artifact
-   */
   private indexAppBundles(
     artifact: { app?: unknown[] },
     cask: HomebrewCask,
@@ -146,9 +153,6 @@ export class AppMatcher {
     return null
   }
 
-  /**
-   * Index bundle IDs from uninstall instructions
-   */
   private indexBundleIds(
     artifact: { uninstall?: unknown[] },
     cask: HomebrewCask,
@@ -173,29 +177,83 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Index bundle IDs from a single uninstall step
-   */
+  private indexBundleIdsFromZap(
+    artifact: { zap?: Array<{ trash?: string[]; delete?: string[] }> },
+    cask: HomebrewCask,
+    index: CaskIndex,
+  ): void {
+    if (!artifact.zap) {
+      return
+    }
+
+    for (const zapEntry of artifact.zap) {
+      const paths = [...(zapEntry.trash ?? []), ...(zapEntry.delete ?? [])]
+
+      for (const pathEntry of paths) {
+        const bundleId = this.extractBundleIdentifierFromPath(pathEntry)
+        if (bundleId) {
+          this.addToMap(index.byBundleId, bundleId, cask)
+        }
+      }
+    }
+  }
+
+  private extractBundleIdentifierFromPath(pathEntry: string): string | null {
+    const trimmedPath = pathEntry.trim()
+    if (trimmedPath === '') {
+      return null
+    }
+
+    const lastSegment = trimmedPath.split('/').at(-1)
+    if (!lastSegment) {
+      return null
+    }
+
+    const candidate = this.stripBundleIdSuffix(lastSegment)
+    if (!candidate.includes('.')) {
+      return null
+    }
+
+    if (!BUNDLE_IDENTIFIER_PATTERN.test(candidate)) {
+      return null
+    }
+
+    const normalized = normalizeBundleIdentifier(candidate)
+    return normalized === '' ? null : normalized
+  }
+
+  private stripBundleIdSuffix(value: string): string {
+    const lowerValue = value.toLowerCase()
+
+    for (const suffix of BUNDLE_ID_SUFFIXES) {
+      if (lowerValue.endsWith(suffix)) {
+        return value.slice(0, -suffix.length)
+      }
+    }
+
+    return value
+  }
+
   private indexUninstallStep(
     uninstallStep: { quit?: string; launchctl?: string },
     cask: HomebrewCask,
     index: CaskIndex,
   ): void {
-    if (uninstallStep.quit !== undefined && uninstallStep.quit !== '') {
-      this.addToMap(index.byBundleId, uninstallStep.quit, cask)
+    if (typeof uninstallStep.quit === 'string') {
+      const normalized = normalizeBundleIdentifier(uninstallStep.quit)
+      if (normalized !== '') {
+        this.addToMap(index.byBundleId, normalized, cask)
+      }
     }
 
-    if (
-      uninstallStep.launchctl !== undefined &&
-      uninstallStep.launchctl !== ''
-    ) {
-      this.addToMap(index.byBundleId, uninstallStep.launchctl, cask)
+    if (typeof uninstallStep.launchctl === 'string') {
+      const normalized = normalizeBundleIdentifier(uninstallStep.launchctl)
+      if (normalized !== '') {
+        this.addToMap(index.byBundleId, normalized, cask)
+      }
     }
   }
 
-  /**
-   * Match a single app against the cask database
-   */
   matchApp(appInfo: AppInfo, caskIndex?: CaskIndex): AppMatchResult {
     const index = caskIndex ?? this.caskIndex
 
@@ -227,9 +285,6 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Match multiple apps in batch
-   */
   matchApps(apps: AppInfo[], caskIndex?: CaskIndex): AppMatchResult[] {
     const index = caskIndex ?? this.caskIndex
 
@@ -289,9 +344,6 @@ export class AppMatcher {
     return results
   }
 
-  /**
-   * Helper method to add items to a map with arrays as values
-   */
   private addToMap<K, V>(map: Map<K, V[]>, key: K, value: V): void {
     const existing = map.get(key)
 
@@ -304,9 +356,6 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Remove duplicate matches (same cask token)
-   */
   private deduplicateMatches(matches: CaskMatch[]): CaskMatch[] {
     const seen = new Set<string>()
     const unique: CaskMatch[] = []
@@ -321,9 +370,6 @@ export class AppMatcher {
     return unique
   }
 
-  /**
-   * Determine the primary matching strategy used
-   */
   private determineStrategy(matches: CaskMatch[]): MatchingStrategy {
     if (matches.length === 0) return 'hybrid'
 
@@ -332,6 +378,9 @@ export class AppMatcher {
     if (!topMatch) return 'hybrid'
 
     switch (topMatch.matchType) {
+      case 'bundle-id': {
+        return 'bundle-id'
+      }
       case 'exact-app-bundle':
       case 'name-exact':
       case 'normalized-app-bundle':
@@ -344,9 +393,6 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Find matches by app bundle name
-   */
   private findAppBundleMatches(
     appInfo: AppInfo,
     index: CaskIndex,
@@ -356,35 +402,38 @@ export class AppMatcher {
     const originalAppNameNormalizedNoHyphens =
       originalAppNameNormalized.replaceAll('-', '')
 
-    // Strategy 1: Exact match on cask name array
-    this.findCaskNameMatches({
+    const bundleIdMatches = this.findBundleIdMatches(appInfo, index)
+    matches.push(...bundleIdMatches)
+
+    this.findAppBundleExactMatches(originalAppNameNormalized, index, matches)
+
+    this.findBrewNameMatches(appInfo, originalAppNameNormalized, index, matches)
+
+    const nameMatches = this.findCaskNameMatches({
       appInfo,
       index,
-      matches,
       originalAppNameNormalized,
       originalAppNameNormalizedNoHyphens,
     })
 
-    // Strategy 2: Exact normalized match on app bundle
-    this.findAppBundleExactMatches(originalAppNameNormalized, index, matches)
-
-    // Strategy 3: Try with brew name variations
-    this.findBrewNameMatches(appInfo, originalAppNameNormalized, index, matches)
+    if (nameMatches.length === 1) {
+      matches.push(...nameMatches)
+    }
 
     return matches
   }
 
-  /**
-   * Find matches by exact cask name
-   */
-  private findCaskNameMatches(options: FindCaskNameMatchesOptions): void {
+  private findCaskNameMatches(
+    options: FindCaskNameMatchesOptions,
+  ): CaskMatch[] {
     const {
       appInfo,
       index,
       originalAppNameNormalized,
       originalAppNameNormalizedNoHyphens,
-      matches,
     } = options
+
+    const matches: CaskMatch[] = []
 
     for (const cask of index.byToken.values()) {
       const nameMatch = this.findCaskNameMatch(
@@ -396,14 +445,12 @@ export class AppMatcher {
 
       if (nameMatch) {
         matches.push(nameMatch)
-        break // Found a match for this cask, move to next cask
       }
     }
+
+    return matches
   }
 
-  /**
-   * Find a single cask name match
-   */
   private findCaskNameMatch(
     cask: HomebrewCask,
     originalName: string,
@@ -416,7 +463,7 @@ export class AppMatcher {
       if (caskNameNormalized === originalAppNameNormalized) {
         return {
           cask,
-          confidence: 1,
+          confidence: NAME_EXACT_CONFIDENCE,
           matchDetails: {
             matchedValue: originalName,
             source: 'cask-name-normalized-exact',
@@ -430,7 +477,7 @@ export class AppMatcher {
       if (caskNameNormalizedNoHyphens === originalAppNameNormalizedNoHyphens) {
         return {
           cask,
-          confidence: 0.98,
+          confidence: NAME_NO_HYPHENS_CONFIDENCE,
           matchDetails: {
             matchedValue: originalName,
             source: 'cask-name-normalized-no-hyphens',
@@ -443,9 +490,6 @@ export class AppMatcher {
     return null
   }
 
-  /**
-   * Find exact app bundle matches
-   */
   private findAppBundleExactMatches(
     originalAppNameNormalized: string,
     index: CaskIndex,
@@ -457,7 +501,7 @@ export class AppMatcher {
     for (const cask of exactBundleMatches) {
       matches.push({
         cask,
-        confidence: 0.95,
+        confidence: APP_BUNDLE_CONFIDENCE,
         matchDetails: {
           matchedValue: originalAppNameNormalized,
           source: 'app-bundle',
@@ -467,9 +511,40 @@ export class AppMatcher {
     }
   }
 
-  /**
-   * Find matches using brew name variations
-   */
+  private findBundleIdMatches(appInfo: AppInfo, index: CaskIndex): CaskMatch[] {
+    const bundleIdValue = appInfo.bundleId
+    if (typeof bundleIdValue !== 'string') {
+      return []
+    }
+
+    const bundleId = bundleIdValue.trim()
+    if (bundleId === '') {
+      return []
+    }
+
+    const normalizedBundleId = normalizeBundleIdentifier(bundleId)
+    if (normalizedBundleId === '') {
+      return []
+    }
+
+    const bundleIdMatches = index.byBundleId.get(normalizedBundleId) ?? []
+    const matches: CaskMatch[] = []
+
+    for (const cask of bundleIdMatches) {
+      matches.push({
+        cask,
+        confidence: BUNDLE_ID_CONFIDENCE,
+        matchDetails: {
+          matchedValue: bundleId,
+          source: 'bundle-id',
+        },
+        matchType: 'bundle-id',
+      })
+    }
+
+    return matches
+  }
+
   private findBrewNameMatches(
     appInfo: AppInfo,
     originalAppNameNormalized: string,
@@ -502,9 +577,6 @@ export class AppMatcher {
     })
   }
 
-  /**
-   * Add brew name matches to the matches array
-   */
   private addBrewNameMatches(options: AddBrewNameMatchesOptions): void {
     const { casks, brewName, source, confidence, matches } = options
 

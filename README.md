@@ -22,11 +22,15 @@ A CLI tool for macOS that automatically discovers apps in your `/Applications` d
 
 ### Installation
 
-```bash
-# Run directly with npx (recommended)
-npx convert-apps-to-homebrew@latest
+#### Run directly with npx (recommended)
 
-# Or install globally
+```bash
+npx convert-apps-to-homebrew@latest
+```
+
+#### Or install globally
+
+```bash
 npm install -g convert-apps-to-homebrew
 convert-apps-to-homebrew
 ```
