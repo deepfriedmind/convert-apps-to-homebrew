@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.5...1.4.0) (2025-12-27)
+
+### Features
+
+* ✨ improve cask matching with bundle IDs ([48bdafc](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/48bdafcdeb6794406df759f494dc67a842bf9c3a))
+
 ## [1.3.5](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.4...1.3.5) (2025-10-17)
 
 ## [1.3.4](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.3...1.3.4) (2025-10-04)
