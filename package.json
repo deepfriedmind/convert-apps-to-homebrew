@@ -39,7 +39,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun clean && bun build src/index.ts --outdir dist --target node --minify",
+    "build": "bun clean && bun build src/index.ts --outdir dist --target node --minify --banner '#!/usr/bin/env node'",
     "check": "bun fix && bun type-check && bun knip && bun test && bun run build",
     "clean": "rm -rf dist",
     "fix": "bun ultracite fix",

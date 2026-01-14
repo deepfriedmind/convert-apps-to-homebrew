@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { consola } from 'consola'
 import { discoverApps } from './app-scanner.ts'
 import {
