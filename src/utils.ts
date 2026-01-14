@@ -11,7 +11,9 @@ import path from 'node:path'
 import { promisify } from 'node:util'
 import consola from 'consola'
 import { colors } from 'consola/utils'
-import { render } from 'oh-my-logo'
+import figlet from 'figlet'
+import miniwiFont from 'figlet/importable-fonts/miniwi.js'
+import gradient from 'gradient-string'
 import packageJson from '../package.json' with { type: 'json' }
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
 import type { BrewCommandResult, BundleIdCacheEntry } from './types.ts'
@@ -106,13 +108,16 @@ async function saveBundleIdCache(): Promise<void> {
  * @param text - The text to convert into ASCII art.
  * @returns The ASCII art representation of the text, or the original text if generation fails.
  */
-export async function generateLogo(text = '') {
+export function generateLogo(text = '') {
   try {
-    return await render(text, {
-      direction: 'vertical',
-      font: 'miniwi',
-      palette: ['#d97811', '#ffec91', '#c98957'],
-    })
+    figlet.parseFont('miniwi', miniwiFont)
+
+    return gradient(['#d97811', '#ffec91', '#c98957']).multiline(
+      figlet.textSync(text, {
+        font: 'miniwi',
+        horizontalLayout: 'fitted',
+      }),
+    )
   } catch (error) {
     consola.debug('Error generating logo:', error)
     return text
