@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.4.0...1.5.0) (2026-01-14)
+
+### Features
+
+* ✨ update figlet to v1.9.4 and migrate to async ([faf56cd](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/faf56cd13b018db6007eab888281c53d376e76e8))
+
+### Reverts
+
+* Revert "refactor(deps): ♻️ replace figlet and gradient-string with oh-my-logo" ([7e1e686](https://github.com/deepfriedmind/convert-apps-to-homebrew/commit/7e1e686910ace2c29027a0aaac7e710a381a8fa7))
+
 ## [1.4.0](https://github.com/deepfriedmind/convert-apps-to-homebrew/compare/1.3.5...1.4.0) (2025-12-27)
 
 ### Features
