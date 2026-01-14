@@ -12,7 +12,7 @@ import { promisify } from 'node:util'
 import consola from 'consola'
 import { colors } from 'consola/utils'
 import figlet from 'figlet'
-import miniwiFont from 'figlet/importable-fonts/miniwi.js'
+import miniwi from 'figlet/fonts/Miniwi'
 import gradient from 'gradient-string'
 import packageJson from '../package.json' with { type: 'json' }
 import { DEFAULT_CONFIG, FILE_PATTERNS } from './constants.ts'
@@ -108,13 +108,13 @@ async function saveBundleIdCache(): Promise<void> {
  * @param text - The text to convert into ASCII art.
  * @returns The ASCII art representation of the text, or the original text if generation fails.
  */
-export function generateLogo(text = '') {
+export async function generateLogo(text = '') {
   try {
-    figlet.parseFont('miniwi', miniwiFont)
+    figlet.parseFont('Miniwi', miniwi)
 
     return gradient(['#d97811', '#ffec91', '#c98957']).multiline(
-      figlet.textSync(text, {
-        font: 'miniwi',
+      await figlet.text(text, {
+        font: 'Miniwi',
         horizontalLayout: 'fitted',
       }),
     )

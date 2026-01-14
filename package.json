@@ -66,7 +66,7 @@
     "@clack/prompts": "^0.11.0",
     "commander": "^14.0.1",
     "consola": "^3.4.2",
-    "figlet": "^1.9.1",
+    "figlet": "^1.9.4",
     "gradient-string": "^3.0.0",
     "terminal-link": "^5.0.0"
   },
